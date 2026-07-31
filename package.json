@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "next build"
+    "build": "next build && node scripts/prepare-hosting.mjs"
   },
   "dependencies": {
     "next": "^16.2.12",
