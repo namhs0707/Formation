@@ -1,0 +1,368 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formation Inspection Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 20px;
+      color: #1e293b;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    .form-card {
+      display: none;
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .form-card.open { display: block; }
+    .page-header {
+      max-width: 1000px;
+      margin: 0 auto 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .page-header h2 { margin: 0; }
+    .new-entry-button { width: auto; padding: 10px 18px; }
+    @media (max-width: 768px) {
+      .container { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      border: 1px solid #e2e8f0;
+    }
+    h2, h3 {
+      margin-top: 0;
+      color: #0f172a;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: #475569;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background-color: #1d4ed8; }
+    .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cancel-button { background: #64748b; }
+    .cancel-button:hover { background: #475569; }
+    .photo-preview {
+      display: none;
+      width: 100%;
+      max-height: 260px;
+      margin-top: 10px;
+      object-fit: contain;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    .input-help { display: block; margin-top: 6px; color: #64748b; font-size: 12px; }
+    #status {
+      margin-top: 10px;
+      font-size: 13px;
+      text-align: center;
+      font-weight: 600;
+    }
+    /* 테이블 스타일 */
+    .table-container {
+      overflow-x: auto;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #475569;
+      position: sticky;
+      top: 0;
+    }
+    .badge-defect {
+      background-color: #fee2e2;
+      color: #991b1b;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h2>Formation 자주검사 모니터링</h2>
+    <button type="button" class="new-entry-button" id="openFormBtn">＋ 새로 등록</button>
+  </div>
+
+  <div class="container">
+    <!-- 입력 폼 -->
+    <div class="card form-card" id="formCard">
+      <h3>새 검사 등록</h3>
+      <form id="inspectionForm">
+        <div class="form-group">
+          <label for="trayId">Tray ID</label>
+          <input type="text" id="trayId" required placeholder="예: LHED000001">
+        </div>
+
+        <div class="form-group">
+          <label for="jigLine">Jig line</label>
+          <input type="text" id="jigLine" required placeholder="예: 4-1, 4-2, 5-1, 5-2">
+        </div>
+
+        <div class="form-group">
+          <label for="hotJig">Hot jig 번호</label>
+          <input type="number" id="hotJig" required min="1" placeholder="예: 12">
+        </div>
+
+        <div class="form-group">
+          <label for="cellId">Cell ID</label>
+          <input type="text" id="cellId" required placeholder="예: EFG512345">
+        </div>
+
+        <div class="form-group">
+          <label for="defect">Defect (불량 유형)</label>
+          <select id="defect" required>
+            <option value="" disabled selected>선택하세요</option>
+            <option value="온도 이상 (High/Low Temp)">온도 이상 (High/Low Temp)</option>
+            <option value="외관 변형 (Deformation)">외관 변형 (Deformation)</option>
+            <option value="전압 이상 (Voltage Error)">전압 이상 (Voltage Error)</option>
+            <option value="접촉 불량 (Contact Error)">접촉 불량 (Contact Error)</option>
+            <option value="기타 (Other)">기타 (Other)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="defectPhoto">Defect Photo</label>
+          <input type="file" id="defectPhoto" accept="image/*" capture="environment" required>
+          <small class="input-help">태블릿 카메라로 촬영하거나 저장된 사진을 선택하세요. 최대 8MB</small>
+          <img id="photoPreview" class="photo-preview" alt="선택한 사진 미리보기">
+        </div>
+
+        <div class="button-row">
+          <button type="submit" id="submitBtn">데이터 전송</button>
+          <button type="button" class="cancel-button" id="cancelBtn">취소</button>
+        </div>
+      </form>
+      <div id="status"></div>
+    </div>
+
+    <!-- 검사 내역 데이터 표 -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="margin: 0;">최근 등록 내역</h3>
+        <button onclick="loadData()" style="width: auto; padding: 6px 12px; font-size: 12px; background: #64748b;">🔄 새로고침</button>
+      </div>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Tray ID</th>
+              <th>Jig line</th>
+              <th>Hot jig</th>
+              <th>Cell ID</th>
+              <th>Defect</th>
+              <th>Photo</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody">
+            <tr><td colspan="7" style="text-align:center;">데이터를 불러오는 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ★ 본인의 Google Apps Script 배포 URL을 넣어주세요 ★
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4_P_F818omnp_ytln0JQnF4OIwlvdPBElUwHOQLS-Lrr2wJhc_eDv7KR72nluYLWW/exec';
+    const formCard = document.getElementById('formCard');
+    const inspectionForm = document.getElementById('inspectionForm');
+    const openFormBtn = document.getElementById('openFormBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const photoInput = document.getElementById('defectPhoto');
+    const photoPreview = document.getElementById('photoPreview');
+
+    function openForm() {
+      formCard.classList.add('open');
+      openFormBtn.style.display = 'none';
+      formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => document.getElementById('trayId').focus(), 300);
+    }
+
+    function closeForm() {
+      inspectionForm.reset();
+      photoPreview.removeAttribute('src');
+      photoPreview.style.display = 'none';
+      document.getElementById('status').textContent = '';
+      formCard.classList.remove('open');
+      openFormBtn.style.display = '';
+    }
+
+    function readPhoto(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) {
+          resolve('');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1]);
+        reader.onerror = () => reject(new Error('사진을 읽을 수 없습니다.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    openFormBtn.addEventListener('click', openForm);
+    cancelBtn.addEventListener('click', closeForm);
+    photoInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) {
+        photoPreview.style.display = 'none';
+        return;
+      }
+      photoPreview.src = URL.createObjectURL(file);
+      photoPreview.style.display = 'block';
+    });
+
+    // 1. 데이터 등록 (POST)
+    inspectionForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      const statusDiv = document.getElementById('status');
+
+      submitBtn.disabled = true;
+      statusDiv.style.color = '#2563eb';
+      statusDiv.textContent = '전송 중...';
+
+      const photoFile = photoInput.files[0];
+      if (photoFile && photoFile.size > 8 * 1024 * 1024) {
+        statusDiv.style.color = '#dc2626';
+        statusDiv.textContent = '❌ 사진 크기는 8MB 이하여야 합니다.';
+        submitBtn.disabled = false;
+        return;
+      }
+      const payload = {
+        trayId: document.getElementById('trayId').value,
+        jigLine: document.getElementById('jigLine').value,
+        hotJig: document.getElementById('hotJig').value,
+        cellId: document.getElementById('cellId').value,
+        defect: document.getElementById('defect').value,
+        defectPhotoName: photoFile ? photoFile.name : '',
+        defectPhotoType: photoFile ? photoFile.type : '',
+        defectPhotoData: await readPhoto(photoFile)
+      };
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        statusDiv.style.color = '#16a34a';
+        statusDiv.textContent = '✅ 등록 완료!';
+        closeForm();
+        setTimeout(loadData, 1000); // 등록 후 1초 뒤 자동 목록 업데이트
+      })
+      .catch(error => {
+        statusDiv.style.color = '#dc2626';
+        statusDiv.textContent = '❌ 전송 실패: ' + error.message;
+      })
+      .finally(() => { submitBtn.disabled = false; });
+    });
+
+    // 2. 시트 데이터 조회 (GET)
+    function loadData() {
+      const tbody = document.getElementById('dataTableBody');
+      
+      fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(resData => {
+          if (resData.result === 'success') {
+            tbody.innerHTML = '';
+            const list = resData.data.reverse(); // 최신순 정렬
+            
+            if (list.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">등록된 데이터가 없습니다.</td></tr>';
+              return;
+            }
+
+            list.forEach(item => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td>${item.date}</td>
+                <td><b>${item.trayId}</b></td>
+                <td>${item.jigLine}</td>
+                <td>${item.hotJig}번</td>
+                <td>${item.cellId}</td>
+                <td><span class="badge-defect">${item.defect}</span></td>
+                <td>${item.defectPhoto ? `<a href="${item.defectPhoto}" target="_blank" rel="noopener">보기</a>` : '-'}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          }
+        })
+        .catch(err => {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">데이터 조회 실패 (Google Apps Script 배포 상태를 확인하세요)</td></tr>';
+        });
+    }
+
+    // 페이지 접속 시 데이터 자동 불러오기
+    loadData();
+  </script>
+</body>
+</html>
+
