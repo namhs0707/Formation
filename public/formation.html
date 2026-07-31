@@ -136,6 +136,15 @@
       font-size: 11px;
       font-weight: bold;
     }
+    .photo-thumbnail {
+      display: block;
+      width: 72px;
+      height: 56px;
+      object-fit: cover;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #f1f5f9;
+    }
   </style>
 </head>
 <body>
@@ -325,6 +334,15 @@
     });
 
     // 2. 시트 데이터 조회 (GET)
+    function getPhotoThumbnailUrl(photoUrl) {
+      if (!photoUrl) return '';
+      const match = String(photoUrl).match(/\/d\/([a-zA-Z0-9_-]+)/)
+        || String(photoUrl).match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      return match
+        ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w200`
+        : photoUrl;
+    }
+
     function loadData() {
       const tbody = document.getElementById('dataTableBody');
       
@@ -349,7 +367,7 @@
                 <td>${item.hotJig}번</td>
                 <td>${item.cellId}</td>
                 <td><span class="badge-defect">${item.defect}</span></td>
-                <td>${item.defectPhoto ? `<a href="${item.defectPhoto}" target="_blank" rel="noopener">보기</a>` : '-'}</td>
+                <td>${item.defectPhoto ? `<a href="${item.defectPhoto}" target="_blank" rel="noopener" aria-label="원본 사진 열기"><img class="photo-thumbnail" src="${getPhotoThumbnailUrl(item.defectPhoto)}" alt="Defect 사진" loading="lazy"></a>` : '-'}</td>
               `;
               tbody.appendChild(tr);
             });
