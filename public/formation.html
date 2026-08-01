@@ -6,6 +6,17 @@
   <title>Formation Inspection Dashboard</title>
   <style>
     * { box-sizing: border-box; }
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --ink: #0f172a;
+      --muted: #64748b;
+    }
     body {
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
       background-color: #f8fafc;
@@ -13,6 +24,49 @@
       padding: 20px;
       color: #1e293b;
     }
+    .top-navbar {
+      max-width: 1240px;
+      min-height: 64px;
+      margin: 0 auto 16px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, .04);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      color: white;
+      background: var(--primary);
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .brand-title { color: var(--ink); font-weight: 800; font-size: 16px; }
+    .brand-subtitle { margin-top: 2px; color: var(--muted); font-size: 12px; }
+    .system-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      flex: 0 0 auto;
+      color: #166534;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .system-status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+    .system-status.syncing { color: #92400e; }
+    .system-status.syncing::before { background: var(--warning); }
+    .system-status.offline { color: #991b1b; }
+    .system-status.offline::before { background: var(--danger); }
     .app-shell {
       max-width: 1240px;
       margin: 0 auto;
@@ -27,6 +81,7 @@
       padding: 14px;
       background: #0f172a;
       border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, .12);
     }
     .process-nav-title {
       margin: 2px 8px 12px;
@@ -51,10 +106,10 @@
       background: transparent;
     }
     .process-button:hover { background: #1e293b; }
-    .process-button.active { color: white; background: #2563eb; }
+    .process-button.active { color: white; background: var(--primary); box-shadow: 0 4px 10px rgba(37, 99, 235, .25); }
     .main-content { min-width: 0; }
     .container {
-      max-width: 1000px;
+      max-width: 1034px;
       margin: 0 auto;
       display: grid;
       grid-template-columns: 1fr;
@@ -68,29 +123,54 @@
     }
     .form-card.open { display: block; }
     .page-header {
-      max-width: 1000px;
+      max-width: 1034px;
       margin: 0 auto 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 16px;
     }
-    .page-header h2 { margin: 0; }
-    .new-entry-button { width: auto; padding: 10px 18px; }
-    @media (max-width: 768px) {
-      body { padding: 12px; }
+    .page-header h2 { margin: 0; font-size: 25px; letter-spacing: -.02em; }
+    .page-eyebrow { margin-bottom: 4px; color: var(--primary); font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    .new-entry-button { width: auto; min-height: 48px; padding: 10px 18px; }
+    .kpi-grid {
+      max-width: 1034px;
+      margin: 0 auto 20px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .kpi-card {
+      min-width: 0;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, .035);
+    }
+    .kpi-label { color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .kpi-value { margin-top: 7px; overflow: hidden; color: var(--ink); font-size: 21px; font-weight: 800; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+    .kpi-card[data-tone="success"] { border-left: 4px solid var(--success); }
+    .kpi-card[data-tone="danger"] { border-left: 4px solid var(--danger); }
+    .kpi-card[data-tone="primary"] { border-left: 4px solid var(--primary); }
+    @media (max-width: 1180px) {
+      body { padding: 14px; }
       .app-shell { grid-template-columns: 1fr; }
       .process-nav {
         position: static;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
+        padding: 12px;
       }
       .process-nav-title { display: none; }
       .process-group + .process-group { margin-top: 0; }
       .process-category { margin: 0 4px 6px; text-align: center; }
       .process-button { margin: 0; text-align: center; }
       .container { grid-template-columns: 1fr; }
+      .top-navbar, .page-header, .kpi-grid, .container { max-width: none; }
+      .kpi-card { padding: 14px; }
+      .kpi-value { font-size: 19px; }
     }
     .card {
       background: #ffffff;
@@ -98,6 +178,10 @@
       border-radius: 12px;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
       border: 1px solid #e2e8f0;
+    }
+    @media (min-width: 1101px) {
+      .container:has(.form-card.open) { max-width: 1034px; grid-template-columns: minmax(340px, .78fr) minmax(0, 1.22fr); align-items: start; }
+      .container:has(.form-card.open) .form-card { position: sticky; top: 16px; }
     }
     h2, h3 {
       margin-top: 0;
@@ -137,6 +221,7 @@
       font-weight: bold;
       cursor: pointer;
       transition: background 0.2s;
+      min-height: 48px;
     }
     button:hover { background-color: #1d4ed8; }
     .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -189,6 +274,7 @@
       font-size: 11px;
       font-weight: bold;
     }
+    tbody tr:hover { background: #f8fafc; }
     .badge-ok {
       background-color: #dcfce7;
       color: #166534;
@@ -245,6 +331,147 @@
       font-size: 26px;
       line-height: 1;
     }
+    .defect-map-trigger {
+      padding: 10px;
+      text-align: left;
+      color: var(--ink);
+      background: #f8fafc;
+      border: 1px solid var(--border);
+    }
+    .defect-map-trigger:hover { background: #eff6ff; }
+    .defect-map-trigger .map-canvas { max-width: 220px; }
+    .map-canvas {
+      display: block;
+      position: relative;
+      width: 100%;
+      max-width: 425px;
+      margin: 0 auto;
+      overflow: hidden;
+      background: white;
+      border-radius: 8px;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .map-canvas img { display: block; width: 100%; height: auto; pointer-events: none; }
+    .map-markers { position: absolute; inset: 0; pointer-events: none; }
+    .map-marker {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      display: grid;
+      place-items: center;
+      transform: translate(-50%, -50%);
+      border: 2px solid white;
+      border-radius: 50%;
+      color: white;
+      background: var(--danger);
+      box-shadow: 0 1px 5px rgba(15, 23, 42, .45);
+      font-size: 9px;
+      font-weight: 800;
+      pointer-events: auto;
+      min-height: 0;
+      padding: 0;
+    }
+    .map-marker.has-photos { cursor: pointer; }
+    .map-photo-tooltip {
+      display: none;
+      position: absolute;
+      z-index: 20;
+      top: 24px;
+      left: 50%;
+      width: max-content;
+      max-width: 230px;
+      padding: 7px;
+      transform: translateX(-50%);
+      grid-template-columns: repeat(3, 54px);
+      gap: 5px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, .98);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .22);
+    }
+    .map-marker:hover .map-photo-tooltip,
+    .map-marker:focus .map-photo-tooltip { display: grid; }
+    .map-photo-tooltip img { width: 54px; height: 42px; object-fit: cover; border-radius: 5px; background: #e2e8f0; }
+    .map-photo-tooltip-empty { grid-column: 1 / -1; min-width: 90px; padding: 4px; color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .map-photo-more { display: grid; place-items: center; width: 54px; height: 42px; color: white; background: #334155; border-radius: 5px; font-size: 10px; font-weight: 800; }
+    .map-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, .88);
+    }
+    .map-modal.open { display: flex; }
+    .map-modal-panel { width: min(680px, 96vw); max-height: 96vh; overflow: auto; padding: 18px; background: white; border-radius: 14px; }
+    .map-modal-header { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 12px; }
+    .map-modal-header h3 { margin: 0 0 4px; }
+    .map-modal-header p { margin: 0; color: var(--muted); font-size: 12px; }
+    .map-close-button { width: 44px; min-height: 44px; padding: 0; flex: 0 0 auto; color: var(--ink); background: #e2e8f0; font-size: 24px; }
+    .map-editor { max-width: 560px; cursor: crosshair; border: 1px solid var(--border); }
+    .map-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+    .map-controls .secondary { color: var(--ink); background: #e2e8f0; }
+    .map-controls .danger { background: var(--danger); }
+    .weekly-map-card { max-width: 1034px; margin: 0 auto 20px; padding: 0; overflow: hidden; }
+    .weekly-map-toggle {
+      width: 100%;
+      min-height: 56px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--ink);
+      background: white;
+      text-align: left;
+    }
+    .weekly-map-toggle:hover { background: #f8fafc; }
+    .weekly-map-toggle-title { font-size: 16px; font-weight: 800; }
+    .weekly-map-toggle-meta { display: flex; align-items: center; gap: 10px; }
+    .weekly-map-chevron { color: var(--muted); font-size: 18px; transition: transform .2s; }
+    .weekly-map-card.open .weekly-map-chevron { transform: rotate(180deg); }
+    .weekly-map-body { display: none; padding: 4px 16px 16px; border-top: 1px solid var(--border); }
+    .weekly-map-card.open .weekly-map-body { display: block; }
+    .weekly-map-layout { display: grid; grid-template-columns: 150px minmax(320px, 1fr) 170px; gap: 16px; align-items: start; }
+    .map-filter-panel, .map-legend-panel { padding: 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; }
+    .map-panel-title { margin: 0 0 10px; color: var(--ink); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+    .map-filter-panel .form-group { margin-bottom: 10px; }
+    .map-filter-panel .form-group:last-child { margin-bottom: 0; }
+    .map-filter-panel select { min-height: 42px; padding: 8px; font-size: 13px; }
+    .map-legend { display: grid; gap: 8px; }
+    .map-legend-item { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; align-items: center; gap: 7px; font-size: 11px; }
+    .map-legend-swatch { width: 12px; height: 12px; border-radius: 50%; }
+    .map-legend-count { color: var(--muted); font-weight: 800; }
+    .weekly-map-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .weekly-map-header h3 { margin: 0; }
+    .weekly-map-count { padding: 5px 10px; color: #991b1b; background: #fee2e2; border-radius: 999px; font-size: 12px; font-weight: 800; }
+    .weekly-map-canvas { max-width: 620px; overflow: visible; border: 1px solid var(--border); }
+    .weekly-map-canvas .map-marker { width: 14px; height: 14px; border-width: 1px; font-size: 0; opacity: .72; }
+    .map-record-button { width: auto; min-height: 32px; padding: 5px 8px; font-size: 11px; white-space: nowrap; }
+    .gallery-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      padding: 18px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, .92);
+    }
+    .gallery-modal.open { display: flex; }
+    .gallery-panel { width: min(920px, 96vw); max-height: 94vh; overflow: auto; padding: 16px; background: white; border-radius: 12px; }
+    .gallery-header { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .gallery-header h3 { margin: 0 0 4px; }
+    .gallery-header p { margin: 0; color: var(--muted); font-size: 12px; }
+    .gallery-main-image { display: block; width: 100%; max-height: 62vh; object-fit: contain; background: #0f172a; border-radius: 8px; }
+    .gallery-thumbnails { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; margin-top: 10px; }
+    .gallery-thumbnail-button { min-height: 72px; padding: 3px; background: white; border: 2px solid transparent; }
+    .gallery-thumbnail-button.active { border-color: var(--primary); }
+    .gallery-thumbnail-button img { display: block; width: 100%; height: 66px; object-fit: cover; border-radius: 4px; }
     .hta-fields { display:none; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:14px; }
     .hta-fields .form-group { margin:0; }
     .chart-dashboard { display:none; }
@@ -254,29 +481,176 @@
     .chart-card h3 { margin-bottom:10px; font-size:20px; }
     .chart-card svg { display:block; width:100%; height:auto; }
     .chart-empty { padding:60px 20px; text-align:center; color:#64748b; }
-    @media (max-width:768px) { .chart-grid { grid-template-columns:1fr; } }
+    @media (max-width: 1300px) and (min-width: 1181px) {
+      body { padding: 16px; }
+      .app-shell { grid-template-columns: 165px minmax(0, 1fr); gap: 16px; }
+      .chart-card { padding: 14px; }
+    }
+    @media (max-width: 1180px) and (min-width: 901px) {
+      body { padding: 8px; }
+      .top-navbar { min-height: 52px; margin-bottom: 8px; padding: 6px 12px; }
+      .brand-mark { width: 36px; height: 36px; }
+      .brand-subtitle { font-size: 11px; }
+      .app-shell { gap: 14px; }
+      .process-nav { grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr); }
+      .appearance-group { grid-template-columns: auto repeat(2, minmax(150px, 1fr)); align-items: center; }
+      .temperature-group { grid-template-columns: auto minmax(150px, 1fr); align-items: center; }
+      .process-category { margin: 0 8px; text-align: left; }
+      .process-button { min-height: 44px; padding: 8px 10px; }
+      .page-header { margin-bottom: 8px; }
+      .page-header h2 { font-size: 22px; }
+      .page-eyebrow { margin-bottom: 2px; }
+      .new-entry-button { min-height: 44px; padding: 8px 14px; }
+      .kpi-grid { margin-bottom: 8px; gap: 8px; }
+      .kpi-card { min-height: 70px; padding: 10px 12px; }
+      .kpi-value { margin-top: 4px; font-size: 17px; }
+      #historyCard { padding: 14px; }
+      #historyCard > div:first-child { margin-bottom: 8px !important; }
+      #historyCard h3 { font-size: 17px; }
+      .table-container { max-height: none; overflow: hidden; }
+      table { min-width: 0; table-layout: fixed; font-size: 11px; }
+      th, td { padding: 7px 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      th:nth-child(1), td:nth-child(1) { width: 126px; }
+      th:nth-child(2), td:nth-child(2) { width: 42px; }
+      th:nth-child(3), td:nth-child(3) { width: 92px; }
+      th:nth-child(4), td:nth-child(4), th:nth-child(5), td:nth-child(5) { width: 92px; }
+      th:nth-child(6), td:nth-child(6) { width: 52px; }
+      th:nth-child(7), td:nth-child(7) { width: 60px; }
+      th:nth-child(8), td:nth-child(8) { width: 52px; }
+      th:last-child, td:last-child { width: 56px; }
+      .col-comment { display: none; }
+      .photo-thumbnail { width: 46px; height: 38px; }
+    }
+    @media (max-width: 900px) {
+      .main-content, .container, .page-header, .kpi-grid { width: 100%; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .chart-grid { grid-template-columns: 1fr; }
+      .form-card { max-width: 680px; }
+      .card { padding: 20px; }
+      .table-container { max-height: 60vh; -webkit-overflow-scrolling: touch; }
+      table { min-width: 920px; }
+      input, select, textarea { min-height: 46px; font-size: 16px; }
+      textarea { min-height: 96px; }
+      button { min-height: 46px; }
+      .thumbnail-button { min-height: 0; }
+      .photo-modal { padding: 12px; }
+      .photo-modal-image { max-width: 96vw; max-height: 90vh; }
+      .weekly-map-layout { grid-template-columns: 130px minmax(280px, 1fr) 145px; gap: 10px; }
+      .map-filter-panel, .map-legend-panel { padding: 9px; }
+    }
+    @media (max-width: 600px) {
+      body { padding: 8px; }
+      .app-shell { gap: 12px; }
+      .top-navbar { min-height: 56px; margin-bottom: 8px; padding: 8px 10px; }
+      .brand-mark { width: 36px; height: 36px; }
+      .brand-title { font-size: 14px; }
+      .brand-subtitle { display: none; }
+      .system-status { font-size: 0; }
+      .process-nav { padding: 10px; gap: 8px; border-radius: 10px; }
+      .process-group { gap: 5px; }
+      .process-category { font-size: 12px; }
+      .process-button { padding: 10px 6px; min-height: 42px; font-size: 13px; }
+      .page-header { align-items: stretch; flex-direction: column; margin-bottom: 12px; gap: 10px; }
+      .page-header h2 { font-size: 21px; line-height: 1.25; }
+      .new-entry-button { width: 100%; }
+      .container { gap: 12px; }
+      .kpi-grid { gap: 8px; margin-bottom: 12px; }
+      .weekly-map-card { margin-bottom: 12px; }
+      .weekly-map-toggle { min-height: 50px; padding: 10px 12px; }
+      .weekly-map-body { padding: 4px 10px 10px; }
+      .weekly-map-layout { grid-template-columns: 1fr; }
+      .map-filter-panel { display: grid; grid-template-columns: auto 1fr 1fr; align-items: end; gap: 8px; }
+      .map-filter-panel .map-panel-title { align-self: center; margin: 0; }
+      .map-filter-panel .form-group { margin: 0; }
+      .map-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .kpi-card { padding: 12px; }
+      .kpi-value { font-size: 17px; }
+      .card { padding: 14px; border-radius: 10px; }
+      .hta-fields { gap: 8px; }
+      .hta-fields label { font-size: 12px; }
+      .hta-fields input { padding: 9px 8px; }
+      .chart-grid { gap: 12px; }
+      .chart-card { padding: 10px; border-radius: 10px; overflow: hidden; }
+      .chart-card h3 { font-size: 18px; margin-bottom: 4px; }
+      #historyCard > div:first-child { align-items: stretch !important; flex-direction: column; gap: 8px; }
+      #historyCard > div:first-child button { width: 100% !important; }
+      .button-row { gap: 8px; }
+      .photo-modal-close { top: 10px; right: 10px; width: 42px; height: 42px; }
+      .gallery-modal { padding: 6px; }
+      .gallery-panel { padding: 10px; }
+      .gallery-main-image { max-height: 55vh; }
+      .map-modal { padding: 6px; }
+      .map-modal-panel { padding: 12px; border-radius: 10px; }
+      .map-controls { grid-template-columns: 1fr 1fr; }
+      #mapDoneBtn { grid-column: 1 / -1; }
+    }
   </style>
 </head>
 <body>
 
+  <header class="top-navbar">
+    <div class="brand">
+      <div class="brand-mark">Q</div>
+      <div>
+        <div class="brand-title">Smart Factory Quality</div>
+        <div class="brand-subtitle">Production Inspection & Monitoring</div>
+      </div>
+    </div>
+    <div class="system-status" id="systemStatus">System Online</div>
+  </header>
+
   <div class="app-shell">
     <aside class="process-nav" aria-label="Process selection">
       <div class="process-nav-title">Process</div>
-      <div class="process-group">
+      <div class="process-group appearance-group">
         <div class="process-category">Appearance</div>
         <button type="button" class="process-button active" data-process="formation">Jig Formation</button>
         <button type="button" class="process-button" data-process="degas">Degas</button>
       </div>
-      <div class="process-group">
+      <div class="process-group temperature-group">
         <div class="process-category">Temperature</div>
         <button type="button" class="process-button" data-process="hta">HTA</button>
       </div>
     </aside>
     <main class="main-content">
   <div class="page-header">
-    <h2 id="pageTitle">Jig Formation Inspection</h2>
+    <div><div class="page-eyebrow">Quality Module</div><h2 id="pageTitle">Jig Formation Inspection</h2></div>
     <button type="button" class="new-entry-button" id="openFormBtn">＋ New Inspection</button>
   </div>
+
+  <section class="kpi-grid" aria-label="Process summary">
+    <article class="kpi-card" data-tone="primary"><div class="kpi-label">Active Process</div><div class="kpi-value" id="kpiProcess">Jig Formation</div></article>
+    <article class="kpi-card"><div class="kpi-label">Total Records</div><div class="kpi-value" id="kpiRecords">—</div></article>
+    <article class="kpi-card" id="kpiQualityCard"><div class="kpi-label" id="kpiQualityLabel">Defect Rate</div><div class="kpi-value" id="kpiQuality">—</div></article>
+    <article class="kpi-card"><div class="kpi-label">Latest Update</div><div class="kpi-value" id="kpiLatest">—</div></article>
+  </section>
+
+  <section class="card weekly-map-card" id="weeklyMapCard">
+    <button type="button" class="weekly-map-toggle" id="weeklyMapToggle" aria-expanded="false" aria-controls="weeklyMapBody">
+      <span class="weekly-map-toggle-title" id="weeklyMapTitle">Defect Map · Last 7 Days</span>
+      <span class="weekly-map-toggle-meta"><span class="weekly-map-count" id="weeklyMapCount">0 points</span><span class="weekly-map-chevron">⌄</span></span>
+    </button>
+    <div class="weekly-map-body" id="weeklyMapBody">
+      <div class="weekly-map-header">
+        <small class="input-help" id="weeklyMapDescription">Combined Jig Formation defect locations from the last 7 days.</small>
+      </div>
+      <div class="weekly-map-layout">
+        <aside class="map-filter-panel" aria-label="Defect map filters">
+          <h4 class="map-panel-title">Filters</h4>
+          <div class="form-group"><label for="weeklyLineFilter" id="weeklyLineFilterLabel">Jig Line</label><select id="weeklyLineFilter"><option value="">All Lines</option></select></div>
+          <div class="form-group" id="weeklyHotJigFilterGroup"><label for="weeklyHotJigFilter">Hot Jig</label><select id="weeklyHotJigFilter"><option value="">All Hot Jigs</option></select></div>
+        </aside>
+        <div class="map-canvas weekly-map-canvas">
+          <img class="process-map-image" src="jig-formation-defect-map.jpg" alt="Seven-day accumulated defect map">
+          <div class="map-markers" id="weeklyMapMarkers"></div>
+        </div>
+        <aside class="map-legend-panel" aria-label="Defect type color legend">
+          <h4 class="map-panel-title">Defect Type</h4>
+          <div class="map-legend" id="weeklyMapLegend"></div>
+        </aside>
+      </div>
+    </div>
+  </section>
 
   <div class="container">
     <!-- Inspection form -->
@@ -361,6 +735,17 @@
           <img id="photoPreview" class="photo-preview" alt="Selected photo preview">
         </div>
 
+        <div class="form-group" id="defectMapGroup">
+          <label id="defectMapLabel">Jig Formation Defect Map</label>
+          <button type="button" class="defect-map-trigger" id="defectMapTrigger">
+            <span class="map-canvas">
+              <img class="process-map-image" src="jig-formation-defect-map.jpg" alt="Defect location map">
+              <span class="map-markers" id="mapPreviewMarkers"></span>
+            </span>
+          </button>
+          <small class="input-help" id="mapPointSummary">Tap the map to mark one or more defect locations.</small>
+        </div>
+
         <div class="button-row">
           <button type="submit" id="submitBtn">Submit Inspection</button>
           <button type="button" class="cancel-button" id="cancelBtn">Cancel</button>
@@ -372,7 +757,7 @@
     <!-- Inspection history -->
     <div class="card" id="historyCard">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="margin: 0;">Recent Inspections</h3>
+        <h3 style="margin: 0;">Defect Gallery & Records</h3>
         <button onclick="loadData()" style="width: auto; padding: 6px 12px; font-size: 12px; background: #64748b;">🔄 Refresh</button>
       </div>
       
@@ -381,16 +766,17 @@
           <thead>
             <tr>
               <th>Date</th>
-              <th>Team</th>
-              <th>Operator Name</th>
+              <th class="col-team">Team</th>
+              <th class="col-operator">Operator Name</th>
               <th>Tray ID</th>
               <th>Cell ID</th>
               <th>Channel</th>
               <th id="lineHeader">Jig line</th>
               <th id="hotJigHeader">Hot jig</th>
               <th>Defect</th>
-              <th>Comment</th>
+              <th class="col-comment">Comment</th>
               <th>Photo</th>
+              <th id="mapHeader">Map</th>
             </tr>
           </thead>
           <tbody id="dataTableBody">
@@ -411,6 +797,35 @@
     <img class="photo-modal-image" id="photoModalImage" alt="Full-size defect photo">
   </div>
 
+  <div class="map-modal" id="mapModal" role="dialog" aria-modal="true" aria-labelledby="mapModalTitle">
+    <div class="map-modal-panel">
+      <div class="map-modal-header">
+        <div><h3 id="mapModalTitle">Mark Defect Locations</h3><p id="mapModalHelp">Tap each defect position. Multiple points are allowed.</p></div>
+        <button type="button" class="map-close-button" id="mapCloseBtn" aria-label="Close defect map">×</button>
+      </div>
+      <div class="map-canvas map-editor" id="mapEditor">
+        <img class="process-map-image" src="jig-formation-defect-map.jpg" alt="Defect location editor">
+        <div class="map-markers" id="mapEditorMarkers"></div>
+      </div>
+      <div class="map-controls" id="mapControls">
+        <button type="button" class="secondary" id="mapUndoBtn">Undo Last</button>
+        <button type="button" class="danger" id="mapClearBtn">Clear All</button>
+        <button type="button" id="mapDoneBtn">Save Points</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="gallery-modal" id="defectGalleryModal" role="dialog" aria-modal="true" aria-labelledby="defectGalleryTitle">
+    <div class="gallery-panel">
+      <div class="gallery-header">
+        <div><h3 id="defectGalleryTitle">Defect Photos</h3><p id="defectGalleryMeta"></p></div>
+        <button type="button" class="map-close-button" id="defectGalleryClose" aria-label="Close defect photo gallery">×</button>
+      </div>
+      <img class="gallery-main-image" id="defectGalleryMain" alt="Selected defect photo">
+      <div class="gallery-thumbnails" id="defectGalleryThumbnails"></div>
+    </div>
+  </div>
+
   <script>
     // Google Apps Script deployment URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4_P_F818omnp_ytln0JQnF4OIwlvdPBElUwHOQLS-Lrr2wJhc_eDv7KR72nluYLWW/exec';
@@ -424,6 +839,45 @@
     const htaInputIds = ['hta11', 'hta12', 'hta21', 'hta22', 'hta31', 'hta32', 'hta41', 'hta42'];
     let currentProcess = 'formation';
     let loadRequestId = 0;
+    let defectMapPoints = [];
+    let pendingMapPoints = [];
+    let mapReadOnly = false;
+    let activeMapColor = '#dc2626';
+    const weeklyRecordsByProcess = { formation: [], degas: [] };
+    const DEFECT_COLORS = Object.freeze({
+      'Dent': '#dc2626',
+      'Contamination': '#d97706',
+      'Scratch': '#2563eb',
+      'Lead bending': '#7c3aed',
+      'Wrinkles': '#db2777',
+      'Others': '#64748b',
+      'All OK': '#16a34a'
+    });
+
+    function normalizeDefectType(value) {
+      const text = String(value || '').toLowerCase();
+      if (text.includes('dent')) return 'Dent';
+      if (text.includes('contamination')) return 'Contamination';
+      if (text.includes('scratch')) return 'Scratch';
+      if (text.includes('lead')) return 'Lead bending';
+      if (text.includes('wrinkle')) return 'Wrinkles';
+      if (text.includes('all ok')) return 'All OK';
+      return 'Others';
+    }
+
+    function getDefectColor(value) {
+      return DEFECT_COLORS[normalizeDefectType(value)];
+    }
+
+    function setWeeklyMapOpen(isOpen) {
+      const card = document.getElementById('weeklyMapCard');
+      card.classList.toggle('open', isOpen);
+      document.getElementById('weeklyMapToggle').setAttribute('aria-expanded', String(isOpen));
+    }
+
+    document.getElementById('weeklyMapToggle').addEventListener('click', () => {
+      setWeeklyMapOpen(!document.getElementById('weeklyMapCard').classList.contains('open'));
+    });
 
     function switchProcess(process) {
       currentProcess = process === 'hta' ? 'hta' : process === 'degas' ? 'degas' : 'formation';
@@ -435,6 +889,11 @@
       });
       document.getElementById('pageTitle').textContent =
         isHta ? 'HTA Temperature Monitoring' : isDegas ? 'Degas Inspection' : 'Jig Formation Inspection';
+      document.getElementById('kpiProcess').textContent =
+        isHta ? 'HTA' : isDegas ? 'Degas' : 'Jig Formation';
+      document.getElementById('kpiRecords').textContent = '—';
+      document.getElementById('kpiQuality').textContent = '—';
+      document.getElementById('kpiLatest').textContent = '—';
       document.getElementById('formTitle').textContent =
         isHta ? 'New HTA Temperature Reading' : isDegas ? 'New Degas Inspection' : 'New Jig Formation Inspection';
       document.getElementById('lineLabel').textContent =
@@ -452,9 +911,23 @@
         document.getElementById(id).required = !isHta;
       });
       document.getElementById('hotJigGroup').style.display = isDegas || isHta ? 'none' : '';
+      document.getElementById('defectMapGroup').style.display = isHta ? 'none' : '';
       document.getElementById('hotJigHeader').style.display = isDegas ? 'none' : '';
+      document.getElementById('mapHeader').style.display = isHta ? 'none' : '';
       hotJigInput.required = !isDegas && !isHta;
       document.getElementById('historyCard').style.display = isHta ? 'none' : '';
+      document.getElementById('weeklyMapCard').style.display = isHta ? 'none' : '';
+      document.getElementById('weeklyMapTitle').textContent = `${isDegas ? 'Degas' : 'Jig Formation'} Defect Map · Last 7 Days`;
+      document.getElementById('weeklyMapDescription').textContent = `Combined ${isDegas ? 'Degas' : 'Jig Formation'} defect locations from the last 7 days.`;
+      document.getElementById('defectMapLabel').textContent = `${isDegas ? 'Degas' : 'Jig Formation'} Defect Map`;
+      document.getElementById('weeklyLineFilterLabel').textContent = isDegas ? 'Degas Line' : 'Jig Line';
+      document.getElementById('weeklyHotJigFilterGroup').style.display = isDegas ? 'none' : '';
+      const mapImage = isDegas ? 'degas-defect-map.jpg' : 'jig-formation-defect-map.jpg';
+      document.querySelectorAll('.process-map-image').forEach(image => { image.src = mapImage; });
+      document.getElementById('weeklyMapMarkers').innerHTML = '';
+      document.getElementById('weeklyMapLegend').innerHTML = '';
+      document.getElementById('weeklyMapCount').textContent = '0 points';
+      setWeeklyMapOpen(false);
       document.getElementById('chartDashboard').style.display = isHta ? 'block' : 'none';
       openFormBtn.textContent = isHta ? 'New Reading' : 'New Inspection';
       closeForm();
@@ -474,6 +947,8 @@
 
     function closeForm() {
       inspectionForm.reset();
+      defectMapPoints = [];
+      renderDefectMapPreview();
       photoPreview.removeAttribute('src');
       photoPreview.style.display = 'none';
       document.getElementById('status').textContent = '';
@@ -504,6 +979,93 @@
       }
       photoPreview.src = URL.createObjectURL(file);
       photoPreview.style.display = 'block';
+    });
+
+    function normalizeMapPoints(value) {
+      try {
+        const points = Array.isArray(value) ? value : JSON.parse(value || '[]');
+        return points.filter(point => Number.isFinite(Number(point.x)) && Number.isFinite(Number(point.y)))
+          .map(point => ({
+            x: Math.max(0, Math.min(1, Number(point.x))),
+            y: Math.max(0, Math.min(1, Number(point.y)))
+          }));
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function renderMapMarkers(container, points, numbered, defaultColor) {
+      container.innerHTML = '';
+      points.forEach((point, index) => {
+        const marker = document.createElement('span');
+        marker.className = 'map-marker';
+        marker.style.left = `${point.x * 100}%`;
+        marker.style.top = `${point.y * 100}%`;
+        marker.style.background = point.color || defaultColor || '#dc2626';
+        marker.textContent = numbered ? String(index + 1) : '';
+        if (point.title) marker.title = point.title;
+        container.appendChild(marker);
+      });
+    }
+
+    function renderDefectMapPreview() {
+      renderMapMarkers(document.getElementById('mapPreviewMarkers'), defectMapPoints, true, getDefectColor(document.getElementById('defect').value));
+      const count = defectMapPoints.length;
+      document.getElementById('mapPointSummary').textContent = count
+        ? `${count} defect point${count === 1 ? '' : 's'} selected. Tap the map to edit.`
+        : 'Tap the map to mark one or more defect locations.';
+    }
+
+    function openDefectMap(points, readOnly, defectType) {
+      pendingMapPoints = normalizeMapPoints(points);
+      mapReadOnly = Boolean(readOnly);
+      activeMapColor = getDefectColor(defectType || document.getElementById('defect').value);
+      document.getElementById('mapModalTitle').textContent = mapReadOnly ? 'Recorded Defect Locations' : 'Mark Defect Locations';
+      document.getElementById('mapModalHelp').textContent = mapReadOnly
+        ? `${pendingMapPoints.length} recorded point${pendingMapPoints.length === 1 ? '' : 's'}.`
+        : 'Tap each defect position. Multiple points are allowed.';
+      document.getElementById('mapUndoBtn').style.display = mapReadOnly ? 'none' : '';
+      document.getElementById('mapClearBtn').style.display = mapReadOnly ? 'none' : '';
+      document.getElementById('mapDoneBtn').textContent = mapReadOnly ? 'Close' : 'Save Points';
+      renderMapMarkers(document.getElementById('mapEditorMarkers'), pendingMapPoints, true, activeMapColor);
+      document.getElementById('mapModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDefectMap() {
+      document.getElementById('mapModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('defect').addEventListener('change', renderDefectMapPreview);
+    document.getElementById('defectMapTrigger').addEventListener('click', () => openDefectMap(defectMapPoints, false, document.getElementById('defect').value));
+    document.getElementById('mapEditor').addEventListener('click', event => {
+      if (mapReadOnly) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      pendingMapPoints.push({
+        x: (event.clientX - rect.left) / rect.width,
+        y: (event.clientY - rect.top) / rect.height
+      });
+      renderMapMarkers(document.getElementById('mapEditorMarkers'), pendingMapPoints, true, activeMapColor);
+    });
+    document.getElementById('mapUndoBtn').addEventListener('click', () => {
+      pendingMapPoints.pop();
+      renderMapMarkers(document.getElementById('mapEditorMarkers'), pendingMapPoints, true, activeMapColor);
+    });
+    document.getElementById('mapClearBtn').addEventListener('click', () => {
+      pendingMapPoints = [];
+      renderMapMarkers(document.getElementById('mapEditorMarkers'), pendingMapPoints, true, activeMapColor);
+    });
+    document.getElementById('mapDoneBtn').addEventListener('click', () => {
+      if (!mapReadOnly) {
+        defectMapPoints = pendingMapPoints.slice();
+        renderDefectMapPreview();
+      }
+      closeDefectMap();
+    });
+    document.getElementById('mapCloseBtn').addEventListener('click', closeDefectMap);
+    document.getElementById('mapModal').addEventListener('click', event => {
+      if (event.target.id === 'mapModal') closeDefectMap();
     });
 
     // 1. Submit inspection data (POST)
@@ -548,7 +1110,8 @@
         comment: document.getElementById('comment').value,
         defectPhotoName: photoFile ? photoFile.name : '',
         defectPhotoType: photoFile ? photoFile.type : '',
-        defectPhotoData: await readPhoto(photoFile)
+        defectPhotoData: await readPhoto(photoFile),
+        defectMap: JSON.stringify(defectMapPoints)
       };
       if (currentProcess === 'degas') {
         payload.degasLine = document.getElementById('processLine').value;
@@ -605,35 +1168,257 @@
       if (event.target.id === 'photoModal') closePhoto();
     });
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') closePhoto();
+      if (event.key === 'Escape') {
+        closePhoto();
+        closeDefectMap();
+        closeDefectGallery();
+      }
     });
     document.getElementById('dataTableBody').addEventListener('click', event => {
       const button = event.target.closest('.thumbnail-button');
       if (button) openPhoto(decodeURIComponent(button.dataset.photo));
+      const mapButton = event.target.closest('.map-record-button');
+      if (mapButton) openDefectMap(decodeURIComponent(mapButton.dataset.points), true, decodeURIComponent(mapButton.dataset.defect || 'Others'));
     });
+
+    function parseRecordDate(value) {
+      const normalized = String(value || '').trim().replace(' ', 'T');
+      const date = new Date(normalized);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function clusterDefectPoints(points) {
+      const clusters = [];
+      const radius = 0.035;
+      points.forEach(point => {
+        let cluster = clusters.find(item =>
+          item.defectType === point.defectType && Math.hypot(item.x - point.x, item.y - point.y) <= radius
+        );
+        if (!cluster) {
+          cluster = Object.assign({}, point, { pointCount: 0, photos: [] });
+          clusters.push(cluster);
+        }
+        cluster.x = (cluster.x * cluster.pointCount + point.x) / (cluster.pointCount + 1);
+        cluster.y = (cluster.y * cluster.pointCount + point.y) / (cluster.pointCount + 1);
+        cluster.pointCount += 1;
+        (point.photos || []).forEach(photo => {
+          if (!cluster.photos.some(existing => existing.url === photo.url)) cluster.photos.push(photo);
+        });
+      });
+      return clusters;
+    }
+
+    function renderWeeklyPhotoMarkers(points) {
+      const container = document.getElementById('weeklyMapMarkers');
+      container.innerHTML = '';
+      clusterDefectPoints(points).forEach(cluster => {
+        const marker = document.createElement('button');
+        marker.type = 'button';
+        marker.className = `map-marker${cluster.photos.length ? ' has-photos' : ''}`;
+        marker.style.left = `${cluster.x * 100}%`;
+        marker.style.top = `${cluster.y * 100}%`;
+        marker.style.background = cluster.color;
+        marker.setAttribute('aria-label', `${cluster.defectType}: ${cluster.photos.length} defect photos`);
+        marker.title = cluster.title || cluster.defectType;
+
+        const tooltip = document.createElement('span');
+        tooltip.className = 'map-photo-tooltip';
+        if (!cluster.photos.length) {
+          const empty = document.createElement('span');
+          empty.className = 'map-photo-tooltip-empty';
+          empty.textContent = 'No defect photos';
+          tooltip.appendChild(empty);
+        } else {
+          cluster.photos.slice(0, 5).forEach(photo => {
+            const image = document.createElement('img');
+            image.src = getDrivePhotoUrl(photo.url, 'w200');
+            image.alt = photo.label;
+            image.loading = 'lazy';
+            tooltip.appendChild(image);
+          });
+          if (cluster.photos.length > 5) {
+            const more = document.createElement('span');
+            more.className = 'map-photo-more';
+            more.textContent = `+${cluster.photos.length - 5}`;
+            tooltip.appendChild(more);
+          }
+        }
+        marker.appendChild(tooltip);
+        if (cluster.photos.length) marker.addEventListener('click', () => openDefectGallery(cluster));
+        container.appendChild(marker);
+      });
+    }
+
+    function openDefectGallery(cluster) {
+      const photos = cluster.photos || [];
+      if (!photos.length) return;
+      document.getElementById('defectGalleryTitle').textContent = `${cluster.defectType} Photos`;
+      document.getElementById('defectGalleryMeta').textContent = `${photos.length} photo${photos.length === 1 ? '' : 's'} at this map location`;
+      const main = document.getElementById('defectGalleryMain');
+      const thumbnails = document.getElementById('defectGalleryThumbnails');
+      thumbnails.innerHTML = '';
+      const selectPhoto = (photo, button) => {
+        main.src = getDrivePhotoUrl(photo.url, 'w1600');
+        main.alt = photo.label;
+        thumbnails.querySelectorAll('.gallery-thumbnail-button').forEach(item => item.classList.toggle('active', item === button));
+      };
+      photos.forEach((photo, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'gallery-thumbnail-button';
+        const image = document.createElement('img');
+        image.src = getDrivePhotoUrl(photo.url, 'w200');
+        image.alt = photo.label;
+        button.appendChild(image);
+        button.addEventListener('click', () => selectPhoto(photo, button));
+        thumbnails.appendChild(button);
+        if (index === 0) selectPhoto(photo, button);
+      });
+      document.getElementById('defectGalleryModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDefectGallery() {
+      document.getElementById('defectGalleryModal').classList.remove('open');
+      document.getElementById('defectGalleryMain').removeAttribute('src');
+      document.getElementById('defectGalleryThumbnails').innerHTML = '';
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('defectGalleryClose').addEventListener('click', closeDefectGallery);
+    document.getElementById('defectGalleryModal').addEventListener('click', event => {
+      if (event.target.id === 'defectGalleryModal') closeDefectGallery();
+    });
+
+    function renderWeeklyDefectMap(records) {
+      weeklyRecordsByProcess[currentProcess] = records.slice();
+      const processRecords = weeklyRecordsByProcess[currentProcess];
+      const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const recentRecords = processRecords.filter(record => {
+        const date = parseRecordDate(record.date);
+        return date && date.getTime() >= cutoff;
+      });
+      const lineKey = currentProcess === 'degas' ? 'degasLine' : 'jigLine';
+      updateMapFilterOptions('weeklyLineFilter', recentRecords.map(record => record[lineKey]), 'All Lines');
+      updateMapFilterOptions('weeklyHotJigFilter', currentProcess === 'degas' ? [] : recentRecords.map(record => record.hotJig), 'All Hot Jigs');
+      applyWeeklyMapFilters();
+    }
+
+    function updateMapFilterOptions(selectId, rawValues, allLabel) {
+      const select = document.getElementById(selectId);
+      const selected = select.value;
+      const values = [...new Set(rawValues.map(value => String(value || '').trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+      select.innerHTML = `<option value="">${allLabel}</option>`;
+      values.forEach(value => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+      if (values.includes(selected)) select.value = selected;
+    }
+
+    function applyWeeklyMapFilters() {
+      const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const line = document.getElementById('weeklyLineFilter').value;
+      const hotJig = document.getElementById('weeklyHotJigFilter').value;
+      const points = [];
+      const processRecords = weeklyRecordsByProcess[currentProcess] || [];
+      processRecords.forEach(record => {
+        const date = parseRecordDate(record.date);
+        if (!date || date.getTime() < cutoff) return;
+        const recordLine = currentProcess === 'degas' ? record.degasLine : record.jigLine;
+        if (line && String(recordLine || '') !== line) return;
+        if (currentProcess !== 'degas' && hotJig && String(record.hotJig || '') !== hotJig) return;
+        const defectType = normalizeDefectType(record.defect);
+        normalizeMapPoints(record.defectMap).forEach(point => {
+          points.push(Object.assign({}, point, {
+            color: getDefectColor(defectType),
+            defectType: defectType,
+            title: `${record.date} · ${record.trayId || ''} · ${record.defect || ''}`,
+            photos: record.defectPhoto ? [{
+              url: record.defectPhoto,
+              label: `${record.defect || 'Defect'} · ${record.trayId || ''} · ${record.date || ''}`
+            }] : []
+          }));
+        });
+      });
+      renderWeeklyPhotoMarkers(points);
+      document.getElementById('weeklyMapCount').textContent = `${points.length} point${points.length === 1 ? '' : 's'}`;
+      const counts = points.reduce((result, point) => {
+        result[point.defectType] = (result[point.defectType] || 0) + 1;
+        return result;
+      }, {});
+      document.getElementById('weeklyMapLegend').innerHTML = Object.entries(DEFECT_COLORS).map(([label, color]) => `
+        <div class="map-legend-item">
+          <span class="map-legend-swatch" style="background:${color}"></span>
+          <span>${label}</span>
+          <span class="map-legend-count">${counts[label] || 0}</span>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('weeklyLineFilter').addEventListener('change', applyWeeklyMapFilters);
+    document.getElementById('weeklyHotJigFilter').addEventListener('change', applyWeeklyMapFilters);
+
+    function updateSummary(records, process) {
+      const qualityCard = document.getElementById('kpiQualityCard');
+      const qualityLabel = document.getElementById('kpiQualityLabel');
+      const qualityValue = document.getElementById('kpiQuality');
+      const latest = records.length ? records[records.length - 1] : null;
+      document.getElementById('kpiRecords').textContent = records.length.toLocaleString();
+      document.getElementById('kpiLatest').textContent = latest && latest.date ? latest.date : 'No records';
+      document.getElementById('kpiLatest').title = latest && latest.date ? latest.date : '';
+      qualityCard.dataset.tone = '';
+
+      if (process === 'hta') {
+        qualityLabel.textContent = 'Latest Spec Status';
+        qualityValue.textContent = latest ? (latest.tempInSpec || '—') : 'No records';
+        if (latest) qualityCard.dataset.tone = latest.tempInSpec === 'Spec in' ? 'success' : 'danger';
+        return;
+      }
+
+      qualityLabel.textContent = 'Defect Rate';
+      if (!records.length) {
+        qualityValue.textContent = '0.0%';
+        return;
+      }
+      const defects = records.filter(record => record.defect && record.defect !== 'All OK').length;
+      const rate = defects * 100 / records.length;
+      qualityValue.textContent = `${rate.toFixed(1)}%`;
+      qualityCard.dataset.tone = rate === 0 ? 'success' : 'danger';
+    }
 
     function loadData() {
       const tbody = document.getElementById('dataTableBody');
       const requestedProcess = currentProcess;
       const requestId = ++loadRequestId;
-      const columnCount = requestedProcess === 'degas' ? 10 : 11;
+      const systemStatus = document.getElementById('systemStatus');
+      systemStatus.textContent = 'Syncing Data';
+      systemStatus.className = 'system-status syncing';
+      const columnCount = requestedProcess === 'degas' ? 11 : 12;
       if (requestedProcess === 'hta') {
         document.getElementById('chartGrid').innerHTML = '<div class="chart-empty">Loading temperature data...</div>';
       } else {
         tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">Loading inspection data...</td></tr>`;
       }
       
-      fetch(`${SCRIPT_URL}?process=${requestedProcess}`)
-        .then(res => res.json())
+      fetchJsonWithRetry(`${SCRIPT_URL}?process=${requestedProcess}&_=${Date.now()}`)
         .then(resData => {
           if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
           if (resData.result === 'success') {
+            const records = resData.data || [];
+            updateSummary(records, requestedProcess);
+            systemStatus.textContent = 'System Online';
+            systemStatus.className = 'system-status';
             if (requestedProcess === 'hta') {
-              renderHtaCharts(resData.data || []);
+              renderHtaCharts(records);
               return;
             }
+            renderWeeklyDefectMap(records);
             tbody.innerHTML = '';
-            const list = resData.data.reverse(); // Newest first
+            const list = records.slice().reverse(); // Newest first
             
             if (list.length === 0) {
               tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">No inspection records found.</td></tr>`;
@@ -644,18 +1429,22 @@
               const tr = document.createElement('tr');
               const lineValue = requestedProcess === 'degas' ? item.degasLine : item.jigLine;
               const hotJigCell = requestedProcess === 'degas' ? '' : `<td>${item.hotJig}</td>`;
+              const mapCell = requestedProcess !== 'hta'
+                ? `<td>${normalizeMapPoints(item.defectMap).length ? `<button type="button" class="map-record-button" data-points="${encodeURIComponent(item.defectMap || '[]')}" data-defect="${encodeURIComponent(item.defect || 'Others')}">${normalizeMapPoints(item.defectMap).length} pts</button>` : '-'}</td>`
+                : '';
               tr.innerHTML = `
                 <td>${item.date}</td>
-                <td>${item.team}</td>
-                <td>${item.operatorName}</td>
+                <td class="col-team">${item.team}</td>
+                <td class="col-operator">${item.operatorName}</td>
                 <td><b>${item.trayId}</b></td>
                 <td>${item.cellId}</td>
                 <td>${item.channel}</td>
                 <td>${lineValue}</td>
                 ${hotJigCell}
                 <td><span class="${item.defect === 'All OK' ? 'badge-ok' : 'badge-defect'}">${item.defect}</span></td>
-                <td>${item.comment || '-'}</td>
+                <td class="col-comment">${item.comment || '-'}</td>
                 <td>${item.defectPhoto ? `<button type="button" class="thumbnail-button" data-photo="${encodeURIComponent(item.defectPhoto)}" aria-label="Enlarge photo"><img class="photo-thumbnail" src="${getDrivePhotoUrl(item.defectPhoto, 'w200')}" alt="Defect photo" loading="lazy"></button>` : '-'}</td>
+                ${mapCell}
               `;
               tbody.appendChild(tr);
             });
@@ -663,12 +1452,29 @@
         })
         .catch(err => {
           if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
+          systemStatus.textContent = 'Connection Error';
+          systemStatus.className = 'system-status offline';
           if (requestedProcess === 'hta') {
             document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the Google Apps Script deployment.</div>';
           } else {
             tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the Google Apps Script deployment.</td></tr>`;
           }
         });
+    }
+
+    async function fetchJsonWithRetry(url, attempts = 2) {
+      let lastError;
+      for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        try {
+          const response = await fetch(url, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return await response.json();
+        } catch (error) {
+          lastError = error;
+          if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, 900));
+        }
+      }
+      throw lastError;
     }
 
     function escapeText(value) {

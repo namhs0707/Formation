@@ -26,7 +26,8 @@ const FORMATION_HEADERS = Object.freeze([
   'Hot jig',
   'Defect',
   'Comment',
-  'Defect photo'
+  'Defect photo',
+  'Defect map'
 ]);
 
 const DEGAS_HEADERS = Object.freeze([
@@ -39,7 +40,8 @@ const DEGAS_HEADERS = Object.freeze([
   'Degas line',
   'Defect',
   'Comment',
-  'Defect photo'
+  'Defect photo',
+  'Defect map'
 ]);
 
 const HTA_HEADERS = Object.freeze([
@@ -139,7 +141,8 @@ function doGet(e) {
           degasLine: row[6],
           defect: row[7],
           comment: row[8],
-          defectPhoto: row[9]
+          defectPhoto: row[9],
+          defectMap: row[10] || '[]'
         });
       }
 
@@ -148,7 +151,8 @@ function doGet(e) {
         hotJig: row[7],
         defect: row[8],
         comment: row[9],
-        defectPhoto: row[10]
+        defectPhoto: row[10],
+        defectMap: row[11] || '[]'
       });
     });
 
@@ -213,14 +217,16 @@ function doPost(e) {
               cleanText_(input.degasLine),
               cleanText_(input.defect),
               cleanText_(input.comment),
-              photoUrl
+              photoUrl,
+              normalizeDefectMap_(input.defectMap)
             ])
           : common.concat([
               cleanText_(input.jigLine),
               Number(input.hotJig),
               cleanText_(input.defect),
               cleanText_(input.comment),
-              photoUrl
+              photoUrl,
+              normalizeDefectMap_(input.defectMap)
             ]);
       }
 
@@ -277,18 +283,20 @@ function ensureHeaders_(sheet, headers) {
   const current = sheet
     .getRange(1, 1, 1, headers.length)
     .getDisplayValues()[0];
-  const isEmpty = current.every(function(value) { return value === ''; });
   const isExact = headers.every(function(header, index) {
     return current[index] === header;
   });
+  const isCompatible = headers.every(function(header, index) {
+    return current[index] === '' || current[index] === header;
+  });
 
-  if (!isEmpty && !isExact) {
+  if (!isCompatible) {
     throw new Error(
       'The headers in "' + sheet.getName() + '" do not match the expected layout.'
     );
   }
 
-  if (isEmpty) {
+  if (!isExact) {
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
 
@@ -384,6 +392,33 @@ function validateInput_(input, process) {
       throw new Error('Only image files can be uploaded.');
     }
   }
+  if (process === 'formation' || process === 'degas') {
+    normalizeDefectMap_(input.defectMap);
+  }
+}
+
+function normalizeDefectMap_(value) {
+  let points;
+  try {
+    points = Array.isArray(value) ? value : JSON.parse(String(value || '[]'));
+  } catch (error) {
+    throw new Error('The defect map data is invalid.');
+  }
+  if (!Array.isArray(points) || points.length > 100) {
+    throw new Error('The defect map must contain no more than 100 points.');
+  }
+  const normalized = points.map(function(point) {
+    const x = Number(point && point.x);
+    const y = Number(point && point.y);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1 || y < 0 || y > 1) {
+      throw new Error('A defect map point is outside the valid image area.');
+    }
+    return {
+      x: Math.round(x * 10000) / 10000,
+      y: Math.round(y * 10000) / 10000
+    };
+  });
+  return JSON.stringify(normalized);
 }
 
 function getTempSpecResult_(input) {
