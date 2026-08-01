@@ -1,93 +1,182 @@
 /**
- * Formation 검사 등록용 Google Apps Script
+ * Jig Formation and Degas inspection API.
  *
- * 1. 아래 3개 설정값을 본인의 환경에 맞게 변경합니다.
- * 2. setup()을 편집기에서 한 번 직접 실행해 권한을 승인합니다.
- * 3. 웹 앱으로 새 배포한 뒤 /exec URL을 index.html의 SCRIPT_URL에 넣습니다.
+ * Run setup() once after saving this file.
+ * Then deploy a new web-app version.
  */
 const CONFIG = Object.freeze({
   SPREADSHEET_ID: '19JnDzOotmIc_c0kWPszNNdWahUgvpf4p0ZGwDm6Ck0I',
-  SHEET_NAME: 'Jig visual inspection',
-  DRIVE_FOLDER_ID: '1sjdqljzpJOtAuudYBeotwXeUsxJjSdyM',
+  FORMATION_SHEET_NAME: 'Jig visual inspection',
+  DEGAS_SHEET_NAME: 'Degas inspection',
+  HTA_SHEET_NAME: 'HTA temp',
+  FORMATION_PHOTO_FOLDER_ID: '1sjdqljzpJOtAuudYBeotwXeUsxJjSdyM',
+  DEGAS_PHOTO_FOLDER_ID: '10hybzCCycMsBLscf2qxIADiNgaBsQqbQ',
   MAKE_PHOTOS_PUBLIC: true,
   MAX_PHOTO_BYTES: 8 * 1024 * 1024
 });
 
-const HEADERS = Object.freeze([
+const FORMATION_HEADERS = Object.freeze([
   'Date',
+  'Team',
+  'Operator Name',
   'Tray ID',
+  'Cell ID',
+  'Channel',
   'Jig line',
   'Hot jig',
-  'Cell ID',
   'Defect',
+  'Comment',
   'Defect photo'
 ]);
 
-/**
- * 최초 1회 직접 실행합니다.
- * 시트 헤더를 만들고 Sheets/Drive 권한 승인을 요청합니다.
- */
-function setup() {
-  const sheet = getSheet_();
-  ensureHeaders_(sheet);
-  DriveApp.getFolderById(CONFIG.DRIVE_FOLDER_ID).getName();
-}
+const DEGAS_HEADERS = Object.freeze([
+  'Date',
+  'Team',
+  'Operator Name',
+  'Tray ID',
+  'Cell ID',
+  'Channel',
+  'Degas line',
+  'Defect',
+  'Comment',
+  'Defect photo'
+]);
+
+const HTA_HEADERS = Object.freeze([
+  'Date',
+  'Team',
+  'Operator name',
+  'HTA 1-1',
+  'HTA 1-2',
+  'HTA 2-1',
+  'HTA 2-2',
+  'HTA 3-1',
+  'HTA 3-2',
+  'HTA 4-1',
+  'HTA 4-2',
+  'Temp. In spec'
+]);
+
+const HTA_FIELDS = Object.freeze([
+  { key: 'hta11', label: 'HTA 1-1' },
+  { key: 'hta12', label: 'HTA 1-2' },
+  { key: 'hta21', label: 'HTA 2-1' },
+  { key: 'hta22', label: 'HTA 2-2' },
+  { key: 'hta31', label: 'HTA 3-1' },
+  { key: 'hta32', label: 'HTA 3-2' },
+  { key: 'hta41', label: 'HTA 4-1' },
+  { key: 'hta42', label: 'HTA 4-2' }
+]);
+
+const TEAMS = Object.freeze(['1A', '1B', '2A', '2B']);
 
 /**
- * 홈페이지의 최근 등록 내역 조회 요청을 처리합니다.
+ * Run once to verify the existing Formation sheet and create the Degas sheet.
  */
-function doGet() {
+function setup() {
+  const formationSheet = getSheet_('formation');
+  const degasSheet = getSheet_('degas');
+  const htaSheet = getSheet_('hta');
+
+  ensureHeaders_(formationSheet, FORMATION_HEADERS);
+  ensureHeaders_(degasSheet, DEGAS_HEADERS);
+  ensureHeaders_(htaSheet, HTA_HEADERS);
+  normalizeFormationJigLines_(formationSheet);
+
+  DriveApp.getFolderById(CONFIG.FORMATION_PHOTO_FOLDER_ID).getName();
+  DriveApp.getFolderById(CONFIG.DEGAS_PHOTO_FOLDER_ID).getName();
+}
+
+function doGet(e) {
   try {
-    const sheet = getSheet_();
-    ensureHeaders_(sheet);
+    const process = getProcess_(e && e.parameter && e.parameter.process);
+    const headers = getHeaders_(process);
+    const sheet = getSheet_(process);
+
+    ensureHeaders_(sheet, headers);
+    if (process === 'formation') {
+      normalizeFormationJigLines_(sheet);
+    }
 
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) {
-      return json_({ result: 'success', data: [] });
+      return json_({ result: 'success', process: process, data: [] });
     }
 
-    const values = sheet
-      .getRange(2, 1, lastRow - 1, HEADERS.length)
+    const rows = sheet
+      .getRange(2, 1, lastRow - 1, headers.length)
       .getDisplayValues();
 
-    const data = values.map(function(row) {
-      return {
+    const data = rows.map(function(row) {
+      if (process === 'hta') {
+        return {
+          date: row[0],
+          team: row[1],
+          operatorName: row[2],
+          hta11: row[3],
+          hta12: row[4],
+          hta21: row[5],
+          hta22: row[6],
+          hta31: row[7],
+          hta32: row[8],
+          hta41: row[9],
+          hta42: row[10],
+          tempInSpec: row[11]
+        };
+      }
+
+      const common = {
         date: row[0],
-        trayId: row[1],
-        jigLine: row[2],
-        hotJig: row[3],
+        team: row[1],
+        operatorName: row[2],
+        trayId: row[3],
         cellId: row[4],
-        defect: row[5],
-        defectPhoto: row[6]
+        channel: row[5]
       };
+
+      if (process === 'degas') {
+        return Object.assign(common, {
+          degasLine: row[6],
+          defect: row[7],
+          comment: row[8],
+          defectPhoto: row[9]
+        });
+      }
+
+      return Object.assign(common, {
+        jigLine: row[6],
+        hotJig: row[7],
+        defect: row[8],
+        comment: row[9],
+        defectPhoto: row[10]
+      });
     });
 
-    return json_({ result: 'success', data: data });
+    return json_({ result: 'success', process: process, data: data });
   } catch (error) {
     console.error(error);
     return json_({ result: 'error', message: error.message });
   }
 }
 
-/**
- * 홈페이지의 신규 등록 요청을 처리합니다.
- */
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {
-      throw new Error('전송된 데이터가 없습니다.');
+      throw new Error('No inspection data was received.');
     }
 
     const input = JSON.parse(e.postData.contents);
-    validateInput_(input);
+    const process = getProcess_(input.process);
+    validateInput_(input, process);
 
     let photoUrl = '';
-    if (input.defectPhotoData) {
+    if (process !== 'hta' && input.defectPhotoData) {
       photoUrl = savePhoto_(
         input.defectPhotoData,
         input.defectPhotoName,
         input.defectPhotoType,
-        input.trayId
+        input.trayId,
+        process
       );
     }
 
@@ -95,24 +184,60 @@ function doPost(e) {
     lock.waitLock(30000);
 
     try {
-      const sheet = getSheet_();
-      ensureHeaders_(sheet);
-      sheet.appendRow([
-        new Date(),
-        cleanText_(input.trayId),
-        cleanText_(input.jigLine),
-        Number(input.hotJig),
-        cleanText_(input.cellId),
-        cleanText_(input.defect),
-        photoUrl
-      ]);
+      const headers = getHeaders_(process);
+      const sheet = getSheet_(process);
+      ensureHeaders_(sheet, headers);
+
+      let row;
+      if (process === 'hta') {
+        const temperatures = HTA_FIELDS.map(function(field) {
+          return Number(input[field.key]);
+        });
+        row = [
+          new Date(),
+          cleanText_(input.team),
+          cleanText_(input.operatorName)
+        ].concat(temperatures, [getTempSpecResult_(input)]);
+      } else {
+        const common = [
+          new Date(),
+          cleanText_(input.team),
+          cleanText_(input.operatorName),
+          cleanText_(input.trayId),
+          cleanText_(input.cellId),
+          Number(input.channel)
+        ];
+
+        row = process === 'degas'
+          ? common.concat([
+              cleanText_(input.degasLine),
+              cleanText_(input.defect),
+              cleanText_(input.comment),
+              photoUrl
+            ])
+          : common.concat([
+              cleanText_(input.jigLine),
+              Number(input.hotJig),
+              cleanText_(input.defect),
+              cleanText_(input.comment),
+              photoUrl
+            ]);
+      }
+
+      const nextRow = sheet.getLastRow() + 1;
+      if (process !== 'hta') {
+        sheet.getRange(nextRow, 7).setNumberFormat('@');
+      }
+      sheet.getRange(nextRow, 1, 1, row.length).setValues([row]);
+      sheet.getRange(nextRow, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
     } finally {
       lock.releaseLock();
     }
 
     return json_({
       result: 'success',
-      message: '등록이 완료되었습니다.',
+      process: process,
+      message: 'Inspection submitted successfully.',
       defectPhoto: photoUrl
     });
   } catch (error) {
@@ -121,74 +246,181 @@ function doPost(e) {
   }
 }
 
-function getSheet_() {
+function getProcess_(value) {
+  const process = String(value || 'formation').toLowerCase();
+  if (process === 'degas') return 'degas';
+  if (process === 'hta') return 'hta';
+  return 'formation';
+}
+
+function getHeaders_(process) {
+  if (process === 'hta') return HTA_HEADERS;
+  return process === 'degas' ? DEGAS_HEADERS : FORMATION_HEADERS;
+}
+
+function getSheet_(process) {
   const spreadsheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-  let sheet = spreadsheet.getSheetByName(CONFIG.SHEET_NAME);
+  const sheetName = process === 'hta'
+    ? CONFIG.HTA_SHEET_NAME
+    : process === 'degas'
+      ? CONFIG.DEGAS_SHEET_NAME
+      : CONFIG.FORMATION_SHEET_NAME;
+  let sheet = spreadsheet.getSheetByName(sheetName);
 
   if (!sheet) {
-    sheet = spreadsheet.insertSheet(CONFIG.SHEET_NAME);
+    sheet = spreadsheet.insertSheet(sheetName);
   }
-
   return sheet;
 }
 
-function ensureHeaders_(sheet) {
-  const currentHeaders = sheet
-    .getRange(1, 1, 1, HEADERS.length)
+function ensureHeaders_(sheet, headers) {
+  const current = sheet
+    .getRange(1, 1, 1, headers.length)
     .getDisplayValues()[0];
+  const isEmpty = current.every(function(value) { return value === ''; });
+  const isExact = headers.every(function(header, index) {
+    return current[index] === header;
+  });
 
-  if (HEADERS.some(function(header, index) {
-    return currentHeaders[index] !== header;
-  })) {
-    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-    sheet.getRange(1, 1, 1, HEADERS.length)
-      .setFontWeight('bold')
-      .setBackground('#e2e8f0');
-    sheet.setFrozenRows(1);
+  if (!isEmpty && !isExact) {
+    throw new Error(
+      'The headers in "' + sheet.getName() + '" do not match the expected layout.'
+    );
   }
 
+  if (isEmpty) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+
+  sheet.getRange(1, 1, 1, headers.length)
+    .setFontWeight('bold')
+    .setBackground('#e2e8f0');
+  sheet.setFrozenRows(1);
   sheet.getRange('A:A').setNumberFormat('yyyy-MM-dd HH:mm:ss');
+  sheet.getRange('G:G').setNumberFormat('@');
 }
 
-function validateInput_(input) {
-  const required = ['trayId', 'jigLine', 'hotJig', 'cellId', 'defect'];
+function normalizeFormationJigLines_(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
 
-  required.forEach(function(key) {
-    if (input[key] === undefined || String(input[key]).trim() === '') {
-      throw new Error(key + ' 값이 필요합니다.');
+  const range = sheet.getRange(2, 7, lastRow - 1, 1);
+  const values = range.getValues();
+  let changed = false;
+
+  values.forEach(function(row) {
+    if (row[0] instanceof Date && !isNaN(row[0].getTime())) {
+      row[0] = Utilities.formatDate(
+        row[0],
+        Session.getScriptTimeZone(),
+        'M-d'
+      );
+      changed = true;
     }
   });
 
-  const hotJig = Number(input.hotJig);
-  if (!Number.isInteger(hotJig) || hotJig < 1) {
-    throw new Error('Hot jig 번호는 1 이상의 정수여야 합니다.');
+  if (changed) {
+    range.setNumberFormat('@');
+    range.setValues(values);
+  }
+}
+
+function validateInput_(input, process) {
+  if (process === 'hta') {
+    ['team', 'operatorName'].forEach(function(key) {
+      if (input[key] === undefined || String(input[key]).trim() === '') {
+        throw new Error(key + ' is required.');
+      }
+    });
+    if (!TEAMS.includes(String(input.team))) {
+      throw new Error('Team must be 1A, 1B, 2A, or 2B.');
+    }
+    HTA_FIELDS.forEach(function(field) {
+      const value = Number(input[field.key]);
+      if (!Number.isFinite(value)) {
+        throw new Error(field.label + ' must be a number.');
+      }
+    });
+    return;
+  }
+
+  const required = [
+    'team',
+    'operatorName',
+    'trayId',
+    'cellId',
+    'channel',
+    'defect'
+  ];
+
+  required.push(process === 'degas' ? 'degasLine' : 'jigLine');
+  if (process === 'formation') required.push('hotJig');
+
+  required.forEach(function(key) {
+    if (input[key] === undefined || String(input[key]).trim() === '') {
+      throw new Error(key + ' is required.');
+    }
+  });
+
+  if (!TEAMS.includes(String(input.team))) {
+    throw new Error('Team must be 1A, 1B, 2A, or 2B.');
+  }
+
+  const channel = Number(input.channel);
+  if (!Number.isInteger(channel) || channel < 1) {
+    throw new Error('Channel must be a positive integer.');
+  }
+
+  if (process === 'formation') {
+    const hotJig = Number(input.hotJig);
+    if (!Number.isInteger(hotJig) || hotJig < 1) {
+      throw new Error('Hot jig must be a positive integer.');
+    }
   }
 
   if (input.defectPhotoData) {
     const mimeType = String(input.defectPhotoType || '');
     if (!mimeType.startsWith('image/')) {
-      throw new Error('이미지 파일만 업로드할 수 있습니다.');
+      throw new Error('Only image files can be uploaded.');
     }
   }
 }
 
-function savePhoto_(base64Data, originalName, mimeType, trayId) {
-  const bytes = Utilities.base64Decode(base64Data);
+function getTempSpecResult_(input) {
+  const outOfSpec = HTA_FIELDS.filter(function(field) {
+    const value = Number(input[field.key]);
+    return value < 57 || value > 63;
+  }).map(function(field) {
+    return field.label;
+  });
 
+  return outOfSpec.length ? outOfSpec.join(', ') : 'Spec in';
+}
+
+function savePhoto_(base64Data, originalName, mimeType, trayId, process) {
+  const bytes = Utilities.base64Decode(base64Data);
   if (bytes.length > CONFIG.MAX_PHOTO_BYTES) {
-    throw new Error('사진 크기는 8MB 이하여야 합니다.');
+    throw new Error('The photo must be 8 MB or smaller.');
   }
 
-  const folder = DriveApp.getFolderById(CONFIG.DRIVE_FOLDER_ID);
+  const folderId = process === 'degas'
+    ? CONFIG.DEGAS_PHOTO_FOLDER_ID
+    : CONFIG.FORMATION_PHOTO_FOLDER_ID;
+  const folder = DriveApp.getFolderById(folderId);
   const extension = extensionFor_(originalName, mimeType);
   const timestamp = Utilities.formatDate(
     new Date(),
     Session.getScriptTimeZone(),
     'yyyyMMdd_HHmmss'
   );
-  const safeTrayId = cleanFileName_(trayId || 'tray');
-  const fileName = timestamp + '_' + safeTrayId + extension;
-  const blob = Utilities.newBlob(bytes, mimeType || 'image/jpeg', fileName);
+  const prefix = process === 'degas' ? 'DEGAS' : 'FORMATION';
+  const fileName = prefix + '_' + timestamp + '_'
+    + cleanFileName_(trayId || 'tray') + extension;
+  const blob = Utilities.newBlob(
+    bytes,
+    mimeType || 'image/jpeg',
+    fileName
+  );
   const file = folder.createFile(blob);
 
   if (CONFIG.MAKE_PHOTOS_PUBLIC) {
@@ -198,12 +430,9 @@ function savePhoto_(base64Data, originalName, mimeType, trayId) {
         DriveApp.Permission.VIEW
       );
     } catch (error) {
-      console.warn(
-        '조직 정책 때문에 링크 공개를 적용하지 못했습니다: ' + error.message
-      );
+      console.warn('Unable to apply link sharing: ' + error.message);
     }
   }
-
   return file.getUrl();
 }
 
@@ -225,12 +454,7 @@ function extensionFor_(originalName, mimeType) {
 
 function cleanText_(value) {
   const text = String(value == null ? '' : value).trim();
-
-  // 스프레드시트 수식 삽입을 방지합니다.
-  if (/^[=+\-@]/.test(text)) {
-    return "'" + text;
-  }
-  return text;
+  return /^[=+\-@]/.test(text) ? "'" + text : text;
 }
 
 function cleanFileName_(value) {

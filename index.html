@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +13,46 @@
       padding: 20px;
       color: #1e293b;
     }
+    .app-shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .process-nav {
+      position: sticky;
+      top: 20px;
+      padding: 14px;
+      background: #0f172a;
+      border-radius: 12px;
+    }
+    .process-nav-title {
+      margin: 2px 8px 12px;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .process-group { display: grid; gap: 6px; }
+    .process-group + .process-group { margin-top: 18px; }
+    .process-category {
+      margin: 0 8px 6px;
+      color: #f8fafc;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .process-button {
+      margin-top: 6px;
+      text-align: left;
+      color: #cbd5e1;
+      background: transparent;
+    }
+    .process-button:hover { background: #1e293b; }
+    .process-button.active { color: white; background: #2563eb; }
+    .main-content { min-width: 0; }
     .container {
       max-width: 1000px;
       margin: 0 auto;
@@ -38,6 +78,18 @@
     .page-header h2 { margin: 0; }
     .new-entry-button { width: auto; padding: 10px 18px; }
     @media (max-width: 768px) {
+      body { padding: 12px; }
+      .app-shell { grid-template-columns: 1fr; }
+      .process-nav {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .process-nav-title { display: none; }
+      .process-group + .process-group { margin-top: 0; }
+      .process-category { margin: 0 4px 6px; text-align: center; }
+      .process-button { margin: 0; text-align: center; }
       .container { grid-template-columns: 1fr; }
     }
     .card {
@@ -61,7 +113,7 @@
       margin-bottom: 4px;
       color: #475569;
     }
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #cbd5e1;
@@ -69,7 +121,8 @@
       font-size: 14px;
       outline: none;
     }
-    input:focus, select:focus {
+    textarea { min-height: 82px; resize: vertical; font-family: inherit; }
+    input:focus, select:focus, textarea:focus {
       border-color: #2563eb;
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
@@ -106,7 +159,7 @@
       text-align: center;
       font-weight: 600;
     }
-    /* 테이블 스타일 */
+    /* Inspection history table */
     .table-container {
       overflow-x: auto;
       max-height: 500px;
@@ -136,6 +189,14 @@
       font-size: 11px;
       font-weight: bold;
     }
+    .badge-ok {
+      background-color: #dcfce7;
+      color: #166534;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+    }
     .photo-thumbnail {
       display: block;
       width: 72px;
@@ -145,72 +206,174 @@
       border-radius: 6px;
       background: #f1f5f9;
     }
+    .thumbnail-button {
+      width: auto;
+      padding: 0;
+      background: transparent;
+      border: 0;
+    }
+    .thumbnail-button:hover { background: transparent; }
+    .photo-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      padding: 24px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.88);
+    }
+    .photo-modal.open { display: flex; }
+    .photo-modal-image {
+      max-width: min(1100px, 95vw);
+      max-height: 88vh;
+      object-fit: contain;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+    .photo-modal-close {
+      position: fixed;
+      top: 16px;
+      right: 18px;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 50%;
+      background: white;
+      color: #0f172a;
+      font-size: 26px;
+      line-height: 1;
+    }
+    .hta-fields { display:none; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:14px; }
+    .hta-fields .form-group { margin:0; }
+    .chart-dashboard { display:none; }
+    .chart-dashboard.open { display:block; }
+    .chart-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .chart-card { padding:18px; background:white; border:1px solid #e2e8f0; border-radius:12px; }
+    .chart-card h3 { margin-bottom:10px; font-size:20px; }
+    .chart-card svg { display:block; width:100%; height:auto; }
+    .chart-empty { padding:60px 20px; text-align:center; color:#64748b; }
+    @media (max-width:768px) { .chart-grid { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
 
+  <div class="app-shell">
+    <aside class="process-nav" aria-label="Process selection">
+      <div class="process-nav-title">Process</div>
+      <div class="process-group">
+        <div class="process-category">Appearance</div>
+        <button type="button" class="process-button active" data-process="formation">Jig Formation</button>
+        <button type="button" class="process-button" data-process="degas">Degas</button>
+      </div>
+      <div class="process-group">
+        <div class="process-category">Temperature</div>
+        <button type="button" class="process-button" data-process="hta">HTA</button>
+      </div>
+    </aside>
+    <main class="main-content">
   <div class="page-header">
-    <h2>Formation 자주검사 모니터링</h2>
-    <button type="button" class="new-entry-button" id="openFormBtn">＋ 새로 등록</button>
+    <h2 id="pageTitle">Jig Formation Inspection</h2>
+    <button type="button" class="new-entry-button" id="openFormBtn">＋ New Inspection</button>
   </div>
 
   <div class="container">
-    <!-- 입력 폼 -->
+    <!-- Inspection form -->
     <div class="card form-card" id="formCard">
-      <h3>새 검사 등록</h3>
+      <h3 id="formTitle">New Jig Formation Inspection</h3>
       <form id="inspectionForm">
         <div class="form-group">
-          <label for="trayId">Tray ID</label>
-          <input type="text" id="trayId" required placeholder="예: LHED000001">
-        </div>
-
-        <div class="form-group">
-          <label for="jigLine">Jig line</label>
-          <input type="text" id="jigLine" required placeholder="예: 4-1, 4-2, 5-1, 5-2">
-        </div>
-
-        <div class="form-group">
-          <label for="hotJig">Hot jig 번호</label>
-          <input type="number" id="hotJig" required min="1" placeholder="예: 12">
-        </div>
-
-        <div class="form-group">
-          <label for="cellId">Cell ID</label>
-          <input type="text" id="cellId" required placeholder="예: EFG512345">
-        </div>
-
-        <div class="form-group">
-          <label for="defect">Defect (불량 유형)</label>
-          <select id="defect" required>
-            <option value="" disabled selected>선택하세요</option>
-            <option value="온도 이상 (High/Low Temp)">온도 이상 (High/Low Temp)</option>
-            <option value="외관 변형 (Deformation)">외관 변형 (Deformation)</option>
-            <option value="전압 이상 (Voltage Error)">전압 이상 (Voltage Error)</option>
-            <option value="접촉 불량 (Contact Error)">접촉 불량 (Contact Error)</option>
-            <option value="기타 (Other)">기타 (Other)</option>
+          <label for="team">Team</label>
+          <select id="team" required>
+            <option value="" disabled selected>Select a team</option>
+            <option value="1A">1A</option>
+            <option value="1B">1B</option>
+            <option value="2A">2A</option>
+            <option value="2B">2B</option>
           </select>
         </div>
 
         <div class="form-group">
+          <label for="operatorName">Operator Name</label>
+          <input type="text" id="operatorName" required placeholder="e.g., John Smith">
+        </div>
+
+        <div class="hta-fields" id="htaFields">
+          <div class="form-group"><label for="hta11">HTA 1-1</label><input type="number" id="hta11" step="0.01" placeholder="°C"></div>
+          <div class="form-group"><label for="hta12">HTA 1-2</label><input type="number" id="hta12" step="0.01" placeholder="°C"></div>
+          <div class="form-group"><label for="hta21">HTA 2-1</label><input type="number" id="hta21" step="0.01" placeholder="°C"></div>
+          <div class="form-group"><label for="hta22">HTA 2-2</label><input type="number" id="hta22" step="0.01" placeholder="°C"></div>
+          <div class="form-group"><label for="hta31">HTA 3-1</label><input type="number" id="hta31" step="0.01" placeholder="°C"></div>
+          <div class="form-group"><label for="hta32">HTA 3-2</label><input type="number" id="hta32" step="0.01" placeholder="°C"></div>
+          <div class="form-group"><label for="hta41">HTA 4-1</label><input type="number" id="hta41" step="0.01" placeholder="°C"></div>
+          <div class="form-group"><label for="hta42">HTA 4-2</label><input type="number" id="hta42" step="0.01" placeholder="°C"></div>
+        </div>
+
+        <div class="form-group process-inspection-field">
+          <label for="trayId">Tray ID</label>
+          <input type="text" id="trayId" required placeholder="e.g., LHED000001">
+        </div>
+
+        <div class="form-group process-inspection-field">
+          <label for="cellId">Cell ID</label>
+          <input type="text" id="cellId" required placeholder="e.g., EFG512345">
+        </div>
+
+        <div class="form-group process-inspection-field">
+          <label for="channel">Channel</label>
+          <input type="number" id="channel" required min="1" step="1" inputmode="numeric" placeholder="e.g., 1">
+        </div>
+
+        <div class="form-group process-inspection-field">
+          <label for="processLine" id="lineLabel">Jig line</label>
+          <input type="text" id="processLine" required placeholder="e.g., 4-1, 4-2, 5-1, 5-2">
+        </div>
+
+        <div class="form-group process-inspection-field" id="hotJigGroup">
+          <label for="hotJig">Hot Jig Number</label>
+          <input type="number" id="hotJig" required min="1" placeholder="e.g., 12">
+        </div>
+
+        <div class="form-group process-inspection-field">
+          <label for="defect">Defect Type</label>
+          <select id="defect" required>
+            <option value="" disabled selected>Select a defect type</option>
+            <option value="All OK">All OK</option>
+            <option value="Dent">Dent</option>
+            <option value="Contamination">Contamination</option>
+            <option value="Scratch">Scratch</option>
+            <option value="Lead bending">Lead bending</option>
+            <option value="Wrinkles">Wrinkles</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+
+        <div class="form-group process-inspection-field">
+          <label for="comment">Comment</label>
+          <textarea id="comment" placeholder="Enter additional details"></textarea>
+        </div>
+
+        <div class="form-group process-inspection-field">
           <label for="defectPhoto">Defect Photo</label>
           <input type="file" id="defectPhoto" accept="image/*" capture="environment" required>
-          <small class="input-help">태블릿 카메라로 촬영하거나 저장된 사진을 선택하세요. 최대 8MB</small>
-          <img id="photoPreview" class="photo-preview" alt="선택한 사진 미리보기">
+          <small class="input-help">Take a photo with the tablet camera or select an existing image. Maximum 8 MB.</small>
+          <img id="photoPreview" class="photo-preview" alt="Selected photo preview">
         </div>
 
         <div class="button-row">
-          <button type="submit" id="submitBtn">데이터 전송</button>
-          <button type="button" class="cancel-button" id="cancelBtn">취소</button>
+          <button type="submit" id="submitBtn">Submit Inspection</button>
+          <button type="button" class="cancel-button" id="cancelBtn">Cancel</button>
         </div>
       </form>
       <div id="status"></div>
     </div>
 
-    <!-- 검사 내역 데이터 표 -->
-    <div class="card">
+    <!-- Inspection history -->
+    <div class="card" id="historyCard">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="margin: 0;">최근 등록 내역</h3>
-        <button onclick="loadData()" style="width: auto; padding: 6px 12px; font-size: 12px; background: #64748b;">🔄 새로고침</button>
+        <h3 style="margin: 0;">Recent Inspections</h3>
+        <button onclick="loadData()" style="width: auto; padding: 6px 12px; font-size: 12px; background: #64748b;">🔄 Refresh</button>
       </div>
       
       <div class="table-container">
@@ -218,24 +381,38 @@
           <thead>
             <tr>
               <th>Date</th>
+              <th>Team</th>
+              <th>Operator Name</th>
               <th>Tray ID</th>
-              <th>Jig line</th>
-              <th>Hot jig</th>
               <th>Cell ID</th>
+              <th>Channel</th>
+              <th id="lineHeader">Jig line</th>
+              <th id="hotJigHeader">Hot jig</th>
               <th>Defect</th>
+              <th>Comment</th>
               <th>Photo</th>
             </tr>
           </thead>
           <tbody id="dataTableBody">
-            <tr><td colspan="7" style="text-align:center;">데이터를 불러오는 중...</td></tr>
+            <tr><td colspan="11" style="text-align:center;">Loading inspection data...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
+    <section class="chart-dashboard" id="chartDashboard">
+      <div class="chart-grid" id="chartGrid"></div>
+    </section>
+  </div>
+    </main>
+  </div>
+
+  <div class="photo-modal" id="photoModal" role="dialog" aria-modal="true" aria-label="Photo preview">
+    <button type="button" class="photo-modal-close" id="photoModalClose" aria-label="Close photo preview">×</button>
+    <img class="photo-modal-image" id="photoModalImage" alt="Full-size defect photo">
   </div>
 
   <script>
-    // ★ 본인의 Google Apps Script 배포 URL을 넣어주세요 ★
+    // Google Apps Script deployment URL
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4_P_F818omnp_ytln0JQnF4OIwlvdPBElUwHOQLS-Lrr2wJhc_eDv7KR72nluYLWW/exec';
     const formCard = document.getElementById('formCard');
     const inspectionForm = document.getElementById('inspectionForm');
@@ -243,12 +420,56 @@
     const cancelBtn = document.getElementById('cancelBtn');
     const photoInput = document.getElementById('defectPhoto');
     const photoPreview = document.getElementById('photoPreview');
+    const hotJigInput = document.getElementById('hotJig');
+    const htaInputIds = ['hta11', 'hta12', 'hta21', 'hta22', 'hta31', 'hta32', 'hta41', 'hta42'];
+    let currentProcess = 'formation';
+    let loadRequestId = 0;
+
+    function switchProcess(process) {
+      currentProcess = process === 'hta' ? 'hta' : process === 'degas' ? 'degas' : 'formation';
+      const isDegas = currentProcess === 'degas';
+      const isHta = currentProcess === 'hta';
+
+      document.querySelectorAll('.process-button').forEach(button => {
+        button.classList.toggle('active', button.dataset.process === currentProcess);
+      });
+      document.getElementById('pageTitle').textContent =
+        isHta ? 'HTA Temperature Monitoring' : isDegas ? 'Degas Inspection' : 'Jig Formation Inspection';
+      document.getElementById('formTitle').textContent =
+        isHta ? 'New HTA Temperature Reading' : isDegas ? 'New Degas Inspection' : 'New Jig Formation Inspection';
+      document.getElementById('lineLabel').textContent =
+        isDegas ? 'Degas line' : 'Jig line';
+      document.getElementById('lineHeader').textContent =
+        isDegas ? 'Degas line' : 'Jig line';
+      document.getElementById('processLine').placeholder =
+        isDegas ? 'e.g., 1, 2, 3' : 'e.g., 4-1, 4-2, 5-1, 5-2';
+      document.querySelectorAll('.process-inspection-field').forEach(field => {
+        field.style.display = isHta ? 'none' : '';
+      });
+      document.getElementById('htaFields').style.display = isHta ? 'grid' : 'none';
+      htaInputIds.forEach(id => { document.getElementById(id).required = isHta; });
+      ['trayId', 'cellId', 'channel', 'processLine', 'defect', 'defectPhoto'].forEach(id => {
+        document.getElementById(id).required = !isHta;
+      });
+      document.getElementById('hotJigGroup').style.display = isDegas || isHta ? 'none' : '';
+      document.getElementById('hotJigHeader').style.display = isDegas ? 'none' : '';
+      hotJigInput.required = !isDegas && !isHta;
+      document.getElementById('historyCard').style.display = isHta ? 'none' : '';
+      document.getElementById('chartDashboard').style.display = isHta ? 'block' : 'none';
+      openFormBtn.textContent = isHta ? 'New Reading' : 'New Inspection';
+      closeForm();
+      loadData();
+    }
+
+    document.querySelectorAll('.process-button').forEach(button => {
+      button.addEventListener('click', () => switchProcess(button.dataset.process));
+    });
 
     function openForm() {
       formCard.classList.add('open');
       openFormBtn.style.display = 'none';
       formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setTimeout(() => document.getElementById('trayId').focus(), 300);
+      setTimeout(() => document.getElementById(currentProcess === 'hta' ? 'hta11' : 'trayId').focus(), 300);
     }
 
     function closeForm() {
@@ -268,7 +489,7 @@
         }
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result).split(',')[1]);
-        reader.onerror = () => reject(new Error('사진을 읽을 수 없습니다.'));
+        reader.onerror = () => reject(new Error('Unable to read the photo.'));
         reader.readAsDataURL(file);
       });
     }
@@ -285,7 +506,7 @@
       photoPreview.style.display = 'block';
     });
 
-    // 1. 데이터 등록 (POST)
+    // 1. Submit inspection data (POST)
     inspectionForm.addEventListener('submit', async function(e) {
       e.preventDefault();
 
@@ -294,25 +515,47 @@
 
       submitBtn.disabled = true;
       statusDiv.style.color = '#2563eb';
-      statusDiv.textContent = '전송 중...';
+      statusDiv.textContent = 'Submitting...';
 
-      const photoFile = photoInput.files[0];
+      const isHta = currentProcess === 'hta';
+      const photoFile = isHta ? null : photoInput.files[0];
       if (photoFile && photoFile.size > 8 * 1024 * 1024) {
         statusDiv.style.color = '#dc2626';
-        statusDiv.textContent = '❌ 사진 크기는 8MB 이하여야 합니다.';
+        statusDiv.textContent = '❌ The photo must be 8 MB or smaller.';
         submitBtn.disabled = false;
         return;
       }
-      const payload = {
+      const payload = isHta ? {
+        process: 'hta',
+        team: document.getElementById('team').value,
+        operatorName: document.getElementById('operatorName').value,
+        hta11: Number(document.getElementById('hta11').value),
+        hta12: Number(document.getElementById('hta12').value),
+        hta21: Number(document.getElementById('hta21').value),
+        hta22: Number(document.getElementById('hta22').value),
+        hta31: Number(document.getElementById('hta31').value),
+        hta32: Number(document.getElementById('hta32').value),
+        hta41: Number(document.getElementById('hta41').value),
+        hta42: Number(document.getElementById('hta42').value)
+      } : {
+        process: currentProcess,
+        team: document.getElementById('team').value,
+        operatorName: document.getElementById('operatorName').value,
         trayId: document.getElementById('trayId').value,
-        jigLine: document.getElementById('jigLine').value,
-        hotJig: document.getElementById('hotJig').value,
         cellId: document.getElementById('cellId').value,
+        channel: Number(document.getElementById('channel').value),
         defect: document.getElementById('defect').value,
+        comment: document.getElementById('comment').value,
         defectPhotoName: photoFile ? photoFile.name : '',
         defectPhotoType: photoFile ? photoFile.type : '',
         defectPhotoData: await readPhoto(photoFile)
       };
+      if (currentProcess === 'degas') {
+        payload.degasLine = document.getElementById('processLine').value;
+      } else if (!isHta) {
+        payload.jigLine = document.getElementById('processLine').value;
+        payload.hotJig = hotJigInput.value;
+      }
 
       fetch(SCRIPT_URL, {
         method: 'POST',
@@ -322,63 +565,171 @@
       })
       .then(() => {
         statusDiv.style.color = '#16a34a';
-        statusDiv.textContent = '✅ 등록 완료!';
+        statusDiv.textContent = isHta ? '✅ Temperature reading submitted successfully!' : '✅ Inspection submitted successfully!';
         closeForm();
-        setTimeout(loadData, 1000); // 등록 후 1초 뒤 자동 목록 업데이트
+        setTimeout(loadData, 1000); // Refresh the list after submission
       })
       .catch(error => {
         statusDiv.style.color = '#dc2626';
-        statusDiv.textContent = '❌ 전송 실패: ' + error.message;
+        statusDiv.textContent = '❌ Submission failed: ' + error.message;
       })
       .finally(() => { submitBtn.disabled = false; });
     });
 
-    // 2. 시트 데이터 조회 (GET)
-    function getPhotoThumbnailUrl(photoUrl) {
+    // 2. Load inspection data (GET)
+    function getDrivePhotoUrl(photoUrl, size) {
       if (!photoUrl) return '';
       const match = String(photoUrl).match(/\/d\/([a-zA-Z0-9_-]+)/)
         || String(photoUrl).match(/[?&]id=([a-zA-Z0-9_-]+)/);
       return match
-        ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w200`
+        ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=${size}`
         : photoUrl;
     }
 
+    function openPhoto(photoUrl) {
+      const modal = document.getElementById('photoModal');
+      document.getElementById('photoModalImage').src = getDrivePhotoUrl(photoUrl, 'w1600');
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closePhoto() {
+      const modal = document.getElementById('photoModal');
+      modal.classList.remove('open');
+      document.getElementById('photoModalImage').removeAttribute('src');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('photoModalClose').addEventListener('click', closePhoto);
+    document.getElementById('photoModal').addEventListener('click', event => {
+      if (event.target.id === 'photoModal') closePhoto();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closePhoto();
+    });
+    document.getElementById('dataTableBody').addEventListener('click', event => {
+      const button = event.target.closest('.thumbnail-button');
+      if (button) openPhoto(decodeURIComponent(button.dataset.photo));
+    });
+
     function loadData() {
       const tbody = document.getElementById('dataTableBody');
+      const requestedProcess = currentProcess;
+      const requestId = ++loadRequestId;
+      const columnCount = requestedProcess === 'degas' ? 10 : 11;
+      if (requestedProcess === 'hta') {
+        document.getElementById('chartGrid').innerHTML = '<div class="chart-empty">Loading temperature data...</div>';
+      } else {
+        tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">Loading inspection data...</td></tr>`;
+      }
       
-      fetch(SCRIPT_URL)
+      fetch(`${SCRIPT_URL}?process=${requestedProcess}`)
         .then(res => res.json())
         .then(resData => {
+          if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
           if (resData.result === 'success') {
+            if (requestedProcess === 'hta') {
+              renderHtaCharts(resData.data || []);
+              return;
+            }
             tbody.innerHTML = '';
-            const list = resData.data.reverse(); // 최신순 정렬
+            const list = resData.data.reverse(); // Newest first
             
             if (list.length === 0) {
-              tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">등록된 데이터가 없습니다.</td></tr>';
+              tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">No inspection records found.</td></tr>`;
               return;
             }
 
             list.forEach(item => {
               const tr = document.createElement('tr');
+              const lineValue = requestedProcess === 'degas' ? item.degasLine : item.jigLine;
+              const hotJigCell = requestedProcess === 'degas' ? '' : `<td>${item.hotJig}</td>`;
               tr.innerHTML = `
                 <td>${item.date}</td>
+                <td>${item.team}</td>
+                <td>${item.operatorName}</td>
                 <td><b>${item.trayId}</b></td>
-                <td>${item.jigLine}</td>
-                <td>${item.hotJig}번</td>
                 <td>${item.cellId}</td>
-                <td><span class="badge-defect">${item.defect}</span></td>
-                <td>${item.defectPhoto ? `<a href="${item.defectPhoto}" target="_blank" rel="noopener" aria-label="원본 사진 열기"><img class="photo-thumbnail" src="${getPhotoThumbnailUrl(item.defectPhoto)}" alt="Defect 사진" loading="lazy"></a>` : '-'}</td>
+                <td>${item.channel}</td>
+                <td>${lineValue}</td>
+                ${hotJigCell}
+                <td><span class="${item.defect === 'All OK' ? 'badge-ok' : 'badge-defect'}">${item.defect}</span></td>
+                <td>${item.comment || '-'}</td>
+                <td>${item.defectPhoto ? `<button type="button" class="thumbnail-button" data-photo="${encodeURIComponent(item.defectPhoto)}" aria-label="Enlarge photo"><img class="photo-thumbnail" src="${getDrivePhotoUrl(item.defectPhoto, 'w200')}" alt="Defect photo" loading="lazy"></button>` : '-'}</td>
               `;
               tbody.appendChild(tr);
             });
           }
         })
         .catch(err => {
-          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">데이터 조회 실패 (Google Apps Script 배포 상태를 확인하세요)</td></tr>';
+          if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
+          if (requestedProcess === 'hta') {
+            document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the Google Apps Script deployment.</div>';
+          } else {
+            tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the Google Apps Script deployment.</td></tr>`;
+          }
         });
     }
 
-    // 페이지 접속 시 데이터 자동 불러오기
+    function escapeText(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[character]);
+    }
+
+    function renderHtaCharts(records) {
+      const grid = document.getElementById('chartGrid');
+      if (!records.length) {
+        grid.innerHTML = '<div class="chart-empty">No temperature records found.</div>';
+        return;
+      }
+      const groups = [
+        ['HTA 1', 'hta11', 'HTA 1-1', 'hta12', 'HTA 1-2'],
+        ['HTA 2', 'hta21', 'HTA 2-1', 'hta22', 'HTA 2-2'],
+        ['HTA 3', 'hta31', 'HTA 3-1', 'hta32', 'HTA 3-2'],
+        ['HTA 4', 'hta41', 'HTA 4-1', 'hta42', 'HTA 4-2']
+      ];
+      grid.innerHTML = groups.map(group => `<article class="chart-card"><h3>${group[0]}</h3>${buildTempChart(records, group)}</article>`).join('');
+    }
+
+    function buildTempChart(records, group) {
+      const width = 520, height = 260, left = 46, right = 16, top = 18, bottom = 48;
+      const plotWidth = width - left - right, plotHeight = height - top - bottom;
+      const series = records.map(record => ({ date: record.date, a: Number(record[group[1]]), b: Number(record[group[3]]) }))
+        .filter(point => Number.isFinite(point.a) && Number.isFinite(point.b));
+      if (!series.length) return '<div class="chart-empty">No numeric temperature data.</div>';
+      const minValue = 56;
+      const maxValue = 64;
+      const x = index => left + (series.length === 1 ? plotWidth / 2 : index * plotWidth / (series.length - 1));
+      const y = value => top + (maxValue - value) * plotHeight / (maxValue - minValue);
+      const polyline = key => series.map((point, index) => `${x(index).toFixed(1)},${y(point[key]).toFixed(1)}`).join(' ');
+      const yTicks = [minValue, 57, 60, 63, maxValue].filter((value, index, array) => array.indexOf(value) === index).sort((a, b) => a - b);
+      const ticks = yTicks.map(value => `<line x1="${left}" y1="${y(value)}" x2="${width-right}" y2="${y(value)}" stroke="#e2e8f0"/><text x="${left-7}" y="${y(value)+4}" text-anchor="end" font-size="11" fill="#64748b">${value}</text>`).join('');
+      const markers = key => series.map((point, index) =>
+        `<circle cx="${x(index).toFixed(1)}" cy="${y(point[key]).toFixed(1)}" r="3.5" fill="white" stroke="${key === 'a' ? '#2563eb' : '#f97316'}" stroke-width="2"/>`
+      ).join('');
+      const firstDate = escapeText(series[0].date);
+      const lastDate = escapeText(series[series.length - 1].date);
+      return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${group[0]} temperature trend">
+        ${ticks}
+        <line x1="${left}" y1="${y(57)}" x2="${width-right}" y2="${y(57)}" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+        <line x1="${left}" y1="${y(63)}" x2="${width-right}" y2="${y(63)}" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
+        <line x1="${left}" y1="${top}" x2="${left}" y2="${height-bottom}" stroke="#94a3b8"/>
+        <line x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}" stroke="#94a3b8"/>
+        <polyline points="${polyline('a')}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>
+        <polyline points="${polyline('b')}" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linejoin="round"/>
+        ${markers('a')}
+        ${markers('b')}
+        <text x="${left}" y="${height-24}" font-size="10" fill="#64748b">${firstDate}</text>
+        <text x="${width-right}" y="${height-24}" text-anchor="end" font-size="10" fill="#64748b">${lastDate}</text>
+        <circle cx="${left+3}" cy="${height-8}" r="3" fill="#2563eb"/><text x="${left+10}" y="${height-5}" font-size="9">${group[2]}</text>
+        <circle cx="${left+82}" cy="${height-8}" r="3" fill="#f97316"/><text x="${left+89}" y="${height-5}" font-size="9">${group[4]}</text>
+        <line x1="${width-right-80}" y1="${height-8}" x2="${width-right-60}" y2="${height-8}" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="6 4"/>
+        <text x="${width-right}" y="${height-5}" text-anchor="end" font-size="8" fill="#dc2626">Spec: 57–63°C</text>
+      </svg>`;
+    }
+
+    // Load data when the page opens
     loadData();
   </script>
 </body>
