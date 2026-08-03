@@ -91,76 +91,115 @@ function setup() {
 
 function doGet(e) {
   try {
-    const process = getProcess_(e && e.parameter && e.parameter.process);
+    const parameters = e && e.parameter ? e.parameter : {};
+    const process = getProcess_(parameters.process);
+    const action = String(parameters.action || 'all').toLowerCase();
     const headers = getHeaders_(process);
     const sheet = getSheet_(process);
 
-    ensureHeaders_(sheet, headers);
-    if (process === 'formation') {
-      normalizeFormationJigLines_(sheet);
+    if (action === 'summary') return json_(getSummaryResponse_(sheet, process, headers));
+    if (action === 'records') return json_(getRecordsResponse_(sheet, process, headers, parameters));
+    if (action === 'map' || action === 'chart') {
+      return json_(getDateRangeResponse_(sheet, process, headers, parameters, action));
     }
-
-    const lastRow = sheet.getLastRow();
-    if (lastRow < 2) {
-      return json_({ result: 'success', process: process, data: [] });
-    }
-
-    const rows = sheet
-      .getRange(2, 1, lastRow - 1, headers.length)
-      .getDisplayValues();
-
-    const data = rows.map(function(row) {
-      if (process === 'hta') {
-        return {
-          date: row[0],
-          team: row[1],
-          operatorName: row[2],
-          hta11: row[3],
-          hta12: row[4],
-          hta21: row[5],
-          hta22: row[6],
-          hta31: row[7],
-          hta32: row[8],
-          hta41: row[9],
-          hta42: row[10],
-          tempInSpec: row[11]
-        };
-      }
-
-      const common = {
-        date: row[0],
-        team: row[1],
-        operatorName: row[2],
-        trayId: row[3],
-        cellId: row[4],
-        channel: row[5]
-      };
-
-      if (process === 'degas') {
-        return Object.assign(common, {
-          degasLine: row[6],
-          defect: row[7],
-          comment: row[8],
-          defectPhoto: row[9],
-          defectMap: row[10] || '[]'
-        });
-      }
-
-      return Object.assign(common, {
-        jigLine: row[6],
-        hotJig: row[7],
-        defect: row[8],
-        comment: row[9],
-        defectPhoto: row[10],
-        defectMap: row[11] || '[]'
-      });
-    });
-
-    return json_({ result: 'success', process: process, data: data });
+    return json_({ result: 'success', process: process, data: readRecords_(sheet, process, headers, 2, Math.max(0, sheet.getLastRow() - 1)) });
   } catch (error) {
     console.error(error);
     return json_({ result: 'error', message: error.message });
   }
+}
+
+function getSummaryResponse_(sheet, process, headers) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    return { result: 'success', process: process, summary: { totalRecords: 0, defectCount: 0, latest: null } };
+  }
+
+  const totalRecords = lastRow - 1;
+  const latest = readRecords_(sheet, process, headers, lastRow, 1)[0] || null;
+  let defectCount = 0;
+  if (process !== 'hta') {
+    const defectColumn = process === 'degas' ? 8 : 9;
+    defectCount = sheet.getRange(2, defectColumn, totalRecords, 1).getDisplayValues()
+      .reduce(function(total, row) {
+        const value = String(row[0] || '').trim();
+        return total + (value && value !== 'All OK' ? 1 : 0);
+      }, 0);
+  }
+
+  return {
+    result: 'success',
+    process: process,
+    summary: { totalRecords: totalRecords, defectCount: defectCount, latest: latest }
+  };
+}
+
+function getRecordsResponse_(sheet, process, headers, parameters) {
+  const totalRecords = Math.max(0, sheet.getLastRow() - 1);
+  const limit = Math.min(100, Math.max(1, Number(parameters.limit) || 50));
+  const offset = Math.max(0, Number(parameters.offset) || 0);
+  const available = Math.max(0, totalRecords - offset);
+  const count = Math.min(limit, available);
+  const startRow = count ? sheet.getLastRow() - offset - count + 1 : 2;
+  const data = readRecords_(sheet, process, headers, startRow, count).reverse();
+  return {
+    result: 'success',
+    process: process,
+    data: data,
+    pagination: { limit: limit, offset: offset, nextOffset: offset + count, hasMore: offset + count < totalRecords, totalRecords: totalRecords }
+  };
+}
+
+function getDateRangeResponse_(sheet, process, headers, parameters, action) {
+  if (action === 'chart' && process !== 'hta') throw new Error('Chart data is only available for HTA.');
+  if (action === 'map' && process === 'hta') throw new Error('Map data is only available for Appearance processes.');
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { result: 'success', process: process, data: [] };
+  const startDate = String(parameters.startDate || '');
+  const endDate = String(parameters.endDate || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
+    throw new Error('startDate and endDate must use YYYY-MM-DD.');
+  }
+
+  const rows = sheet.getRange(2, 1, lastRow - 1, headers.length).getDisplayValues();
+  const data = rows.filter(function(row) {
+    const dateKey = getDateKey_(row[0]);
+    return dateKey >= startDate && dateKey <= endDate;
+  }).map(function(row) {
+    return rowToRecord_(row, process);
+  });
+  return {
+    result: 'success',
+    process: process,
+    data: data
+  };
+}
+
+function getDateKey_(value) {
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  }
+  const match = String(value || '').match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : '';
+}
+
+function readRecords_(sheet, process, headers, startRow, count) {
+  if (!count) return [];
+  return sheet.getRange(startRow, 1, count, headers.length).getDisplayValues().map(function(row) {
+    return rowToRecord_(row, process);
+  });
+}
+
+function rowToRecord_(row, process) {
+    if (process === 'hta') {
+      return { date: row[0], team: row[1], operatorName: row[2], hta11: row[3], hta12: row[4], hta21: row[5], hta22: row[6], hta31: row[7], hta32: row[8], hta41: row[9], hta42: row[10], tempInSpec: row[11] };
+    }
+    const common = { date: row[0], team: row[1], operatorName: row[2], trayId: row[3], cellId: row[4], channel: row[5] };
+    if (process === 'degas') {
+      return Object.assign(common, { degasLine: row[6], defect: row[7], comment: row[8], defectPhoto: row[9], defectMap: row[10] || '[]' });
+    }
+    return Object.assign(common, { jigLine: row[6], hotJig: row[7], defect: row[8], comment: row[9], defectPhoto: row[10], defectMap: row[11] || '[]' });
 }
 
 function doPost(e) {

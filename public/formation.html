@@ -78,36 +78,52 @@
     .process-nav {
       position: sticky;
       top: 20px;
-      padding: 14px;
-      background: #0f172a;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, .12);
+      display: grid;
+      align-items: start;
+      gap: 12px;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
     }
     .process-nav-title {
       margin: 2px 8px 12px;
-      color: #94a3b8;
+      color: #64748b;
       font-size: 11px;
       font-weight: 700;
       letter-spacing: .08em;
       text-transform: uppercase;
     }
-    .process-group { display: grid; gap: 6px; }
-    .process-group + .process-group { margin-top: 18px; }
+    .process-group { display: grid; align-content: start; gap: 8px; padding: 10px; border: 1px solid; border-radius: 12px; box-shadow: 0 3px 10px rgba(15, 23, 42, .06); }
+    .process-group + .process-group { margin-top: 0; }
+    .appearance-group { background: #eff6ff; border-color: #bfdbfe; }
+    .temperature-group { background: #fff7ed; border-color: #fed7aa; }
+    .process-options { display: none; gap: 7px; padding-top: 2px; }
+    .process-group.open .process-options { display: grid; }
     .process-category {
       margin: 0 8px 6px;
-      color: #f8fafc;
+      color: #1e293b;
       font-size: 16px;
       font-weight: 700;
     }
+    .process-category-toggle { width: 100%; min-height: 48px; margin: 0; padding: 8px 10px; display: flex; align-items: center; gap: 9px; text-align: left; background: transparent; border-radius: 8px; }
+    .process-category-toggle:hover { background: transparent; }
+    .appearance-group .process-category-toggle { color: #1d4ed8; }
+    .temperature-group .process-category-toggle { color: #c2410c; }
+    .process-category-icon { display: inline-grid; width: 28px; height: 28px; place-items: center; flex: 0 0 auto; border-radius: 8px; font-size: 15px; }
+    .appearance-group .process-category-icon { background: #dbeafe; }
+    .temperature-group .process-category-icon { background: #ffedd5; }
+    .process-category-chevron { display: inline; margin-left: auto; transition: transform .2s; }
+    .process-group.open .process-category-chevron { transform: rotate(180deg); }
     .process-button {
       margin-top: 6px;
       text-align: left;
-      color: #cbd5e1;
+      color: #475569;
       background: transparent;
       font-size: 14px;
     }
-    .process-button:hover { background: #1e293b; }
-    .process-button.active { color: white; background: var(--primary); box-shadow: 0 4px 10px rgba(37, 99, 235, .25); }
+    .process-button:hover { color: #1e3a8a; background: rgba(255, 255, 255, .7); }
+    .process-button.active { color: #1d4ed8; background: #dbeafe; box-shadow: inset 0 0 0 1px #bfdbfe; }
     .main-content { min-width: 0; }
     .container {
       max-width: 1034px;
@@ -123,6 +139,22 @@
       margin: 0 auto;
     }
     .form-card.open { display: block; }
+    .form-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1050;
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, .58);
+      backdrop-filter: blur(2px);
+    }
+    .form-modal.open { display: flex; }
+    .form-modal .form-card { position: relative; max-height: calc(100vh - 40px); margin: 0; overflow-y: auto; box-shadow: 0 22px 55px rgba(15, 23, 42, .28); }
+    .form-modal-close { position: absolute; top: 12px; right: 12px; width: 44px; min-height: 44px; padding: 0; color: #475569; background: #e2e8f0; border-radius: 50%; font-size: 25px; line-height: 1; }
+    .form-modal-close:hover { color: #0f172a; background: #cbd5e1; }
+    .form-modal .form-card > h3 { padding-right: 52px; }
     .page-header {
       max-width: 1034px;
       margin: 0 auto 20px;
@@ -161,12 +193,29 @@
         position: static;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
         gap: 12px;
-        padding: 12px;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
       }
       .process-nav-title { display: none; }
+      .process-group { align-content: start; gap: 8px; padding: 10px; border: 1px solid; border-radius: 12px; box-shadow: 0 3px 10px rgba(15, 23, 42, .06); }
       .process-group + .process-group { margin-top: 0; }
-      .process-category { margin: 0 4px 6px; text-align: center; }
+      .appearance-group { background: #eff6ff; border-color: #bfdbfe; }
+      .temperature-group { background: #fff7ed; border-color: #fed7aa; }
+      .process-category { margin: 0; text-align: left; }
+      .process-category-toggle { width: 100%; min-height: 48px; padding: 8px 10px; display: flex; align-items: center; gap: 9px; border-radius: 8px; }
+      .appearance-group .process-category-toggle { color: #1d4ed8; }
+      .temperature-group .process-category-toggle { color: #c2410c; }
+      .process-category-icon { display: inline-grid; width: 28px; height: 28px; place-items: center; flex: 0 0 auto; border-radius: 8px; font-size: 15px; }
+      .appearance-group .process-category-icon { background: #dbeafe; }
+      .temperature-group .process-category-icon { background: #ffedd5; }
+      .process-category-chevron { display: inline; margin-left: auto; transition: transform .2s; }
+      .process-group.open .process-category-chevron { transform: rotate(180deg); }
+      .process-options { display: none; gap: 7px; padding-top: 2px; }
+      .process-group.open .process-options { display: grid; }
       .process-button { margin: 0; text-align: center; }
       .container { grid-template-columns: 1fr; }
       .top-navbar, .page-header, .kpi-grid, .container { max-width: none; }
@@ -179,10 +228,6 @@
       border-radius: 12px;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
       border: 1px solid #e2e8f0;
-    }
-    @media (min-width: 1101px) {
-      .container:has(.form-card.open) { max-width: 1034px; grid-template-columns: minmax(340px, .78fr) minmax(0, 1.22fr); align-items: start; }
-      .container:has(.form-card.open) .form-card { position: sticky; top: 16px; }
     }
     h2, h3 {
       margin-top: 0;
@@ -275,6 +320,8 @@
       font-size: 11px;
       font-weight: bold;
     }
+    .records-pagination { display: flex; justify-content: center; padding-top: 14px; }
+    .records-pagination button { width: auto; min-width: 150px; background: #64748b; }
     tbody tr:hover { background: #f8fafc; }
     .badge-ok {
       background-color: #dcfce7;
@@ -498,10 +545,9 @@
       .brand-mark { width: 36px; height: 36px; }
       .brand-subtitle { font-size: 11px; }
       .app-shell { gap: 14px; }
-      .process-nav { grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr); }
-      .appearance-group { grid-template-columns: auto repeat(2, minmax(150px, 1fr)); align-items: center; }
-      .temperature-group { grid-template-columns: auto minmax(150px, 1fr); align-items: center; }
-      .process-category { margin: 0 8px; text-align: left; }
+      .process-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .appearance-group, .temperature-group { grid-template-columns: 1fr; }
+      .process-category { margin: 0; text-align: left; }
       .process-button { min-height: 44px; padding: 8px 10px; }
       .page-header { margin-bottom: 8px; }
       .page-header h2 { font-size: 22px; }
@@ -561,6 +607,9 @@
       .page-header { align-items: stretch; flex-direction: column; margin-bottom: 12px; gap: 10px; }
       .page-header h2 { font-size: 21px; line-height: 1.25; }
       .new-entry-button { width: 100%; }
+      .form-modal { padding: 8px; align-items: flex-start; }
+      .form-modal .form-card { max-height: calc(100dvh - 16px); border-radius: 10px; }
+      .form-modal-close { top: 9px; right: 9px; }
       .container { gap: 12px; }
       .kpi-grid { gap: 8px; margin-bottom: 12px; }
       .weekly-map-card { margin-bottom: 12px; }
@@ -614,13 +663,21 @@
     <aside class="process-nav" aria-label="Process selection">
       <div class="process-nav-title">Process</div>
       <div class="process-group appearance-group">
-        <div class="process-category">Appearance</div>
-        <button type="button" class="process-button active" data-process="formation">Jig Formation</button>
-        <button type="button" class="process-button" data-process="degas">Degas</button>
+        <button type="button" class="process-category process-category-toggle" data-category="appearance" aria-expanded="false">
+          <span class="process-category-icon">◉</span><span>Appearance</span><span class="process-category-chevron">⌄</span>
+        </button>
+        <div class="process-options">
+          <button type="button" class="process-button active" data-process="formation">Jig Formation</button>
+          <button type="button" class="process-button" data-process="degas">Degas</button>
+        </div>
       </div>
       <div class="process-group temperature-group">
-        <div class="process-category">Temperature</div>
-        <button type="button" class="process-button" data-process="hta">HTA</button>
+        <button type="button" class="process-category process-category-toggle" data-category="temperature" aria-expanded="false">
+          <span class="process-category-icon">°</span><span>Temperature</span><span class="process-category-chevron">⌄</span>
+        </button>
+        <div class="process-options">
+          <button type="button" class="process-button" data-process="hta">HTA</button>
+        </div>
       </div>
     </aside>
     <main class="main-content">
@@ -667,7 +724,9 @@
 
   <div class="container">
     <!-- Inspection form -->
+    <div class="form-modal" id="formModal" role="dialog" aria-modal="true" aria-labelledby="formTitle">
     <div class="card form-card" id="formCard">
+      <button type="button" class="form-modal-close" id="formModalClose" aria-label="Close inspection form">×</button>
       <h3 id="formTitle">New Jig Formation Inspection</h3>
       <form id="inspectionForm">
         <div class="form-group">
@@ -766,6 +825,7 @@
       </form>
       <div id="status"></div>
     </div>
+    </div>
 
     <!-- Inspection history -->
     <div class="card history-card" id="historyCard">
@@ -797,6 +857,7 @@
           </tbody>
         </table>
       </div>
+      <div class="records-pagination"><button type="button" id="loadMoreRecordsBtn" style="display:none;">Load More</button></div>
     </div>
     <section class="chart-dashboard" id="chartDashboard">
       <div class="hta-chart-filter" aria-label="HTA chart date filters">
@@ -852,6 +913,8 @@
     const inspectionForm = document.getElementById('inspectionForm');
     const openFormBtn = document.getElementById('openFormBtn');
     const cancelBtn = document.getElementById('cancelBtn');
+    const formModal = document.getElementById('formModal');
+    const formModalClose = document.getElementById('formModalClose');
     const photoInput = document.getElementById('defectPhoto');
     const photoPreview = document.getElementById('photoPreview');
     const hotJigInput = document.getElementById('hotJig');
@@ -862,6 +925,10 @@
     let pendingMapPoints = [];
     let mapReadOnly = false;
     let htaChartRecords = [];
+    let recordsOffset = 0;
+    let recordsHasMore = false;
+    let recordsLoading = false;
+    const RECORD_PAGE_SIZE = 50;
     let activeMapColor = '#dc2626';
     const weeklyRecordsByProcess = { formation: [], degas: [] };
     const DEFECT_COLORS = Object.freeze({
@@ -953,14 +1020,33 @@
       loadData();
     }
 
+    document.querySelectorAll('.process-category-toggle').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const group = toggle.closest('.process-group');
+        const willOpen = !group.classList.contains('open');
+        document.querySelectorAll('.process-group').forEach(item => {
+          item.classList.remove('open');
+          item.querySelector('.process-category-toggle').setAttribute('aria-expanded', 'false');
+        });
+        group.classList.toggle('open', willOpen);
+        toggle.setAttribute('aria-expanded', String(willOpen));
+      });
+    });
+
     document.querySelectorAll('.process-button').forEach(button => {
-      button.addEventListener('click', () => switchProcess(button.dataset.process));
+      button.addEventListener('click', () => {
+        switchProcess(button.dataset.process);
+        const group = button.closest('.process-group');
+        group.classList.remove('open');
+        group.querySelector('.process-category-toggle').setAttribute('aria-expanded', 'false');
+      });
     });
 
     function openForm() {
+      formModal.classList.add('open');
       formCard.classList.add('open');
       openFormBtn.style.display = 'none';
-      formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.body.style.overflow = 'hidden';
       setTimeout(() => document.getElementById(currentProcess === 'hta' ? 'hta11' : 'trayId').focus(), 300);
     }
 
@@ -971,8 +1057,10 @@
       photoPreview.removeAttribute('src');
       photoPreview.style.display = 'none';
       document.getElementById('status').textContent = '';
+      formModal.classList.remove('open');
       formCard.classList.remove('open');
       openFormBtn.style.display = '';
+      document.body.style.overflow = '';
       updateDefectDetailVisibility(false);
     }
 
@@ -991,6 +1079,10 @@
 
     openFormBtn.addEventListener('click', openForm);
     cancelBtn.addEventListener('click', closeForm);
+    formModalClose.addEventListener('click', closeForm);
+    formModal.addEventListener('click', event => {
+      if (event.target === formModal) closeForm();
+    });
     photoInput.addEventListener('change', function() {
       const file = this.files[0];
       if (!file) {
@@ -1222,6 +1314,7 @@
     });
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape') {
+        if (formModal.classList.contains('open')) closeForm();
         closePhoto();
         closeDefectMap();
         closeDefectGallery();
@@ -1454,7 +1547,11 @@
       }
       startInput.max = endInput.value;
       endInput.min = startInput.value;
-      renderWeeklyDefectMap(weeklyRecordsByProcess[currentProcess] || []);
+      if (currentProcess !== 'hta') {
+        loadAppearanceMapData(currentProcess, loadRequestId).catch(() => {
+          document.getElementById('weeklyMapDescription').textContent = 'Unable to load the selected date range.';
+        });
+      }
     }
 
     initializeWeeklyDateRange();
@@ -1508,7 +1605,11 @@
       }
       startInput.max = endInput.value;
       endInput.min = startInput.value;
-      renderFilteredHtaCharts();
+      if (currentProcess === 'hta') {
+        loadHtaChartData(loadRequestId).catch(() => {
+          document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load the selected date range.</div>';
+        });
+      }
     }
 
     initializeHtaDateRange();
@@ -1543,77 +1644,136 @@
       qualityCard.dataset.tone = rate === 0 ? 'success' : 'danger';
     }
 
-    function loadData() {
+    function buildApiUrl(parameters) {
+      const query = new URLSearchParams(Object.assign({}, parameters, { _: Date.now() }));
+      return `${SCRIPT_URL}?${query.toString()}`;
+    }
+
+    function updateSummaryFromApi(summary, process) {
+      const total = Number(summary.totalRecords) || 0;
+      const latest = summary.latest || null;
+      const qualityCard = document.getElementById('kpiQualityCard');
+      document.getElementById('kpiRecords').textContent = total.toLocaleString();
+      document.getElementById('kpiLatest').textContent = latest && latest.date ? formatRecordDate(latest.date) : 'No records';
+      document.getElementById('kpiLatest').title = latest && latest.date ? formatRecordDate(latest.date) : '';
+      qualityCard.dataset.tone = '';
+      if (process === 'hta') {
+        document.getElementById('kpiQualityLabel').textContent = 'Latest Spec Status';
+        document.getElementById('kpiQuality').textContent = latest ? (latest.tempInSpec || '—') : 'No records';
+        if (latest) qualityCard.dataset.tone = latest.tempInSpec === 'Spec in' ? 'success' : 'danger';
+        return;
+      }
+      document.getElementById('kpiQualityLabel').textContent = 'Defect Rate';
+      const rate = total ? (Number(summary.defectCount) || 0) * 100 / total : 0;
+      document.getElementById('kpiQuality').textContent = `${rate.toFixed(1)}%`;
+      qualityCard.dataset.tone = rate === 0 ? 'success' : 'danger';
+    }
+
+    function renderInspectionRecords(records, process, append) {
       const tbody = document.getElementById('dataTableBody');
+      const columnCount = process === 'degas' ? 11 : 12;
+      if (!append) tbody.innerHTML = '';
+      if (!records.length && !append) {
+        tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">No inspection records found.</td></tr>`;
+        return;
+      }
+      records.forEach(item => {
+        const tr = document.createElement('tr');
+        const lineValue = process === 'degas' ? item.degasLine : item.jigLine;
+        const hotJigCell = process === 'degas' ? '' : `<td>${item.hotJig}</td>`;
+        const pointCount = normalizeMapPoints(item.defectMap).length;
+        tr.innerHTML = `
+          <td>${formatRecordDate(item.date)}</td><td class="col-team">${item.team}</td>
+          <td class="col-operator">${item.operatorName}</td><td><b>${item.trayId}</b></td>
+          <td>${item.cellId}</td><td>${item.channel}</td><td>${lineValue}</td>${hotJigCell}
+          <td><span class="${item.defect === 'All OK' ? 'badge-ok' : 'badge-defect'}">${item.defect}</span></td>
+          <td class="col-comment">${item.comment || '-'}</td>
+          <td>${item.defectPhoto ? `<button type="button" class="thumbnail-button" data-photo="${encodeURIComponent(item.defectPhoto)}" aria-label="Enlarge photo"><img class="photo-thumbnail" src="${getDrivePhotoUrl(item.defectPhoto, 'w200')}" alt="Defect photo" loading="lazy"></button>` : '-'}</td>
+          <td>${pointCount ? `<button type="button" class="map-record-button" data-points="${encodeURIComponent(item.defectMap || '[]')}" data-defect="${encodeURIComponent(item.defect || 'Others')}">${pointCount} pts</button>` : '-'}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateLoadMoreButton() {
+      const button = document.getElementById('loadMoreRecordsBtn');
+      button.style.display = recordsHasMore && currentProcess !== 'hta' ? '' : 'none';
+      button.disabled = recordsLoading;
+      button.textContent = recordsLoading ? 'Loading...' : 'Load More';
+    }
+
+    async function loadAppearanceMapData(process, requestId) {
+      const range = getWeeklyDateRange();
+      const response = await fetchJsonWithRetry(buildApiUrl({ process, action: 'map', startDate: range.startLabel, endDate: range.endLabel }));
+      if (requestId !== loadRequestId || process !== currentProcess) return;
+      renderWeeklyDefectMap(response.data || []);
+    }
+
+    async function loadHtaChartData(requestId) {
+      const range = getHtaDateRange();
+      document.getElementById('chartGrid').innerHTML = '<div class="chart-empty">Loading temperature data...</div>';
+      const response = await fetchJsonWithRetry(buildApiUrl({ process: 'hta', action: 'chart', startDate: range.startLabel, endDate: range.endLabel }));
+      if (requestId !== loadRequestId || currentProcess !== 'hta') return;
+      htaChartRecords = response.data || [];
+      renderFilteredHtaCharts();
+    }
+
+    async function loadMoreRecords() {
+      if (recordsLoading || !recordsHasMore || currentProcess === 'hta') return;
+      const process = currentProcess;
+      recordsLoading = true;
+      updateLoadMoreButton();
+      try {
+        const response = await fetchJsonWithRetry(buildApiUrl({ process, action: 'records', limit: RECORD_PAGE_SIZE, offset: recordsOffset }));
+        if (process !== currentProcess) return;
+        renderInspectionRecords(response.data || [], process, true);
+        recordsOffset = response.pagination.nextOffset;
+        recordsHasMore = response.pagination.hasMore;
+      } finally {
+        recordsLoading = false;
+        updateLoadMoreButton();
+      }
+    }
+
+    document.getElementById('loadMoreRecordsBtn').addEventListener('click', loadMoreRecords);
+
+    async function loadData() {
       const requestedProcess = currentProcess;
       const requestId = ++loadRequestId;
       const systemStatus = document.getElementById('systemStatus');
+      const columnCount = requestedProcess === 'degas' ? 11 : 12;
       systemStatus.textContent = 'Syncing Data';
       systemStatus.className = 'system-status syncing';
-      const columnCount = requestedProcess === 'degas' ? 11 : 12;
-      if (requestedProcess === 'hta') {
-        document.getElementById('chartGrid').innerHTML = '<div class="chart-empty">Loading temperature data...</div>';
-      } else {
-        tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">Loading inspection data...</td></tr>`;
+      recordsOffset = 0;
+      recordsHasMore = false;
+      updateLoadMoreButton();
+      if (requestedProcess !== 'hta') {
+        document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">Loading inspection data...</td></tr>`;
       }
-      
-      fetchJsonWithRetry(`${SCRIPT_URL}?process=${requestedProcess}&_=${Date.now()}`)
-        .then(resData => {
+      try {
+        const summaryPromise = fetchJsonWithRetry(buildApiUrl({ process: requestedProcess, action: 'summary' }));
+        if (requestedProcess === 'hta') {
+          const results = await Promise.all([summaryPromise, loadHtaChartData(requestId)]);
           if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
-          if (resData.result === 'success') {
-            const records = resData.data || [];
-            updateSummary(records, requestedProcess);
-            systemStatus.textContent = 'System Online';
-            systemStatus.className = 'system-status';
-            if (requestedProcess === 'hta') {
-              htaChartRecords = records.slice();
-              renderFilteredHtaCharts();
-              return;
-            }
-            renderWeeklyDefectMap(records);
-            tbody.innerHTML = '';
-            const list = records.slice().reverse(); // Newest first
-            
-            if (list.length === 0) {
-              tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">No inspection records found.</td></tr>`;
-              return;
-            }
-
-            list.forEach(item => {
-              const tr = document.createElement('tr');
-              const lineValue = requestedProcess === 'degas' ? item.degasLine : item.jigLine;
-              const hotJigCell = requestedProcess === 'degas' ? '' : `<td>${item.hotJig}</td>`;
-              const mapCell = requestedProcess !== 'hta'
-                ? `<td>${normalizeMapPoints(item.defectMap).length ? `<button type="button" class="map-record-button" data-points="${encodeURIComponent(item.defectMap || '[]')}" data-defect="${encodeURIComponent(item.defect || 'Others')}">${normalizeMapPoints(item.defectMap).length} pts</button>` : '-'}</td>`
-                : '';
-              tr.innerHTML = `
-                <td>${formatRecordDate(item.date)}</td>
-                <td class="col-team">${item.team}</td>
-                <td class="col-operator">${item.operatorName}</td>
-                <td><b>${item.trayId}</b></td>
-                <td>${item.cellId}</td>
-                <td>${item.channel}</td>
-                <td>${lineValue}</td>
-                ${hotJigCell}
-                <td><span class="${item.defect === 'All OK' ? 'badge-ok' : 'badge-defect'}">${item.defect}</span></td>
-                <td class="col-comment">${item.comment || '-'}</td>
-                <td>${item.defectPhoto ? `<button type="button" class="thumbnail-button" data-photo="${encodeURIComponent(item.defectPhoto)}" aria-label="Enlarge photo"><img class="photo-thumbnail" src="${getDrivePhotoUrl(item.defectPhoto, 'w200')}" alt="Defect photo" loading="lazy"></button>` : '-'}</td>
-                ${mapCell}
-              `;
-              tbody.appendChild(tr);
-            });
-          }
-        })
-        .catch(err => {
+          updateSummaryFromApi(results[0].summary || {}, requestedProcess);
+        } else {
+          const recordsPromise = fetchJsonWithRetry(buildApiUrl({ process: requestedProcess, action: 'records', limit: RECORD_PAGE_SIZE, offset: 0 }));
+          const results = await Promise.all([summaryPromise, loadAppearanceMapData(requestedProcess, requestId), recordsPromise]);
           if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
-          systemStatus.textContent = 'Connection Error';
-          systemStatus.className = 'system-status offline';
-          if (requestedProcess === 'hta') {
-            document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the Google Apps Script deployment.</div>';
-          } else {
-            tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the Google Apps Script deployment.</td></tr>`;
-          }
-        });
+          updateSummaryFromApi(results[0].summary || {}, requestedProcess);
+          renderInspectionRecords(results[2].data || [], requestedProcess, false);
+          recordsOffset = results[2].pagination.nextOffset;
+          recordsHasMore = results[2].pagination.hasMore;
+          updateLoadMoreButton();
+        }
+        systemStatus.textContent = 'System Online';
+        systemStatus.className = 'system-status';
+      } catch (error) {
+        if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
+        systemStatus.textContent = 'Connection Error';
+        systemStatus.className = 'system-status offline';
+        if (requestedProcess === 'hta') document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the Google Apps Script deployment.</div>';
+        else document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the Google Apps Script deployment.</td></tr>`;
+      }
     }
 
     async function fetchJsonWithRetry(url, attempts = 2) {
