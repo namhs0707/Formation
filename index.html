@@ -418,7 +418,7 @@
     .map-controls .secondary { color: var(--ink); background: #e2e8f0; }
     .map-controls .danger { background: var(--danger); }
     .weekly-map-card { max-width: 1034px; margin: 0 auto 20px; padding: 0; overflow: hidden; }
-    .history-card { padding: 0; overflow: hidden; }
+    .history-card { overflow: hidden; }
     .weekly-map-toggle {
       width: 100%;
       min-height: 56px;
@@ -435,12 +435,10 @@
     .weekly-map-toggle-title { font-size: 16px; font-weight: 800; }
     .weekly-map-toggle-meta { display: flex; align-items: center; gap: 10px; }
     .weekly-map-chevron { color: var(--muted); font-size: 18px; transition: transform .2s; }
-    .weekly-map-card.open .weekly-map-chevron, .history-card.open .weekly-map-chevron { transform: rotate(180deg); }
+    .weekly-map-card.open .weekly-map-chevron { transform: rotate(180deg); }
     .weekly-map-body { display: none; padding: 4px 16px 16px; border-top: 1px solid var(--border); }
     .weekly-map-card.open .weekly-map-body { display: block; }
-    .history-body { display: none; padding: 12px 24px 24px; border-top: 1px solid var(--border); }
-    .history-card.open .history-body { display: block; }
-    .history-card-header { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+    .history-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .weekly-map-layout { display: grid; grid-template-columns: 180px minmax(320px, 1fr) 170px; gap: 16px; align-items: start; }
     .map-filter-panel, .map-legend-panel { padding: 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; }
     .map-panel-title { margin: 0 0 10px; color: var(--ink); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
@@ -512,8 +510,7 @@
       .kpi-grid { margin-bottom: 8px; gap: 8px; }
       .kpi-card { min-height: 70px; padding: 10px 12px; }
       .kpi-value { margin-top: 4px; font-size: 17px; }
-      #historyCard { padding: 0; }
-      .history-body { padding: 8px 14px 14px; }
+      #historyCard { padding: 14px; }
       .history-card-header { margin-bottom: 8px !important; }
       #historyCard h3 { font-size: 17px; }
       .table-container { max-height: none; overflow: hidden; }
@@ -772,12 +769,8 @@
 
     <!-- Inspection history -->
     <div class="card history-card" id="historyCard">
-      <button type="button" class="weekly-map-toggle" id="historyToggle" aria-expanded="false" aria-controls="historyBody">
-        <span class="weekly-map-toggle-title">Defect Gallery & Records</span>
-        <span class="weekly-map-chevron">⌄</span>
-      </button>
-      <div class="history-body" id="historyBody">
       <div class="history-card-header">
+        <h3 style="margin: 0;">Defect Gallery & Records</h3>
         <button onclick="loadData()" style="width: auto; padding: 6px 12px; font-size: 12px; background: #64748b;">🔄 Refresh</button>
       </div>
       
@@ -803,7 +796,6 @@
             <tr><td colspan="11" style="text-align:center;">Loading inspection data...</td></tr>
           </tbody>
         </table>
-      </div>
       </div>
     </div>
     <section class="chart-dashboard" id="chartDashboard">
@@ -907,16 +899,6 @@
       setWeeklyMapOpen(!document.getElementById('weeklyMapCard').classList.contains('open'));
     });
 
-    function setHistoryOpen(isOpen) {
-      const card = document.getElementById('historyCard');
-      card.classList.toggle('open', isOpen);
-      document.getElementById('historyToggle').setAttribute('aria-expanded', String(isOpen));
-    }
-
-    document.getElementById('historyToggle').addEventListener('click', () => {
-      setHistoryOpen(!document.getElementById('historyCard').classList.contains('open'));
-    });
-
     function switchProcess(process) {
       currentProcess = process === 'hta' ? 'hta' : process === 'degas' ? 'degas' : 'formation';
       const isDegas = currentProcess === 'degas';
@@ -965,7 +947,6 @@
       document.getElementById('weeklyMapLegend').innerHTML = '';
       document.getElementById('weeklyMapCount').textContent = '0 points';
       setWeeklyMapOpen(true);
-      setHistoryOpen(false);
       document.getElementById('chartDashboard').style.display = isHta ? 'block' : 'none';
       openFormBtn.textContent = isHta ? 'New Reading' : 'New Inspection';
       closeForm();
