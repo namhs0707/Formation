@@ -10,6 +10,7 @@ const CONFIG = Object.freeze({
   DEGAS_SHEET_NAME: 'Degas inspection',
   HTA_SHEET_NAME: 'HTA temp',
   MAINTENANCE_SHEET_NAME: 'EOL Tape Knife',
+  CONDUCTIVE_RUBBER_SHEET_NAME: 'Conductive Rubber',
   FORMATION_PHOTO_FOLDER_ID: '1sjdqljzpJOtAuudYBeotwXeUsxJjSdyM',
   DEGAS_PHOTO_FOLDER_ID: '10hybzCCycMsBLscf2qxIADiNgaBsQqbQ',
   MAKE_PHOTOS_PUBLIC: true,
@@ -70,6 +71,23 @@ const MAINTENANCE_HEADERS = Object.freeze([
   'Taping line'
 ]);
 
+const CONDUCTIVE_RUBBER_HEADERS = Object.freeze([
+  'Date',
+  'Team',
+  'Operator name',
+  'Process',
+  'Line',
+  'Measurement',
+  'Unit',
+  'Action',
+  'Comment'
+]);
+
+const CONDUCTIVE_RUBBER_UNITS = Object.freeze([
+  '1A', '1B', '1C', '1D',
+  '2A', '2B', '2C', '2D'
+]);
+
 const HTA_FIELDS = Object.freeze([
   { key: 'hta11', label: 'HTA 1-1' },
   { key: 'hta12', label: 'HTA 1-2' },
@@ -91,11 +109,13 @@ function setup() {
   const degasSheet = getSheet_('degas');
   const htaSheet = getSheet_('hta');
   const maintenanceSheet = getSheet_('maintenance');
+  const conductiveRubberSheet = getSheet_('conductive');
 
   ensureHeaders_(formationSheet, FORMATION_HEADERS);
   ensureHeaders_(degasSheet, DEGAS_HEADERS);
   ensureHeaders_(htaSheet, HTA_HEADERS);
   ensureHeaders_(maintenanceSheet, MAINTENANCE_HEADERS);
+  ensureConductiveRubberHeaders_(conductiveRubberSheet);
   normalizeFormationJigLines_(formationSheet);
 
   DriveApp.getFolderById(CONFIG.FORMATION_PHOTO_FOLDER_ID).getName();
@@ -211,6 +231,9 @@ function rowToRecord_(row, process) {
     if (process === 'maintenance') {
       return { date: row[0], team: row[1], operatorName: row[2], line: row[3], equipment: row[4], maintenance: row[5], tapingLine: row[6] };
     }
+    if (process === 'conductive') {
+      return { date: row[0], team: row[1], operatorName: row[2], rubberProcess: row[3], line: row[4], measurement: row[5], units: row[6], action: row[7], comment: row[8] };
+    }
     const common = { date: row[0], team: row[1], operatorName: row[2], trayId: row[3], cellId: row[4], channel: row[5] };
     if (process === 'degas') {
       return Object.assign(common, { degasLine: row[6], defect: row[7], comment: row[8], defectPhoto: row[9], defectMap: row[10] || '[]' });
@@ -267,6 +290,18 @@ function doPost(e) {
           cleanText_(input.maintenance),
           cleanText_(input.tapingLine)
         ];
+      } else if (process === 'conductive') {
+        row = [
+          new Date(),
+          cleanText_(input.team),
+          cleanText_(input.operatorName),
+          cleanText_(input.rubberProcess),
+          cleanText_(input.line),
+          cleanText_(input.measurement),
+          normalizeConductiveUnits_(input.units).join(', '),
+          cleanText_(input.action),
+          cleanText_(input.comment)
+        ];
       } else {
         const isAllOk = cleanText_(input.defect) === 'All OK';
         const common = [
@@ -301,6 +336,8 @@ function doPost(e) {
         sheet.getRange(nextRow, 7).setNumberFormat('@');
       } else if (process === 'maintenance') {
         sheet.getRange(nextRow, 4, 1, 4).setNumberFormat('@');
+      } else if (process === 'conductive') {
+        sheet.getRange(nextRow, 4, 1, 6).setNumberFormat('@');
       }
       sheet.getRange(nextRow, 1, 1, row.length).setValues([row]);
       sheet.getRange(nextRow, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
@@ -325,12 +362,14 @@ function getProcess_(value) {
   if (process === 'degas') return 'degas';
   if (process === 'hta') return 'hta';
   if (process === 'maintenance') return 'maintenance';
+  if (process === 'conductive') return 'conductive';
   return 'formation';
 }
 
 function getHeaders_(process) {
   if (process === 'hta') return HTA_HEADERS;
   if (process === 'maintenance') return MAINTENANCE_HEADERS;
+  if (process === 'conductive') return CONDUCTIVE_RUBBER_HEADERS;
   return process === 'degas' ? DEGAS_HEADERS : FORMATION_HEADERS;
 }
 
@@ -340,16 +379,31 @@ function getSheet_(process) {
     ? CONFIG.HTA_SHEET_NAME
     : process === 'maintenance'
       ? CONFIG.MAINTENANCE_SHEET_NAME
-      : process === 'degas'
-        ? CONFIG.DEGAS_SHEET_NAME
-        : CONFIG.FORMATION_SHEET_NAME;
+      : process === 'conductive'
+        ? CONFIG.CONDUCTIVE_RUBBER_SHEET_NAME
+        : process === 'degas'
+          ? CONFIG.DEGAS_SHEET_NAME
+          : CONFIG.FORMATION_SHEET_NAME;
   let sheet = spreadsheet.getSheetByName(sheetName);
+  const isNewSheet = !sheet;
 
   if (!sheet) {
     sheet = spreadsheet.insertSheet(sheetName);
-    ensureHeaders_(sheet, getHeaders_(process));
   }
+  if (process === 'conductive') ensureConductiveRubberHeaders_(sheet);
+  else if (isNewSheet) ensureHeaders_(sheet, getHeaders_(process));
   return sheet;
+}
+
+function ensureConductiveRubberHeaders_(sheet) {
+  const legacyHeaders = ['Date', 'Team', 'Operator name', 'Process', 'Measurement', 'Unit', 'Action', 'Comment'];
+  const currentHeaders = sheet.getRange(1, 1, 1, legacyHeaders.length).getDisplayValues()[0];
+  const isLegacyLayout = legacyHeaders.every(function(header, index) {
+    return currentHeaders[index] === header;
+  });
+
+  if (isLegacyLayout) sheet.insertColumnAfter(4);
+  ensureHeaders_(sheet, CONDUCTIVE_RUBBER_HEADERS);
 }
 
 function ensureHeaders_(sheet, headers) {
@@ -407,6 +461,29 @@ function normalizeFormationJigLines_(sheet) {
 }
 
 function validateInput_(input, process) {
+  if (process === 'conductive') {
+    ['team', 'operatorName', 'rubberProcess', 'line', 'measurement', 'action'].forEach(function(key) {
+      if (input[key] === undefined || String(input[key]).trim() === '') {
+        throw new Error(key + ' is required.');
+      }
+    });
+    if (!TEAMS.includes(String(input.team))) throw new Error('Team must be 1A, 1B, 2A, or 2B.');
+
+    const rubberProcess = cleanText_(input.rubberProcess);
+    const measurement = cleanText_(input.measurement);
+    if (!['Degas', 'EOL'].includes(rubberProcess)) throw new Error('Process must be Degas or EOL.');
+    if (!['4-1', '4-2', '5-1', '5-2'].includes(cleanText_(input.line))) {
+      throw new Error('Line must be 4-1, 4-2, 5-1, or 5-2.');
+    }
+    if (rubberProcess === 'Degas' && measurement !== 'IR') throw new Error('Degas measurement must be IR.');
+    if (rubberProcess === 'EOL' && !['IR', 'IV'].includes(measurement)) throw new Error('EOL measurement must be IR or IV.');
+    normalizeConductiveUnits_(input.units);
+    if (!['Flip', 'Change', 'Other'].includes(cleanText_(input.action))) {
+      throw new Error('Action must be Flip, Change, or Other.');
+    }
+    return;
+  }
+
   if (process === 'maintenance') {
     ['team', 'operatorName', 'line', 'equipment', 'maintenance', 'tapingLine'].forEach(function(key) {
       if (input[key] === undefined || String(input[key]).trim() === '') {
@@ -486,6 +563,19 @@ function validateInput_(input, process) {
   if (process === 'formation' || process === 'degas') {
     normalizeDefectMap_(input.defectMap);
   }
+}
+
+function normalizeConductiveUnits_(value) {
+  const values = Array.isArray(value) ? value : String(value || '').split(',');
+  const units = values.map(function(unit) { return cleanText_(unit); }).filter(Boolean);
+  if (!units.length) throw new Error('At least one Unit must be selected.');
+
+  const uniqueUnits = [];
+  units.forEach(function(unit) {
+    if (!CONDUCTIVE_RUBBER_UNITS.includes(unit)) throw new Error('Invalid Unit: ' + unit);
+    if (!uniqueUnits.includes(unit)) uniqueUnits.push(unit);
+  });
+  return uniqueUnits;
 }
 
 function normalizeDefectMap_(value) {

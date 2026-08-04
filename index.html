@@ -177,7 +177,24 @@
       margin: 0 auto;
     }
     .form-card.open { display: block; }
-    .maintenance-fields { display: none; }
+    .maintenance-fields, .conductive-fields { display: none; }
+    .unit-fieldset { margin: 0 0 16px; padding: 0; border: 0; }
+    .unit-fieldset legend { margin-bottom: 8px; color: var(--label); font-size: var(--text-sm); font-weight: 600; }
+    .unit-checkbox-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .unit-option {
+      min-height: 46px;
+      margin: 0;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface);
+      cursor: pointer;
+    }
+    .unit-option:has(input:checked) { color: var(--primary); background: var(--primary-soft); border-color: var(--primary); }
+    .unit-option input { width: 20px; height: 20px; min-height: 20px; margin: 0; accent-color: var(--primary); }
     .form-modal {
       display: none;
       position: fixed;
@@ -905,6 +922,8 @@
     .btn-secondary { min-height: 44px; color: var(--label); background: var(--surface); border: 1px solid var(--border); border-radius: 7px; font-size: 14px; }
     .btn-secondary:hover { color: var(--primary); background: #f7f9fc; border-color: #aeb9c8; box-shadow: none; }
     table { font-size: 15px; }
+    .maintenance-records-table { min-width: 720px; }
+    .conductive-records-table { min-width: 900px; }
     th { height: 44px; background: #f0f3f7; color: var(--label); font-size: 13px; letter-spacing: 0; text-transform: none; }
     td { height: 54px; }
     th, td { padding: 10px 12px; white-space: nowrap; }
@@ -933,6 +952,7 @@
       .table-container { overflow-x: auto; overflow-y: auto; }
       #historyCard table { min-width: 1040px; table-layout: auto; }
       #maintenanceHistoryCard table { min-width: 760px; }
+      #conductiveHistoryCard table { min-width: 900px; }
     }
 
     @media (max-width: 767px) {
@@ -998,7 +1018,7 @@
       .history-card-header { align-items: stretch; flex-direction: column; }
       .history-actions { justify-content: space-between; }
       .table-container { max-height: none; overflow: visible; }
-      #historyCard table, #maintenanceHistoryCard table, table { min-width: 0; table-layout: auto; }
+      #historyCard table, #maintenanceHistoryCard table, #conductiveHistoryCard table, table { min-width: 0; table-layout: auto; }
       table thead { display: none; }
       table tbody, table tr, table td { display: block; width: 100%; }
       table tbody tr { margin-bottom: 10px; overflow: hidden; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); }
@@ -1022,6 +1042,7 @@
       .col-team, .col-operator, .col-comment { display: grid; }
       .photo-thumbnail { width: 82px; height: 58px; }
       .form-modal { padding: 8px; }
+      .unit-checkbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
 </head>
@@ -1067,6 +1088,7 @@
         </button>
         <div class="process-options">
           <button type="button" class="process-button" data-process="maintenance">EOL Tape/Knife</button>
+          <button type="button" class="process-button" data-process="conductive">Conductive Rubber</button>
         </div>
       </div>
     </aside>
@@ -1184,6 +1206,63 @@
           </div>
         </div>
 
+        <div class="conductive-fields" id="conductiveFields">
+          <div class="form-group">
+            <label for="conductiveProcess">Process</label>
+            <select id="conductiveProcess">
+              <option value="" disabled selected>Select a process</option>
+              <option value="Degas">Degas</option>
+              <option value="EOL">EOL</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="conductiveLine">Line</label>
+            <select id="conductiveLine">
+              <option value="" disabled selected>Select a line</option>
+              <option value="4-1">4-1</option>
+              <option value="4-2">4-2</option>
+              <option value="5-1">5-1</option>
+              <option value="5-2">5-2</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="conductiveMeasurement">Measurement</label>
+            <select id="conductiveMeasurement">
+              <option value="" disabled selected>Select a measurement</option>
+              <option value="IR">IR</option>
+              <option value="IV">IV</option>
+            </select>
+            <small class="input-help" id="conductiveMeasurementHelp">Degas automatically uses IR. EOL allows IR or IV.</small>
+          </div>
+          <fieldset class="unit-fieldset">
+            <legend>Unit <span aria-hidden="true">*</span></legend>
+            <div class="unit-checkbox-grid" id="conductiveUnits">
+              <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="1A"><span>1A</span></label>
+              <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="1B"><span>1B</span></label>
+              <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="1C"><span>1C</span></label>
+              <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="1D"><span>1D</span></label>
+              <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="2A"><span>2A</span></label>
+              <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="2B"><span>2B</span></label>
+              <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="2C"><span>2C</span></label>
+              <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="2D"><span>2D</span></label>
+            </div>
+            <small class="input-help">Select one or more units.</small>
+          </fieldset>
+          <div class="form-group">
+            <label for="conductiveAction">Action</label>
+            <select id="conductiveAction">
+              <option value="" disabled selected>Select an action</option>
+              <option value="Flip">Flip</option>
+              <option value="Change">Change</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="conductiveComment">Comment</label>
+            <textarea id="conductiveComment" placeholder="Enter additional details (optional)"></textarea>
+          </div>
+        </div>
+
         <div class="form-group process-inspection-field">
           <label for="trayId">Tray ID</label>
           <input type="text" id="trayId" required placeholder="e.g., LHED000001">
@@ -1293,12 +1372,25 @@
         <div class="history-actions"><span class="last-sync">Not synced</span><button type="button" class="btn-secondary" onclick="loadData()">Refresh data</button></div>
       </div>
       <div class="table-container">
-        <table style="min-width:720px;">
+        <table class="maintenance-records-table">
           <thead><tr><th>Date</th><th>Team</th><th>Operator Name</th><th>Line</th><th>Tape/Knife</th><th>Maintenance</th><th>Taping Line</th></tr></thead>
           <tbody id="maintenanceTableBody"><tr><td colspan="7" style="text-align:center;">Loading maintenance records...</td></tr></tbody>
         </table>
       </div>
       <div class="records-pagination"><button type="button" id="maintenanceLoadMoreBtn" style="display:none;">Load More</button></div>
+    </div>
+    <div class="card history-card" id="conductiveHistoryCard" style="display:none;">
+      <div class="history-card-header">
+        <h3 style="margin:0;">Conductive Rubber Records</h3>
+        <div class="history-actions"><span class="last-sync">Not synced</span><button type="button" class="btn-secondary" onclick="loadData()">Refresh data</button></div>
+      </div>
+      <div class="table-container">
+        <table class="conductive-records-table">
+          <thead><tr><th>Date</th><th>Team</th><th>Operator Name</th><th>Process</th><th>Line</th><th>Measurement</th><th>Unit</th><th>Action</th><th>Comment</th></tr></thead>
+          <tbody id="conductiveTableBody"><tr><td colspan="9" style="text-align:center;">Loading Conductive Rubber records...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="records-pagination"><button type="button" id="conductiveLoadMoreBtn" style="display:none;">Load More</button></div>
     </div>
     <section class="chart-dashboard" id="chartDashboard">
       <div class="hta-chart-filter" aria-label="HTA chart date filters">
@@ -1426,27 +1518,43 @@
       setWeeklyMapOpen(!document.getElementById('weeklyMapCard').classList.contains('open'));
     });
 
+    function updateConductiveMeasurementMode() {
+      const processSelect = document.getElementById('conductiveProcess');
+      const measurementSelect = document.getElementById('conductiveMeasurement');
+      const isDegasProcess = processSelect.value === 'Degas';
+      if (isDegasProcess) measurementSelect.value = 'IR';
+      if (!processSelect.value) measurementSelect.value = '';
+      measurementSelect.disabled = isDegasProcess;
+      document.getElementById('conductiveMeasurementHelp').textContent = isDegasProcess
+        ? 'IR is automatically selected for Degas.'
+        : 'EOL allows IR or IV.';
+    }
+
+    document.getElementById('conductiveProcess').addEventListener('change', updateConductiveMeasurementMode);
+    updateConductiveMeasurementMode();
+
     function switchProcess(process) {
-      currentProcess = process === 'maintenance' ? 'maintenance' : process === 'hta' ? 'hta' : process === 'degas' ? 'degas' : 'formation';
+      currentProcess = ['formation', 'degas', 'hta', 'maintenance', 'conductive'].includes(process) ? process : 'formation';
       const isDegas = currentProcess === 'degas';
       const isHta = currentProcess === 'hta';
       const isMaintenance = currentProcess === 'maintenance';
-      const isAppearance = !isHta && !isMaintenance;
+      const isConductive = currentProcess === 'conductive';
+      const isAppearance = currentProcess === 'formation' || currentProcess === 'degas';
 
       document.querySelectorAll('.process-button').forEach(button => {
         button.classList.toggle('active', button.dataset.process === currentProcess);
       });
       document.getElementById('pageTitle').textContent =
-        isMaintenance ? 'EOL Tape/Knife Maintenance' : isHta ? 'HTA Temperature Monitoring' : isDegas ? 'Degas Inspection' : 'Jig Formation Inspection';
+        isConductive ? 'Conductive Rubber Maintenance' : isMaintenance ? 'EOL Tape/Knife Maintenance' : isHta ? 'HTA Temperature Monitoring' : isDegas ? 'Degas Inspection' : 'Jig Formation Inspection';
       document.getElementById('pageEyebrow').textContent =
-        isMaintenance ? 'Operations / Maintenance' : isHta ? 'Operations / Temperature' : 'Operations / Appearance';
+        isConductive || isMaintenance ? 'Operations / Maintenance' : isHta ? 'Operations / Temperature' : 'Operations / Appearance';
       document.getElementById('kpiProcess').textContent =
-        isMaintenance ? 'EOL Tape/Knife' : isHta ? 'HTA' : isDegas ? 'Degas' : 'Jig Formation';
+        isConductive ? 'Conductive Rubber' : isMaintenance ? 'EOL Tape/Knife' : isHta ? 'HTA' : isDegas ? 'Degas' : 'Jig Formation';
       document.getElementById('kpiRecords').textContent = '—';
       document.getElementById('kpiQuality').textContent = '—';
       document.getElementById('kpiLatest').textContent = '—';
       document.getElementById('formTitle').textContent =
-        isMaintenance ? 'New EOL Tape/Knife Maintenance' : isHta ? 'New HTA Temperature Reading' : isDegas ? 'New Degas Inspection' : 'New Jig Formation Inspection';
+        isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isHta ? 'New HTA Temperature Reading' : isDegas ? 'New Degas Inspection' : 'New Jig Formation Inspection';
       document.getElementById('lineLabel').textContent =
         isDegas ? 'Degas line' : 'Jig line';
       document.getElementById('lineHeader').textContent =
@@ -1458,9 +1566,13 @@
       });
       document.getElementById('htaFields').style.display = isHta ? 'grid' : 'none';
       document.getElementById('maintenanceFields').style.display = isMaintenance ? 'block' : 'none';
+      document.getElementById('conductiveFields').style.display = isConductive ? 'block' : 'none';
       htaInputIds.forEach(id => { document.getElementById(id).required = isHta; });
       ['maintenanceLine', 'maintenanceEquipment', 'maintenanceAction', 'tapingLine'].forEach(id => {
         document.getElementById(id).required = isMaintenance;
+      });
+      ['conductiveProcess', 'conductiveLine', 'conductiveMeasurement', 'conductiveAction'].forEach(id => {
+        document.getElementById(id).required = isConductive;
       });
       ['trayId', 'defect'].forEach(id => {
         document.getElementById(id).required = isAppearance;
@@ -1472,6 +1584,7 @@
       hotJigInput.required = isAppearance && !isDegas;
       document.getElementById('historyCard').style.display = isAppearance ? '' : 'none';
       document.getElementById('maintenanceHistoryCard').style.display = isMaintenance ? '' : 'none';
+      document.getElementById('conductiveHistoryCard').style.display = isConductive ? '' : 'none';
       document.getElementById('weeklyMapCard').style.display = isAppearance ? '' : 'none';
       document.getElementById('weeklyMapTitle').textContent = `${isDegas ? 'Degas' : 'Jig Formation'} Defect Map`;
       document.getElementById('defectMapLabel').textContent = `${isDegas ? 'Degas' : 'Jig Formation'} Defect Map`;
@@ -1484,7 +1597,8 @@
       document.getElementById('weeklyMapCount').textContent = '0 points';
       setWeeklyMapOpen(true);
       document.getElementById('chartDashboard').style.display = isHta ? 'block' : 'none';
-      openFormBtn.textContent = isMaintenance ? '＋ New Maintenance' : isHta ? 'New Reading' : 'New Inspection';
+      openFormBtn.textContent = isConductive ? '＋ New Record' : isMaintenance ? '＋ New Maintenance' : isHta ? 'New Reading' : 'New Inspection';
+      document.getElementById('submitBtn').textContent = isConductive ? 'Submit Record' : isMaintenance ? 'Submit Maintenance' : isHta ? 'Submit Reading' : 'Submit Inspection';
       const activeButton = document.querySelector(`.process-button[data-process="${currentProcess}"]`);
       if (activeButton) {
         document.querySelectorAll('.process-group').forEach(group => {
@@ -1526,12 +1640,13 @@
       formCard.classList.add('open');
       openFormBtn.style.display = 'none';
       document.body.style.overflow = 'hidden';
-      const focusId = currentProcess === 'hta' ? 'hta11' : currentProcess === 'maintenance' ? 'maintenanceLine' : 'trayId';
+      const focusId = currentProcess === 'hta' ? 'hta11' : currentProcess === 'maintenance' ? 'maintenanceLine' : currentProcess === 'conductive' ? 'conductiveProcess' : 'trayId';
       setTimeout(() => document.getElementById(focusId).focus(), 300);
     }
 
     function closeForm() {
       inspectionForm.reset();
+      updateConductiveMeasurementMode();
       defectMapPoints = [];
       renderDefectMapPreview();
       photoPreview.removeAttribute('src');
@@ -1706,8 +1821,18 @@
 
       const isHta = currentProcess === 'hta';
       const isMaintenance = currentProcess === 'maintenance';
-      const isAppearance = !isHta && !isMaintenance;
+      const isConductive = currentProcess === 'conductive';
+      const isAppearance = currentProcess === 'formation' || currentProcess === 'degas';
       const isAllOk = isAppearance && document.getElementById('defect').value === 'All OK';
+      const conductiveUnits = isConductive
+        ? Array.from(document.querySelectorAll('input[name="conductiveUnit"]:checked')).map(input => input.value)
+        : [];
+      if (isConductive && !conductiveUnits.length) {
+        statusDiv.style.color = '#c93434';
+        statusDiv.textContent = '❌ Select at least one Unit.';
+        submitBtn.disabled = false;
+        return;
+      }
       const photoFile = isAppearance ? photoInput.files[0] : null;
       if (photoFile && photoFile.size > 8 * 1024 * 1024) {
         statusDiv.style.color = '#dc2626';
@@ -1727,6 +1852,16 @@
         hta32: Number(document.getElementById('hta32').value),
         hta41: Number(document.getElementById('hta41').value),
         hta42: Number(document.getElementById('hta42').value)
+      } : isConductive ? {
+        process: 'conductive',
+        team: document.getElementById('team').value,
+        operatorName: document.getElementById('operatorName').value,
+        rubberProcess: document.getElementById('conductiveProcess').value,
+        line: document.getElementById('conductiveLine').value,
+        measurement: document.getElementById('conductiveMeasurement').value,
+        units: conductiveUnits,
+        action: document.getElementById('conductiveAction').value,
+        comment: document.getElementById('conductiveComment').value
       } : isMaintenance ? {
         process: 'maintenance',
         team: document.getElementById('team').value,
@@ -1764,7 +1899,7 @@
       })
       .then(() => {
         statusDiv.style.color = '#16a34a';
-        statusDiv.textContent = isHta ? '✅ Temperature reading submitted successfully!' : isMaintenance ? '✅ Maintenance record submitted successfully!' : '✅ Inspection submitted successfully!';
+        statusDiv.textContent = isHta ? '✅ Temperature reading submitted successfully!' : isConductive ? '✅ Conductive Rubber record submitted successfully!' : isMaintenance ? '✅ Maintenance record submitted successfully!' : '✅ Inspection submitted successfully!';
         closeForm();
         setTimeout(loadData, 1000); // Refresh the list after submission
       })
@@ -2117,6 +2252,12 @@
       document.getElementById('kpiLatest').title = latest && latest.date ? formatRecordDate(latest.date) : '';
       qualityCard.dataset.tone = '';
 
+      if (process === 'conductive') {
+        qualityLabel.textContent = 'Latest Action';
+        qualityValue.textContent = latest ? (latest.action || '—') : 'No records';
+        return;
+      }
+
       if (process === 'hta') {
         qualityLabel.textContent = 'Latest Spec Status';
         qualityValue.textContent = latest ? (latest.tempInSpec || '—') : 'No records';
@@ -2148,6 +2289,11 @@
       document.getElementById('kpiLatest').textContent = latest && latest.date ? formatRecordDate(latest.date) : 'No records';
       document.getElementById('kpiLatest').title = latest && latest.date ? formatRecordDate(latest.date) : '';
       qualityCard.dataset.tone = '';
+      if (process === 'conductive') {
+        document.getElementById('kpiQualityLabel').textContent = 'Latest Action';
+        document.getElementById('kpiQuality').textContent = latest ? (latest.action || '—') : 'No records';
+        return;
+      }
       if (process === 'maintenance') {
         document.getElementById('kpiQualityLabel').textContent = 'Latest Maintenance';
         document.getElementById('kpiQuality').textContent = latest ? (latest.maintenance || '—') : 'No records';
@@ -2168,7 +2314,21 @@
 
     function renderInspectionRecords(records, process, append) {
       const isMaintenance = process === 'maintenance';
-      const tbody = document.getElementById(isMaintenance ? 'maintenanceTableBody' : 'dataTableBody');
+      const isConductive = process === 'conductive';
+      const tbody = document.getElementById(isConductive ? 'conductiveTableBody' : isMaintenance ? 'maintenanceTableBody' : 'dataTableBody');
+      if (isConductive) {
+        if (!append) tbody.innerHTML = '';
+        if (!records.length && !append) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No Conductive Rubber records found.</td></tr>';
+          return;
+        }
+        records.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td data-label="Date / Time">${formatRecordDate(item.date)}</td><td data-label="Team">${item.team}</td><td data-label="Operator">${item.operatorName}</td><td data-label="Process">${item.rubberProcess}</td><td data-label="Line">${item.line}</td><td data-label="Measurement">${item.measurement}</td><td data-label="Unit">${item.units}</td><td data-label="Action">${item.action}</td><td data-label="Comment">${item.comment || '-'}</td>`;
+          tbody.appendChild(tr);
+        });
+        return;
+      }
       if (isMaintenance) {
         if (!append) tbody.innerHTML = '';
         if (!records.length && !append) {
@@ -2208,12 +2368,16 @@
     function updateLoadMoreButton() {
       const button = document.getElementById('loadMoreRecordsBtn');
       const maintenanceButton = document.getElementById('maintenanceLoadMoreBtn');
+      const conductiveButton = document.getElementById('conductiveLoadMoreBtn');
       button.style.display = recordsHasMore && (currentProcess === 'formation' || currentProcess === 'degas') ? '' : 'none';
       maintenanceButton.style.display = recordsHasMore && currentProcess === 'maintenance' ? '' : 'none';
+      conductiveButton.style.display = recordsHasMore && currentProcess === 'conductive' ? '' : 'none';
       button.disabled = recordsLoading;
       button.textContent = recordsLoading ? 'Loading...' : 'Load More';
       maintenanceButton.disabled = recordsLoading;
       maintenanceButton.textContent = recordsLoading ? 'Loading...' : 'Load More';
+      conductiveButton.disabled = recordsLoading;
+      conductiveButton.textContent = recordsLoading ? 'Loading...' : 'Load More';
     }
 
     async function loadAppearanceMapData(process, requestId) {
@@ -2251,19 +2415,22 @@
 
     document.getElementById('loadMoreRecordsBtn').addEventListener('click', loadMoreRecords);
     document.getElementById('maintenanceLoadMoreBtn').addEventListener('click', loadMoreRecords);
+    document.getElementById('conductiveLoadMoreBtn').addEventListener('click', loadMoreRecords);
 
     async function loadData() {
       const requestedProcess = currentProcess;
       const requestId = ++loadRequestId;
       const systemStatus = document.getElementById('systemStatus');
-      const columnCount = requestedProcess === 'maintenance' ? 7 : requestedProcess === 'degas' ? 11 : 12;
+      const columnCount = requestedProcess === 'conductive' ? 9 : requestedProcess === 'maintenance' ? 7 : requestedProcess === 'degas' ? 11 : 12;
       systemStatus.textContent = 'Syncing Data';
       systemStatus.className = 'system-status syncing';
       updateSyncLabels('Syncing…', false);
       recordsOffset = 0;
       recordsHasMore = false;
       updateLoadMoreButton();
-      if (requestedProcess === 'maintenance') {
+      if (requestedProcess === 'conductive') {
+        document.getElementById('conductiveTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading Conductive Rubber records...</td></tr>';
+      } else if (requestedProcess === 'maintenance') {
         document.getElementById('maintenanceTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading maintenance records...</td></tr>';
       } else if (requestedProcess !== 'hta') {
         document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">Loading inspection data...</td></tr>`;
@@ -2274,7 +2441,7 @@
           const results = await Promise.all([summaryPromise, loadHtaChartData(requestId)]);
           if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
           updateSummaryFromApi(results[0].summary || {}, requestedProcess);
-        } else if (requestedProcess === 'maintenance') {
+        } else if (requestedProcess === 'maintenance' || requestedProcess === 'conductive') {
           const recordsResponse = await fetchJsonWithRetry(buildApiUrl({ process: requestedProcess, action: 'records', limit: RECORD_PAGE_SIZE, offset: 0 }));
           const summaryResponse = await summaryPromise;
           if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
@@ -2303,6 +2470,7 @@
         systemStatus.className = 'system-status offline';
         updateSyncLabels('Sync failed', true);
         if (requestedProcess === 'hta') document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the Google Apps Script deployment.</div>';
+        else if (requestedProcess === 'conductive') document.getElementById('conductiveTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Unable to load Conductive Rubber records.</td></tr>';
         else if (requestedProcess === 'maintenance') document.getElementById('maintenanceTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Unable to load maintenance records.</td></tr>';
         else document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the Google Apps Script deployment.</td></tr>`;
       }
