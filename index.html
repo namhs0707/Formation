@@ -78,6 +78,7 @@
     .process-nav {
       position: sticky;
       top: 20px;
+      z-index: 100;
       display: grid;
       align-items: start;
       gap: 12px;
@@ -94,11 +95,16 @@
       letter-spacing: .08em;
       text-transform: uppercase;
     }
-    .process-group { display: grid; align-content: start; gap: 8px; padding: 10px; border: 1px solid; border-radius: 12px; box-shadow: 0 3px 10px rgba(15, 23, 42, .06); }
+    .process-group { position: relative; display: grid; align-content: start; gap: 8px; padding: 10px; overflow: visible; border: 1px solid; border-radius: 12px; box-shadow: 0 3px 10px rgba(15, 23, 42, .06); }
+    .process-group.open { z-index: 40; }
     .process-group + .process-group { margin-top: 0; }
     .appearance-group { background: #eff6ff; border-color: #bfdbfe; }
     .temperature-group { background: #fff7ed; border-color: #fed7aa; }
-    .process-options { display: none; gap: 7px; padding-top: 2px; }
+    .maintenance-group { background: #f0fdf4; border-color: #bbf7d0; }
+    .process-options { display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 50; gap: 7px; padding: 8px; border: 1px solid; border-radius: 10px; box-shadow: 0 12px 26px rgba(15, 23, 42, .16); }
+    .appearance-group .process-options { background: #eff6ff; border-color: #bfdbfe; }
+    .temperature-group .process-options { background: #fff7ed; border-color: #fed7aa; }
+    .maintenance-group .process-options { background: #f0fdf4; border-color: #bbf7d0; }
     .process-group.open .process-options { display: grid; }
     .process-category {
       margin: 0 8px 6px;
@@ -110,9 +116,11 @@
     .process-category-toggle:hover { background: transparent; }
     .appearance-group .process-category-toggle { color: #1d4ed8; }
     .temperature-group .process-category-toggle { color: #c2410c; }
+    .maintenance-group .process-category-toggle { color: #15803d; }
     .process-category-icon { display: inline-grid; width: 28px; height: 28px; place-items: center; flex: 0 0 auto; border-radius: 8px; font-size: 15px; }
     .appearance-group .process-category-icon { background: #dbeafe; }
     .temperature-group .process-category-icon { background: #ffedd5; }
+    .maintenance-group .process-category-icon { background: #dcfce7; }
     .process-category-chevron { display: inline; margin-left: auto; transition: transform .2s; }
     .process-group.open .process-category-chevron { transform: rotate(180deg); }
     .process-button {
@@ -124,6 +132,7 @@
     }
     .process-button:hover { color: #1e3a8a; background: rgba(255, 255, 255, .7); }
     .process-button.active { color: #1d4ed8; background: #dbeafe; box-shadow: inset 0 0 0 1px #bfdbfe; }
+    .maintenance-group .process-button.active { color: #15803d; background: #dcfce7; box-shadow: inset 0 0 0 1px #bbf7d0; }
     .main-content { min-width: 0; }
     .container {
       max-width: 1034px;
@@ -139,6 +148,7 @@
       margin: 0 auto;
     }
     .form-card.open { display: block; }
+    .maintenance-fields { display: none; }
     .form-modal {
       display: none;
       position: fixed;
@@ -192,7 +202,7 @@
       .process-nav {
         position: static;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         align-items: start;
         gap: 12px;
         padding: 0;
@@ -205,13 +215,16 @@
       .process-group + .process-group { margin-top: 0; }
       .appearance-group { background: #eff6ff; border-color: #bfdbfe; }
       .temperature-group { background: #fff7ed; border-color: #fed7aa; }
+      .maintenance-group { background: #f0fdf4; border-color: #bbf7d0; }
       .process-category { margin: 0; text-align: left; }
       .process-category-toggle { width: 100%; min-height: 48px; padding: 8px 10px; display: flex; align-items: center; gap: 9px; border-radius: 8px; }
       .appearance-group .process-category-toggle { color: #1d4ed8; }
       .temperature-group .process-category-toggle { color: #c2410c; }
+      .maintenance-group .process-category-toggle { color: #15803d; }
       .process-category-icon { display: inline-grid; width: 28px; height: 28px; place-items: center; flex: 0 0 auto; border-radius: 8px; font-size: 15px; }
       .appearance-group .process-category-icon { background: #dbeafe; }
       .temperature-group .process-category-icon { background: #ffedd5; }
+      .maintenance-group .process-category-icon { background: #dcfce7; }
       .process-category-chevron { display: inline; margin-left: auto; transition: transform .2s; }
       .process-group.open .process-category-chevron { transform: rotate(180deg); }
       .process-options { display: none; gap: 7px; padding-top: 2px; }
@@ -545,7 +558,7 @@
       .brand-mark { width: 36px; height: 36px; }
       .brand-subtitle { font-size: 11px; }
       .app-shell { gap: 14px; }
-      .process-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .process-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .appearance-group, .temperature-group { grid-template-columns: 1fr; }
       .process-category { margin: 0; text-align: left; }
       .process-button { min-height: 44px; padding: 8px 10px; }
@@ -601,6 +614,7 @@
       .brand-subtitle { display: none; }
       .system-status { font-size: 0; }
       .process-nav { padding: 10px; gap: 8px; border-radius: 10px; }
+      .process-nav { grid-template-columns: 1fr; padding: 0; }
       .process-group { gap: 5px; }
       .process-category { font-size: 15px; }
       .process-button { padding: 10px 6px; min-height: 42px; font-size: 12px; }
@@ -679,6 +693,14 @@
           <button type="button" class="process-button" data-process="hta">HTA</button>
         </div>
       </div>
+      <div class="process-group maintenance-group">
+        <button type="button" class="process-category process-category-toggle" data-category="maintenance" aria-expanded="false">
+          <span class="process-category-icon">M</span><span>Maintenance</span><span class="process-category-chevron">⌄</span>
+        </button>
+        <div class="process-options">
+          <button type="button" class="process-button" data-process="maintenance">EOL Tape/Knife</button>
+        </div>
+      </div>
     </aside>
     <main class="main-content">
   <div class="page-header">
@@ -754,6 +776,44 @@
           <div class="form-group"><label for="hta32">HTA 3-2</label><input type="number" id="hta32" step="0.01" placeholder="°C"></div>
           <div class="form-group"><label for="hta41">HTA 4-1</label><input type="number" id="hta41" step="0.01" placeholder="°C"></div>
           <div class="form-group"><label for="hta42">HTA 4-2</label><input type="number" id="hta42" step="0.01" placeholder="°C"></div>
+        </div>
+
+        <div class="maintenance-fields" id="maintenanceFields">
+          <div class="form-group">
+            <label for="maintenanceLine">Line</label>
+            <select id="maintenanceLine">
+              <option value="" disabled selected>Select a line</option>
+              <option value="EOL 4-1">EOL 4-1</option>
+              <option value="EOL 4-2">EOL 4-2</option>
+              <option value="EOL 5-1">EOL 5-1</option>
+              <option value="EOL 5-2">EOL 5-2</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="maintenanceEquipment">Tape/Knife</label>
+            <select id="maintenanceEquipment">
+              <option value="" disabled selected>Select equipment</option>
+              <option value="Tape">Tape</option>
+              <option value="Knife">Knife</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="maintenanceAction">Maintenance</label>
+            <select id="maintenanceAction">
+              <option value="" disabled selected>Select maintenance</option>
+              <option value="Cleaning">Cleaning</option>
+              <option value="Replace">Replace</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tapingLine">Taping Line</label>
+            <select id="tapingLine">
+              <option value="" disabled selected>Select a taping line</option>
+              <option value="Both">Both</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+            </select>
+          </div>
         </div>
 
         <div class="form-group process-inspection-field">
@@ -858,6 +918,19 @@
         </table>
       </div>
       <div class="records-pagination"><button type="button" id="loadMoreRecordsBtn" style="display:none;">Load More</button></div>
+    </div>
+    <div class="card history-card" id="maintenanceHistoryCard" style="display:none;">
+      <div class="history-card-header">
+        <h3 style="margin:0;">Maintenance Records</h3>
+        <button onclick="loadData()" style="width:auto; padding:6px 12px; font-size:12px; background:#64748b;">🔄 Refresh</button>
+      </div>
+      <div class="table-container">
+        <table style="min-width:720px;">
+          <thead><tr><th>Date</th><th>Team</th><th>Operator Name</th><th>Line</th><th>Tape/Knife</th><th>Maintenance</th><th>Taping Line</th></tr></thead>
+          <tbody id="maintenanceTableBody"><tr><td colspan="7" style="text-align:center;">Loading maintenance records...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="records-pagination"><button type="button" id="maintenanceLoadMoreBtn" style="display:none;">Load More</button></div>
     </div>
     <section class="chart-dashboard" id="chartDashboard">
       <div class="hta-chart-filter" aria-label="HTA chart date filters">
@@ -967,22 +1040,24 @@
     });
 
     function switchProcess(process) {
-      currentProcess = process === 'hta' ? 'hta' : process === 'degas' ? 'degas' : 'formation';
+      currentProcess = process === 'maintenance' ? 'maintenance' : process === 'hta' ? 'hta' : process === 'degas' ? 'degas' : 'formation';
       const isDegas = currentProcess === 'degas';
       const isHta = currentProcess === 'hta';
+      const isMaintenance = currentProcess === 'maintenance';
+      const isAppearance = !isHta && !isMaintenance;
 
       document.querySelectorAll('.process-button').forEach(button => {
         button.classList.toggle('active', button.dataset.process === currentProcess);
       });
       document.getElementById('pageTitle').textContent =
-        isHta ? 'HTA Temperature Monitoring' : isDegas ? 'Degas Inspection' : 'Jig Formation Inspection';
+        isMaintenance ? 'EOL Tape/Knife Maintenance' : isHta ? 'HTA Temperature Monitoring' : isDegas ? 'Degas Inspection' : 'Jig Formation Inspection';
       document.getElementById('kpiProcess').textContent =
-        isHta ? 'HTA' : isDegas ? 'Degas' : 'Jig Formation';
+        isMaintenance ? 'EOL Tape/Knife' : isHta ? 'HTA' : isDegas ? 'Degas' : 'Jig Formation';
       document.getElementById('kpiRecords').textContent = '—';
       document.getElementById('kpiQuality').textContent = '—';
       document.getElementById('kpiLatest').textContent = '—';
       document.getElementById('formTitle').textContent =
-        isHta ? 'New HTA Temperature Reading' : isDegas ? 'New Degas Inspection' : 'New Jig Formation Inspection';
+        isMaintenance ? 'New EOL Tape/Knife Maintenance' : isHta ? 'New HTA Temperature Reading' : isDegas ? 'New Degas Inspection' : 'New Jig Formation Inspection';
       document.getElementById('lineLabel').textContent =
         isDegas ? 'Degas line' : 'Jig line';
       document.getElementById('lineHeader').textContent =
@@ -990,20 +1065,25 @@
       document.getElementById('processLine').placeholder =
         isDegas ? 'e.g., 1, 2, 3' : 'e.g., 4-1, 4-2, 5-1, 5-2';
       document.querySelectorAll('.process-inspection-field').forEach(field => {
-        field.style.display = isHta ? 'none' : '';
+        field.style.display = isAppearance ? '' : 'none';
       });
       document.getElementById('htaFields').style.display = isHta ? 'grid' : 'none';
+      document.getElementById('maintenanceFields').style.display = isMaintenance ? 'block' : 'none';
       htaInputIds.forEach(id => { document.getElementById(id).required = isHta; });
-      ['trayId', 'defect'].forEach(id => {
-        document.getElementById(id).required = !isHta;
+      ['maintenanceLine', 'maintenanceEquipment', 'maintenanceAction', 'tapingLine'].forEach(id => {
+        document.getElementById(id).required = isMaintenance;
       });
-      document.getElementById('hotJigGroup').style.display = isDegas || isHta ? 'none' : '';
-      document.getElementById('defectMapGroup').style.display = isHta ? 'none' : '';
+      ['trayId', 'defect'].forEach(id => {
+        document.getElementById(id).required = isAppearance;
+      });
+      document.getElementById('hotJigGroup').style.display = isDegas || !isAppearance ? 'none' : '';
+      document.getElementById('defectMapGroup').style.display = isAppearance ? '' : 'none';
       document.getElementById('hotJigHeader').style.display = isDegas ? 'none' : '';
       document.getElementById('mapHeader').style.display = isHta ? 'none' : '';
-      hotJigInput.required = !isDegas && !isHta;
-      document.getElementById('historyCard').style.display = isHta ? 'none' : '';
-      document.getElementById('weeklyMapCard').style.display = isHta ? 'none' : '';
+      hotJigInput.required = isAppearance && !isDegas;
+      document.getElementById('historyCard').style.display = isAppearance ? '' : 'none';
+      document.getElementById('maintenanceHistoryCard').style.display = isMaintenance ? '' : 'none';
+      document.getElementById('weeklyMapCard').style.display = isAppearance ? '' : 'none';
       document.getElementById('weeklyMapTitle').textContent = `${isDegas ? 'Degas' : 'Jig Formation'} Defect Map`;
       document.getElementById('defectMapLabel').textContent = `${isDegas ? 'Degas' : 'Jig Formation'} Defect Map`;
       document.getElementById('weeklyLineFilterLabel').textContent = isDegas ? 'Degas Line' : 'Jig Line';
@@ -1015,7 +1095,7 @@
       document.getElementById('weeklyMapCount').textContent = '0 points';
       setWeeklyMapOpen(true);
       document.getElementById('chartDashboard').style.display = isHta ? 'block' : 'none';
-      openFormBtn.textContent = isHta ? 'New Reading' : 'New Inspection';
+      openFormBtn.textContent = isMaintenance ? '＋ New Maintenance' : isHta ? 'New Reading' : 'New Inspection';
       closeForm();
       loadData();
     }
@@ -1047,7 +1127,8 @@
       formCard.classList.add('open');
       openFormBtn.style.display = 'none';
       document.body.style.overflow = 'hidden';
-      setTimeout(() => document.getElementById(currentProcess === 'hta' ? 'hta11' : 'trayId').focus(), 300);
+      const focusId = currentProcess === 'hta' ? 'hta11' : currentProcess === 'maintenance' ? 'maintenanceLine' : 'trayId';
+      setTimeout(() => document.getElementById(focusId).focus(), 300);
     }
 
     function closeForm() {
@@ -1152,7 +1233,8 @@
     function updateDefectDetailVisibility(clearAllOkDetails) {
       const isHta = currentProcess === 'hta';
       const isDegas = currentProcess === 'degas';
-      const isAllOk = !isHta && document.getElementById('defect').value === 'All OK';
+      const isAppearance = currentProcess === 'formation' || currentProcess === 'degas';
+      const isAllOk = isAppearance && document.getElementById('defect').value === 'All OK';
 
       if (isAllOk && clearAllOkDetails) {
         ['cellId', 'channel', 'processLine', 'hotJig', 'comment'].forEach(id => {
@@ -1166,16 +1248,16 @@
       }
 
       document.querySelectorAll('.defect-detail-field').forEach(field => {
-        field.style.display = isHta || isAllOk ? 'none' : '';
+        field.style.display = !isAppearance || isAllOk ? 'none' : '';
       });
-      if (!isHta && !isAllOk) {
+      if (isAppearance && !isAllOk) {
         document.getElementById('hotJigGroup').style.display = isDegas ? 'none' : '';
       }
 
       ['cellId', 'channel', 'processLine', 'defectPhoto'].forEach(id => {
-        document.getElementById(id).required = !isHta && !isAllOk;
+        document.getElementById(id).required = isAppearance && !isAllOk;
       });
-      hotJigInput.required = !isHta && !isDegas && !isAllOk;
+      hotJigInput.required = isAppearance && !isDegas && !isAllOk;
     }
 
     document.getElementById('defect').addEventListener('change', () => {
@@ -1224,8 +1306,10 @@
       statusDiv.textContent = 'Submitting...';
 
       const isHta = currentProcess === 'hta';
-      const isAllOk = !isHta && document.getElementById('defect').value === 'All OK';
-      const photoFile = isHta ? null : photoInput.files[0];
+      const isMaintenance = currentProcess === 'maintenance';
+      const isAppearance = !isHta && !isMaintenance;
+      const isAllOk = isAppearance && document.getElementById('defect').value === 'All OK';
+      const photoFile = isAppearance ? photoInput.files[0] : null;
       if (photoFile && photoFile.size > 8 * 1024 * 1024) {
         statusDiv.style.color = '#dc2626';
         statusDiv.textContent = '❌ The photo must be 8 MB or smaller.';
@@ -1244,6 +1328,14 @@
         hta32: Number(document.getElementById('hta32').value),
         hta41: Number(document.getElementById('hta41').value),
         hta42: Number(document.getElementById('hta42').value)
+      } : isMaintenance ? {
+        process: 'maintenance',
+        team: document.getElementById('team').value,
+        operatorName: document.getElementById('operatorName').value,
+        line: document.getElementById('maintenanceLine').value,
+        equipment: document.getElementById('maintenanceEquipment').value,
+        maintenance: document.getElementById('maintenanceAction').value,
+        tapingLine: document.getElementById('tapingLine').value
       } : {
         process: currentProcess,
         team: document.getElementById('team').value,
@@ -1260,7 +1352,7 @@
       };
       if (currentProcess === 'degas') {
         payload.degasLine = isAllOk ? '' : document.getElementById('processLine').value;
-      } else if (!isHta) {
+      } else if (currentProcess === 'formation') {
         payload.jigLine = isAllOk ? '' : document.getElementById('processLine').value;
         payload.hotJig = isAllOk ? '' : hotJigInput.value;
       }
@@ -1273,7 +1365,7 @@
       })
       .then(() => {
         statusDiv.style.color = '#16a34a';
-        statusDiv.textContent = isHta ? '✅ Temperature reading submitted successfully!' : '✅ Inspection submitted successfully!';
+        statusDiv.textContent = isHta ? '✅ Temperature reading submitted successfully!' : isMaintenance ? '✅ Maintenance record submitted successfully!' : '✅ Inspection submitted successfully!';
         closeForm();
         setTimeout(loadData, 1000); // Refresh the list after submission
       })
@@ -1547,7 +1639,7 @@
       }
       startInput.max = endInput.value;
       endInput.min = startInput.value;
-      if (currentProcess !== 'hta') {
+      if (currentProcess === 'formation' || currentProcess === 'degas') {
         loadAppearanceMapData(currentProcess, loadRequestId).catch(() => {
           document.getElementById('weeklyMapDescription').textContent = 'Unable to load the selected date range.';
         });
@@ -1657,6 +1749,12 @@
       document.getElementById('kpiLatest').textContent = latest && latest.date ? formatRecordDate(latest.date) : 'No records';
       document.getElementById('kpiLatest').title = latest && latest.date ? formatRecordDate(latest.date) : '';
       qualityCard.dataset.tone = '';
+      if (process === 'maintenance') {
+        document.getElementById('kpiQualityLabel').textContent = 'Latest Maintenance';
+        document.getElementById('kpiQuality').textContent = latest ? (latest.maintenance || '—') : 'No records';
+        if (latest) qualityCard.dataset.tone = 'success';
+        return;
+      }
       if (process === 'hta') {
         document.getElementById('kpiQualityLabel').textContent = 'Latest Spec Status';
         document.getElementById('kpiQuality').textContent = latest ? (latest.tempInSpec || '—') : 'No records';
@@ -1670,7 +1768,21 @@
     }
 
     function renderInspectionRecords(records, process, append) {
-      const tbody = document.getElementById('dataTableBody');
+      const isMaintenance = process === 'maintenance';
+      const tbody = document.getElementById(isMaintenance ? 'maintenanceTableBody' : 'dataTableBody');
+      if (isMaintenance) {
+        if (!append) tbody.innerHTML = '';
+        if (!records.length && !append) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No maintenance records found.</td></tr>';
+          return;
+        }
+        records.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${formatRecordDate(item.date)}</td><td>${item.team}</td><td>${item.operatorName}</td><td>${item.line}</td><td>${item.equipment}</td><td>${item.maintenance}</td><td>${item.tapingLine}</td>`;
+          tbody.appendChild(tr);
+        });
+        return;
+      }
       const columnCount = process === 'degas' ? 11 : 12;
       if (!append) tbody.innerHTML = '';
       if (!records.length && !append) {
@@ -1696,9 +1808,13 @@
 
     function updateLoadMoreButton() {
       const button = document.getElementById('loadMoreRecordsBtn');
-      button.style.display = recordsHasMore && currentProcess !== 'hta' ? '' : 'none';
+      const maintenanceButton = document.getElementById('maintenanceLoadMoreBtn');
+      button.style.display = recordsHasMore && (currentProcess === 'formation' || currentProcess === 'degas') ? '' : 'none';
+      maintenanceButton.style.display = recordsHasMore && currentProcess === 'maintenance' ? '' : 'none';
       button.disabled = recordsLoading;
       button.textContent = recordsLoading ? 'Loading...' : 'Load More';
+      maintenanceButton.disabled = recordsLoading;
+      maintenanceButton.textContent = recordsLoading ? 'Loading...' : 'Load More';
     }
 
     async function loadAppearanceMapData(process, requestId) {
@@ -1735,18 +1851,21 @@
     }
 
     document.getElementById('loadMoreRecordsBtn').addEventListener('click', loadMoreRecords);
+    document.getElementById('maintenanceLoadMoreBtn').addEventListener('click', loadMoreRecords);
 
     async function loadData() {
       const requestedProcess = currentProcess;
       const requestId = ++loadRequestId;
       const systemStatus = document.getElementById('systemStatus');
-      const columnCount = requestedProcess === 'degas' ? 11 : 12;
+      const columnCount = requestedProcess === 'maintenance' ? 7 : requestedProcess === 'degas' ? 11 : 12;
       systemStatus.textContent = 'Syncing Data';
       systemStatus.className = 'system-status syncing';
       recordsOffset = 0;
       recordsHasMore = false;
       updateLoadMoreButton();
-      if (requestedProcess !== 'hta') {
+      if (requestedProcess === 'maintenance') {
+        document.getElementById('maintenanceTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading maintenance records...</td></tr>';
+      } else if (requestedProcess !== 'hta') {
         document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">Loading inspection data...</td></tr>`;
       }
       try {
@@ -1755,6 +1874,15 @@
           const results = await Promise.all([summaryPromise, loadHtaChartData(requestId)]);
           if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
           updateSummaryFromApi(results[0].summary || {}, requestedProcess);
+        } else if (requestedProcess === 'maintenance') {
+          const recordsResponse = await fetchJsonWithRetry(buildApiUrl({ process: requestedProcess, action: 'records', limit: RECORD_PAGE_SIZE, offset: 0 }));
+          const summaryResponse = await summaryPromise;
+          if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
+          updateSummaryFromApi(summaryResponse.summary || {}, requestedProcess);
+          renderInspectionRecords(recordsResponse.data || [], requestedProcess, false);
+          recordsOffset = recordsResponse.pagination.nextOffset;
+          recordsHasMore = recordsResponse.pagination.hasMore;
+          updateLoadMoreButton();
         } else {
           const recordsPromise = fetchJsonWithRetry(buildApiUrl({ process: requestedProcess, action: 'records', limit: RECORD_PAGE_SIZE, offset: 0 }));
           const results = await Promise.all([summaryPromise, loadAppearanceMapData(requestedProcess, requestId), recordsPromise]);
@@ -1772,6 +1900,7 @@
         systemStatus.textContent = 'Connection Error';
         systemStatus.className = 'system-status offline';
         if (requestedProcess === 'hta') document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the Google Apps Script deployment.</div>';
+        else if (requestedProcess === 'maintenance') document.getElementById('maintenanceTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Unable to load maintenance records.</td></tr>';
         else document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the Google Apps Script deployment.</td></tr>`;
       }
     }
@@ -1854,4 +1983,3 @@
   </script>
 </body>
 </html>
-

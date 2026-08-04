@@ -9,6 +9,7 @@ const CONFIG = Object.freeze({
   FORMATION_SHEET_NAME: 'Jig visual inspection',
   DEGAS_SHEET_NAME: 'Degas inspection',
   HTA_SHEET_NAME: 'HTA temp',
+  MAINTENANCE_SHEET_NAME: 'EOL Tape Knife',
   FORMATION_PHOTO_FOLDER_ID: '1sjdqljzpJOtAuudYBeotwXeUsxJjSdyM',
   DEGAS_PHOTO_FOLDER_ID: '10hybzCCycMsBLscf2qxIADiNgaBsQqbQ',
   MAKE_PHOTOS_PUBLIC: true,
@@ -59,6 +60,16 @@ const HTA_HEADERS = Object.freeze([
   'Temp. In spec'
 ]);
 
+const MAINTENANCE_HEADERS = Object.freeze([
+  'Date',
+  'Team',
+  'Operator name',
+  'Line',
+  'Tape/Knife',
+  'Maintenance',
+  'Taping line'
+]);
+
 const HTA_FIELDS = Object.freeze([
   { key: 'hta11', label: 'HTA 1-1' },
   { key: 'hta12', label: 'HTA 1-2' },
@@ -79,10 +90,12 @@ function setup() {
   const formationSheet = getSheet_('formation');
   const degasSheet = getSheet_('degas');
   const htaSheet = getSheet_('hta');
+  const maintenanceSheet = getSheet_('maintenance');
 
   ensureHeaders_(formationSheet, FORMATION_HEADERS);
   ensureHeaders_(degasSheet, DEGAS_HEADERS);
   ensureHeaders_(htaSheet, HTA_HEADERS);
+  ensureHeaders_(maintenanceSheet, MAINTENANCE_HEADERS);
   normalizeFormationJigLines_(formationSheet);
 
   DriveApp.getFolderById(CONFIG.FORMATION_PHOTO_FOLDER_ID).getName();
@@ -118,7 +131,7 @@ function getSummaryResponse_(sheet, process, headers) {
   const totalRecords = lastRow - 1;
   const latest = readRecords_(sheet, process, headers, lastRow, 1)[0] || null;
   let defectCount = 0;
-  if (process !== 'hta') {
+  if (process === 'formation' || process === 'degas') {
     const defectColumn = process === 'degas' ? 8 : 9;
     defectCount = sheet.getRange(2, defectColumn, totalRecords, 1).getDisplayValues()
       .reduce(function(total, row) {
@@ -152,7 +165,7 @@ function getRecordsResponse_(sheet, process, headers, parameters) {
 
 function getDateRangeResponse_(sheet, process, headers, parameters, action) {
   if (action === 'chart' && process !== 'hta') throw new Error('Chart data is only available for HTA.');
-  if (action === 'map' && process === 'hta') throw new Error('Map data is only available for Appearance processes.');
+  if (action === 'map' && process !== 'formation' && process !== 'degas') throw new Error('Map data is only available for Appearance processes.');
 
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return { result: 'success', process: process, data: [] };
@@ -195,6 +208,9 @@ function rowToRecord_(row, process) {
     if (process === 'hta') {
       return { date: row[0], team: row[1], operatorName: row[2], hta11: row[3], hta12: row[4], hta21: row[5], hta22: row[6], hta31: row[7], hta32: row[8], hta41: row[9], hta42: row[10], tempInSpec: row[11] };
     }
+    if (process === 'maintenance') {
+      return { date: row[0], team: row[1], operatorName: row[2], line: row[3], equipment: row[4], maintenance: row[5], tapingLine: row[6] };
+    }
     const common = { date: row[0], team: row[1], operatorName: row[2], trayId: row[3], cellId: row[4], channel: row[5] };
     if (process === 'degas') {
       return Object.assign(common, { degasLine: row[6], defect: row[7], comment: row[8], defectPhoto: row[9], defectMap: row[10] || '[]' });
@@ -213,7 +229,7 @@ function doPost(e) {
     validateInput_(input, process);
 
     let photoUrl = '';
-    if (process !== 'hta' && input.defectPhotoData) {
+    if ((process === 'formation' || process === 'degas') && input.defectPhotoData) {
       photoUrl = savePhoto_(
         input.defectPhotoData,
         input.defectPhotoName,
@@ -241,27 +257,38 @@ function doPost(e) {
           cleanText_(input.team),
           cleanText_(input.operatorName)
         ].concat(temperatures, [getTempSpecResult_(input)]);
+      } else if (process === 'maintenance') {
+        row = [
+          new Date(),
+          cleanText_(input.team),
+          cleanText_(input.operatorName),
+          cleanText_(input.line),
+          cleanText_(input.equipment),
+          cleanText_(input.maintenance),
+          cleanText_(input.tapingLine)
+        ];
       } else {
+        const isAllOk = cleanText_(input.defect) === 'All OK';
         const common = [
           new Date(),
           cleanText_(input.team),
           cleanText_(input.operatorName),
           cleanText_(input.trayId),
-          cleanText_(input.cellId),
-          Number(input.channel)
+          isAllOk ? '' : cleanText_(input.cellId),
+          isAllOk ? '' : Number(input.channel)
         ];
 
         row = process === 'degas'
           ? common.concat([
-              cleanText_(input.degasLine),
+              isAllOk ? '' : cleanText_(input.degasLine),
               cleanText_(input.defect),
               cleanText_(input.comment),
               photoUrl,
               normalizeDefectMap_(input.defectMap)
             ])
           : common.concat([
-              cleanText_(input.jigLine),
-              Number(input.hotJig),
+              isAllOk ? '' : cleanText_(input.jigLine),
+              isAllOk ? '' : Number(input.hotJig),
               cleanText_(input.defect),
               cleanText_(input.comment),
               photoUrl,
@@ -270,8 +297,10 @@ function doPost(e) {
       }
 
       const nextRow = sheet.getLastRow() + 1;
-      if (process !== 'hta') {
+      if (process === 'formation' || process === 'degas') {
         sheet.getRange(nextRow, 7).setNumberFormat('@');
+      } else if (process === 'maintenance') {
+        sheet.getRange(nextRow, 4, 1, 4).setNumberFormat('@');
       }
       sheet.getRange(nextRow, 1, 1, row.length).setValues([row]);
       sheet.getRange(nextRow, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
@@ -295,11 +324,13 @@ function getProcess_(value) {
   const process = String(value || 'formation').toLowerCase();
   if (process === 'degas') return 'degas';
   if (process === 'hta') return 'hta';
+  if (process === 'maintenance') return 'maintenance';
   return 'formation';
 }
 
 function getHeaders_(process) {
   if (process === 'hta') return HTA_HEADERS;
+  if (process === 'maintenance') return MAINTENANCE_HEADERS;
   return process === 'degas' ? DEGAS_HEADERS : FORMATION_HEADERS;
 }
 
@@ -307,13 +338,16 @@ function getSheet_(process) {
   const spreadsheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
   const sheetName = process === 'hta'
     ? CONFIG.HTA_SHEET_NAME
-    : process === 'degas'
-      ? CONFIG.DEGAS_SHEET_NAME
-      : CONFIG.FORMATION_SHEET_NAME;
+    : process === 'maintenance'
+      ? CONFIG.MAINTENANCE_SHEET_NAME
+      : process === 'degas'
+        ? CONFIG.DEGAS_SHEET_NAME
+        : CONFIG.FORMATION_SHEET_NAME;
   let sheet = spreadsheet.getSheetByName(sheetName);
 
   if (!sheet) {
     sheet = spreadsheet.insertSheet(sheetName);
+    ensureHeaders_(sheet, getHeaders_(process));
   }
   return sheet;
 }
@@ -373,6 +407,22 @@ function normalizeFormationJigLines_(sheet) {
 }
 
 function validateInput_(input, process) {
+  if (process === 'maintenance') {
+    ['team', 'operatorName', 'line', 'equipment', 'maintenance', 'tapingLine'].forEach(function(key) {
+      if (input[key] === undefined || String(input[key]).trim() === '') {
+        throw new Error(key + ' is required.');
+      }
+    });
+    if (!TEAMS.includes(String(input.team))) throw new Error('Team must be 1A, 1B, 2A, or 2B.');
+    if (!['EOL 4-1', 'EOL 4-2', 'EOL 5-1', 'EOL 5-2'].includes(String(input.line))) {
+      throw new Error('A valid EOL line must be selected.');
+    }
+    if (!['Tape', 'Knife'].includes(String(input.equipment))) throw new Error('Tape/Knife must be Tape or Knife.');
+    if (!['Cleaning', 'Replace'].includes(String(input.maintenance))) throw new Error('Maintenance must be Cleaning or Replace.');
+    if (!['Both', 'A', 'B'].includes(String(input.tapingLine))) throw new Error('Taping line must be Both, A, or B.');
+    return;
+  }
+
   if (process === 'hta') {
     ['team', 'operatorName'].forEach(function(key) {
       if (input[key] === undefined || String(input[key]).trim() === '') {
@@ -395,13 +445,13 @@ function validateInput_(input, process) {
     'team',
     'operatorName',
     'trayId',
-    'cellId',
-    'channel',
     'defect'
   ];
-
-  required.push(process === 'degas' ? 'degasLine' : 'jigLine');
-  if (process === 'formation') required.push('hotJig');
+  const isAllOk = cleanText_(input.defect) === 'All OK';
+  if (!isAllOk) {
+    required.push('cellId', 'channel', process === 'degas' ? 'degasLine' : 'jigLine');
+    if (process === 'formation') required.push('hotJig');
+  }
 
   required.forEach(function(key) {
     if (input[key] === undefined || String(input[key]).trim() === '') {
@@ -413,15 +463,17 @@ function validateInput_(input, process) {
     throw new Error('Team must be 1A, 1B, 2A, or 2B.');
   }
 
-  const channel = Number(input.channel);
-  if (!Number.isInteger(channel) || channel < 1) {
-    throw new Error('Channel must be a positive integer.');
-  }
+  if (!isAllOk) {
+    const channel = Number(input.channel);
+    if (!Number.isInteger(channel) || channel < 1) {
+      throw new Error('Channel must be a positive integer.');
+    }
 
-  if (process === 'formation') {
-    const hotJig = Number(input.hotJig);
-    if (!Number.isInteger(hotJig) || hotJig < 1) {
-      throw new Error('Hot jig must be a positive integer.');
+    if (process === 'formation') {
+      const hotJig = Number(input.hotJig);
+      if (!Number.isInteger(hotJig) || hotJig < 1) {
+        throw new Error('Hot jig must be a positive integer.');
+      }
     }
   }
 
