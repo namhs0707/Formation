@@ -6,6 +6,7 @@
  */
 const CONFIG = Object.freeze({
   SPREADSHEET_ID: '19JnDzOotmIc_c0kWPszNNdWahUgvpf4p0ZGwDm6Ck0I',
+  BEFORE_HPCD_SHEET_NAME: 'Before HPCD',
   FORMATION_SHEET_NAME: 'Jig visual inspection',
   DEGAS_SHEET_NAME: 'Degas inspection',
   HTA_SHEET_NAME: 'HTA temp',
@@ -14,7 +15,8 @@ const CONFIG = Object.freeze({
   FORMATION_PHOTO_FOLDER_ID: '1sjdqljzpJOtAuudYBeotwXeUsxJjSdyM',
   DEGAS_PHOTO_FOLDER_ID: '10hybzCCycMsBLscf2qxIADiNgaBsQqbQ',
   MAKE_PHOTOS_PUBLIC: true,
-  MAX_PHOTO_BYTES: 8 * 1024 * 1024
+  MAX_PHOTO_BYTES: 8 * 1024 * 1024,
+  CACHE_SECONDS: 45
 });
 
 const FORMATION_HEADERS = Object.freeze([
@@ -29,6 +31,19 @@ const FORMATION_HEADERS = Object.freeze([
   'Defect',
   'Comment',
   'Defect photo',
+  'Defect map'
+]);
+
+const BEFORE_HPCD_HEADERS = Object.freeze([
+  'Date',
+  'Team',
+  'Operator name',
+  'Tray ID',
+  'Defect type',
+  'Cell ID',
+  'Channel',
+  'Comment',
+  'Photo',
   'Defect map'
 ]);
 
@@ -88,6 +103,16 @@ const CONDUCTIVE_RUBBER_UNITS = Object.freeze([
   '2A', '2B', '2C', '2D'
 ]);
 
+const DEFECT_TYPES = Object.freeze([
+  'All OK',
+  'Dent',
+  'Contamination',
+  'Scratch',
+  'Lead bending',
+  'Wrinkles',
+  'Others'
+]);
+
 const HTA_FIELDS = Object.freeze([
   { key: 'hta11', label: 'HTA 1-1' },
   { key: 'hta12', label: 'HTA 1-2' },
@@ -105,12 +130,14 @@ const TEAMS = Object.freeze(['1A', '1B', '2A', '2B']);
  * Run once to verify the existing Formation sheet and create the Degas sheet.
  */
 function setup() {
+  const beforeHpcdSheet = getSheet_('before_hpcd');
   const formationSheet = getSheet_('formation');
   const degasSheet = getSheet_('degas');
   const htaSheet = getSheet_('hta');
   const maintenanceSheet = getSheet_('maintenance');
   const conductiveRubberSheet = getSheet_('conductive');
 
+  ensureHeaders_(beforeHpcdSheet, BEFORE_HPCD_HEADERS);
   ensureHeaders_(formationSheet, FORMATION_HEADERS);
   ensureHeaders_(degasSheet, DEGAS_HEADERS);
   ensureHeaders_(htaSheet, HTA_HEADERS);
@@ -130,16 +157,72 @@ function doGet(e) {
     const headers = getHeaders_(process);
     const sheet = getSheet_(process);
 
-    if (action === 'summary') return json_(getSummaryResponse_(sheet, process, headers));
-    if (action === 'records') return json_(getRecordsResponse_(sheet, process, headers, parameters));
+    if (action === 'bootstrap') {
+      return json_(getCachedResponse_(sheet, process, action, parameters, function() {
+        return getBootstrapResponse_(sheet, process, headers, parameters);
+      }));
+    }
+    if (action === 'summary') {
+      return json_(getCachedResponse_(sheet, process, action, parameters, function() {
+        return getSummaryResponse_(sheet, process, headers);
+      }));
+    }
+    if (action === 'records') {
+      return json_(getCachedResponse_(sheet, process, action, parameters, function() {
+        return getRecordsResponse_(sheet, process, headers, parameters);
+      }));
+    }
     if (action === 'map' || action === 'chart') {
-      return json_(getDateRangeResponse_(sheet, process, headers, parameters, action));
+      return json_(getCachedResponse_(sheet, process, action, parameters, function() {
+        return getDateRangeResponse_(sheet, process, headers, parameters, action);
+      }));
     }
     return json_({ result: 'success', process: process, data: readRecords_(sheet, process, headers, 2, Math.max(0, sheet.getLastRow() - 1)) });
   } catch (error) {
     console.error(error);
     return json_({ result: 'error', message: error.message });
   }
+}
+
+function getCachedResponse_(sheet, process, action, parameters, producer) {
+  const refresh = String(parameters.refresh || '') === '1';
+  const key = [
+    'dashboard-v3', process, action, sheet.getLastRow(),
+    String(parameters.startDate || ''), String(parameters.endDate || ''),
+    String(parameters.limit || ''), String(parameters.offset || '')
+  ].join(':');
+  const cache = CacheService.getScriptCache();
+  if (!refresh) {
+    const cached = cache.get(key);
+    if (cached) return JSON.parse(cached);
+  }
+
+  const response = producer();
+  try {
+    const serialized = JSON.stringify(response);
+    if (serialized.length < 95000) cache.put(key, serialized, CONFIG.CACHE_SECONDS);
+  } catch (error) {
+    console.warn('Dashboard cache skipped: ' + error.message);
+  }
+  return response;
+}
+
+function getBootstrapResponse_(sheet, process, headers, parameters) {
+  const recordsResponse = getRecordsResponse_(sheet, process, headers, parameters);
+  let rangeData = [];
+  if (isAppearanceProcess_(process)) {
+    rangeData = getDateRangeResponse_(sheet, process, headers, parameters, 'map').data;
+  } else if (process === 'hta') {
+    rangeData = getDateRangeResponse_(sheet, process, headers, parameters, 'chart').data;
+  }
+  return {
+    result: 'success',
+    process: process,
+    summary: getSummaryResponse_(sheet, process, headers).summary,
+    records: recordsResponse.data,
+    pagination: recordsResponse.pagination,
+    rangeData: rangeData
+  };
 }
 
 function getSummaryResponse_(sheet, process, headers) {
@@ -151,8 +234,8 @@ function getSummaryResponse_(sheet, process, headers) {
   const totalRecords = lastRow - 1;
   const latest = readRecords_(sheet, process, headers, lastRow, 1)[0] || null;
   let defectCount = 0;
-  if (process === 'formation' || process === 'degas') {
-    const defectColumn = process === 'degas' ? 8 : 9;
+  if (isAppearanceProcess_(process)) {
+    const defectColumn = process === 'before_hpcd' ? 5 : process === 'degas' ? 8 : 9;
     defectCount = sheet.getRange(2, defectColumn, totalRecords, 1).getDisplayValues()
       .reduce(function(total, row) {
         const value = String(row[0] || '').trim();
@@ -185,7 +268,7 @@ function getRecordsResponse_(sheet, process, headers, parameters) {
 
 function getDateRangeResponse_(sheet, process, headers, parameters, action) {
   if (action === 'chart' && process !== 'hta') throw new Error('Chart data is only available for HTA.');
-  if (action === 'map' && process !== 'formation' && process !== 'degas') throw new Error('Map data is only available for Appearance processes.');
+  if (action === 'map' && !isAppearanceProcess_(process)) throw new Error('Map data is only available for Appearance processes.');
 
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return { result: 'success', process: process, data: [] };
@@ -195,7 +278,19 @@ function getDateRangeResponse_(sheet, process, headers, parameters, action) {
     throw new Error('startDate and endDate must use YYYY-MM-DD.');
   }
 
-  const rows = sheet.getRange(2, 1, lastRow - 1, headers.length).getDisplayValues();
+  const dateRows = sheet.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
+  let firstMatch = -1;
+  let lastMatch = -1;
+  dateRows.forEach(function(row, index) {
+    const dateKey = getDateKey_(row[0]);
+    if (dateKey >= startDate && dateKey <= endDate) {
+      if (firstMatch < 0) firstMatch = index;
+      lastMatch = index;
+    }
+  });
+  if (firstMatch < 0) return { result: 'success', process: process, data: [] };
+
+  const rows = sheet.getRange(firstMatch + 2, 1, lastMatch - firstMatch + 1, headers.length).getDisplayValues();
   const data = rows.filter(function(row) {
     const dateKey = getDateKey_(row[0]);
     return dateKey >= startDate && dateKey <= endDate;
@@ -235,6 +330,13 @@ function rowToRecord_(row, process) {
       return { date: row[0], team: row[1], operatorName: row[2], rubberProcess: row[3], line: row[4], measurement: row[5], units: row[6], action: row[7], comment: row[8] };
     }
     const common = { date: row[0], team: row[1], operatorName: row[2], trayId: row[3], cellId: row[4], channel: row[5] };
+    if (process === 'before_hpcd') {
+      return {
+        date: row[0], team: row[1], operatorName: row[2], trayId: row[3],
+        defect: row[4], cellId: row[5], channel: row[6], comment: row[7],
+        defectPhoto: row[8], defectMap: row[9] || '[]'
+      };
+    }
     if (process === 'degas') {
       return Object.assign(common, { degasLine: row[6], defect: row[7], comment: row[8], defectPhoto: row[9], defectMap: row[10] || '[]' });
     }
@@ -252,7 +354,7 @@ function doPost(e) {
     validateInput_(input, process);
 
     let photoUrl = '';
-    if ((process === 'formation' || process === 'degas') && input.defectPhotoData) {
+    if (isAppearanceProcess_(process) && input.defectPhotoData) {
       photoUrl = savePhoto_(
         input.defectPhotoData,
         input.defectPhotoName,
@@ -303,7 +405,9 @@ function doPost(e) {
           cleanText_(input.comment)
         ];
       } else {
-        const isAllOk = cleanText_(input.defect) === 'All OK';
+        const defects = normalizeDefectTypes_(input.defect);
+        const defectText = defects.join(', ');
+        const isAllOk = defects.length === 1 && defects[0] === 'All OK';
         const common = [
           new Date(),
           cleanText_(input.team),
@@ -313,18 +417,31 @@ function doPost(e) {
           isAllOk ? '' : Number(input.channel)
         ];
 
-        row = process === 'degas'
-          ? common.concat([
+        row = process === 'before_hpcd'
+          ? [
+              new Date(),
+              cleanText_(input.team),
+              cleanText_(input.operatorName),
+              cleanText_(input.trayId),
+              defectText,
+              isAllOk ? '' : cleanText_(input.cellId),
+              isAllOk ? '' : Number(input.channel),
+              cleanText_(input.comment),
+              photoUrl,
+              normalizeDefectMap_(input.defectMap)
+            ]
+          : process === 'degas'
+            ? common.concat([
               isAllOk ? '' : cleanText_(input.degasLine),
-              cleanText_(input.defect),
+              defectText,
               cleanText_(input.comment),
               photoUrl,
               normalizeDefectMap_(input.defectMap)
             ])
-          : common.concat([
+            : common.concat([
               isAllOk ? '' : cleanText_(input.jigLine),
               isAllOk ? '' : Number(input.hotJig),
-              cleanText_(input.defect),
+              defectText,
               cleanText_(input.comment),
               photoUrl,
               normalizeDefectMap_(input.defectMap)
@@ -332,7 +449,7 @@ function doPost(e) {
       }
 
       const nextRow = sheet.getLastRow() + 1;
-      if (process === 'formation' || process === 'degas') {
+      if (isAppearanceProcess_(process)) {
         sheet.getRange(nextRow, 7).setNumberFormat('@');
       } else if (process === 'maintenance') {
         sheet.getRange(nextRow, 4, 1, 4).setNumberFormat('@');
@@ -357,8 +474,13 @@ function doPost(e) {
   }
 }
 
+function isAppearanceProcess_(process) {
+  return process === 'before_hpcd' || process === 'formation' || process === 'degas';
+}
+
 function getProcess_(value) {
   const process = String(value || 'formation').toLowerCase();
+  if (process === 'before_hpcd') return 'before_hpcd';
   if (process === 'degas') return 'degas';
   if (process === 'hta') return 'hta';
   if (process === 'maintenance') return 'maintenance';
@@ -370,6 +492,7 @@ function getHeaders_(process) {
   if (process === 'hta') return HTA_HEADERS;
   if (process === 'maintenance') return MAINTENANCE_HEADERS;
   if (process === 'conductive') return CONDUCTIVE_RUBBER_HEADERS;
+  if (process === 'before_hpcd') return BEFORE_HPCD_HEADERS;
   return process === 'degas' ? DEGAS_HEADERS : FORMATION_HEADERS;
 }
 
@@ -381,9 +504,11 @@ function getSheet_(process) {
       ? CONFIG.MAINTENANCE_SHEET_NAME
       : process === 'conductive'
         ? CONFIG.CONDUCTIVE_RUBBER_SHEET_NAME
-        : process === 'degas'
-          ? CONFIG.DEGAS_SHEET_NAME
-          : CONFIG.FORMATION_SHEET_NAME;
+        : process === 'before_hpcd'
+          ? CONFIG.BEFORE_HPCD_SHEET_NAME
+          : process === 'degas'
+            ? CONFIG.DEGAS_SHEET_NAME
+            : CONFIG.FORMATION_SHEET_NAME;
   let sheet = spreadsheet.getSheetByName(sheetName);
   const isNewSheet = !sheet;
 
@@ -524,10 +649,12 @@ function validateInput_(input, process) {
     'trayId',
     'defect'
   ];
-  const isAllOk = cleanText_(input.defect) === 'All OK';
+  const defects = normalizeDefectTypes_(input.defect);
+  const isAllOk = defects.length === 1 && defects[0] === 'All OK';
   if (!isAllOk) {
-    required.push('cellId', 'channel', process === 'degas' ? 'degasLine' : 'jigLine');
-    if (process === 'formation') required.push('hotJig');
+    required.push('cellId', 'channel');
+    if (process === 'degas') required.push('degasLine');
+    if (process === 'formation') required.push('jigLine', 'hotJig');
   }
 
   required.forEach(function(key) {
@@ -540,7 +667,16 @@ function validateInput_(input, process) {
     throw new Error('Team must be 1A, 1B, 2A, or 2B.');
   }
 
+  const trayId = cleanText_(input.trayId);
+  if (!/^[A-Z0-9]+$/.test(trayId)) {
+    throw new Error('Tray ID may contain only uppercase letters and numbers.');
+  }
+
   if (!isAllOk) {
+    const cellId = cleanText_(input.cellId);
+    if (!/^[A-Z0-9]+$/.test(cellId)) {
+      throw new Error('Cell ID may contain only uppercase letters and numbers.');
+    }
     const channel = Number(input.channel);
     if (!Number.isInteger(channel) || channel < 1) {
       throw new Error('Channel must be a positive integer.');
@@ -560,9 +696,25 @@ function validateInput_(input, process) {
       throw new Error('Only image files can be uploaded.');
     }
   }
-  if (process === 'formation' || process === 'degas') {
+  if (isAppearanceProcess_(process)) {
     normalizeDefectMap_(input.defectMap);
   }
+}
+
+function normalizeDefectTypes_(value) {
+  const values = Array.isArray(value) ? value : String(value || '').split(',');
+  const defects = values.map(function(item) { return cleanText_(item); }).filter(Boolean);
+  if (!defects.length) throw new Error('At least one Defect Type must be selected.');
+
+  const uniqueDefects = [];
+  defects.forEach(function(defect) {
+    if (!DEFECT_TYPES.includes(defect)) throw new Error('Invalid Defect Type: ' + defect);
+    if (!uniqueDefects.includes(defect)) uniqueDefects.push(defect);
+  });
+  if (uniqueDefects.includes('All OK') && uniqueDefects.length > 1) {
+    throw new Error('All OK cannot be combined with another Defect Type.');
+  }
+  return uniqueDefects;
 }
 
 function normalizeConductiveUnits_(value) {
@@ -619,17 +771,16 @@ function savePhoto_(base64Data, originalName, mimeType, trayId, process) {
     throw new Error('The photo must be 8 MB or smaller.');
   }
 
-  const folderId = process === 'degas'
-    ? CONFIG.DEGAS_PHOTO_FOLDER_ID
-    : CONFIG.FORMATION_PHOTO_FOLDER_ID;
-  const folder = DriveApp.getFolderById(folderId);
+  const folderId = process === 'degas' ? CONFIG.DEGAS_PHOTO_FOLDER_ID : CONFIG.FORMATION_PHOTO_FOLDER_ID;
+  const rootFolder = DriveApp.getFolderById(folderId);
+  const folder = process === 'before_hpcd' ? getOrCreateSubfolder_(rootFolder, 'Before HPCD') : rootFolder;
   const extension = extensionFor_(originalName, mimeType);
   const timestamp = Utilities.formatDate(
     new Date(),
     Session.getScriptTimeZone(),
     'yyyyMMdd_HHmmss'
   );
-  const prefix = process === 'degas' ? 'DEGAS' : 'FORMATION';
+  const prefix = process === 'before_hpcd' ? 'BEFORE_HPCD' : process === 'degas' ? 'DEGAS' : 'FORMATION';
   const fileName = prefix + '_' + timestamp + '_'
     + cleanFileName_(trayId || 'tray') + extension;
   const blob = Utilities.newBlob(
@@ -650,6 +801,11 @@ function savePhoto_(base64Data, originalName, mimeType, trayId, process) {
     }
   }
   return file.getUrl();
+}
+
+function getOrCreateSubfolder_(parentFolder, name) {
+  const folders = parentFolder.getFoldersByName(name);
+  return folders.hasNext() ? folders.next() : parentFolder.createFolder(name);
 }
 
 function extensionFor_(originalName, mimeType) {

@@ -181,6 +181,7 @@
     .unit-fieldset { margin: 0 0 16px; padding: 0; border: 0; }
     .unit-fieldset legend { margin-bottom: 8px; color: var(--label); font-size: var(--text-sm); font-weight: 600; }
     .unit-checkbox-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .defect-checkbox-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .unit-option {
       min-height: 46px;
       margin: 0;
@@ -195,6 +196,8 @@
     }
     .unit-option:has(input:checked) { color: var(--primary); background: var(--primary-soft); border-color: var(--primary); }
     .unit-option input { width: 20px; height: 20px; min-height: 20px; margin: 0; accent-color: var(--primary); }
+    .secondary-action-button { color: var(--primary); background: var(--surface); border: 1px solid var(--primary); }
+    .secondary-action-button:hover { color: #fff; background: var(--primary); }
     .form-modal {
       display: none;
       position: fixed;
@@ -336,7 +339,7 @@
       min-height: 48px;
     }
     button:hover { background-color: #1e40af; box-shadow: var(--shadow-sm); }
-    .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .button-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
     .cancel-button { background: #64748b; }
     .cancel-button:hover { background: #475569; }
     .photo-preview {
@@ -436,14 +439,47 @@
       background: rgba(15, 23, 42, 0.88);
     }
     .photo-modal.open { display: flex; }
-    .photo-modal-image {
-      max-width: min(1100px, 95vw);
-      max-height: 88vh;
-      object-fit: contain;
+    .photo-zoom-shell {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: 10px;
+      width: min(1100px, 95vw);
+      height: min(88vh, 820px);
+    }
+    .zoom-stage {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      background: #0f172a;
       border-radius: 8px;
+      touch-action: none;
+      user-select: none;
+    }
+    .photo-modal-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
       background: white;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      transform-origin: center;
+      will-change: transform;
+      cursor: grab;
     }
+    .zoom-stage.is-dragging img { cursor: grabbing; }
+    .zoom-toolbar { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .zoom-toolbar button {
+      width: 44px;
+      min-height: 42px;
+      padding: 6px;
+      font-size: 20px;
+      line-height: 1;
+    }
+    .zoom-toolbar .zoom-reset { width: auto; min-width: 82px; font-size: 13px; }
+    .zoom-level { min-width: 52px; color: white; text-align: center; font-size: 13px; font-weight: 800; }
     .photo-modal-close {
       position: fixed;
       top: 16px;
@@ -596,7 +632,10 @@
     .gallery-header { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
     .gallery-header h3 { margin: 0 0 4px; }
     .gallery-header p { margin: 0; color: var(--muted); font-size: 12px; }
-    .gallery-main-image { display: block; width: 100%; max-height: 62vh; object-fit: contain; background: #0f172a; border-radius: 8px; }
+    .gallery-zoom-stage { width: 100%; height: min(58vh, 560px); }
+    .gallery-main-image { display: block; max-width: 100%; max-height: 100%; object-fit: contain; transform-origin: center; will-change: transform; cursor: grab; }
+    .gallery-panel .zoom-toolbar { margin-top: 10px; }
+    .gallery-panel .zoom-level { color: var(--ink); }
     .gallery-thumbnails { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; margin-top: 10px; }
     .gallery-thumbnail-button { min-height: 72px; padding: 3px; background: white; border: 2px solid transparent; }
     .gallery-thumbnail-button.active { border-color: var(--primary); }
@@ -668,7 +707,7 @@
       button { min-height: 46px; }
       .thumbnail-button { min-height: 0; }
       .photo-modal { padding: 12px; }
-      .photo-modal-image { max-width: 96vw; max-height: 90vh; }
+      .photo-zoom-shell { width: 96vw; height: 90vh; }
       .weekly-map-layout { grid-template-columns: 165px minmax(280px, 1fr) 145px; gap: 10px; }
       .map-filter-panel, .map-legend-panel { padding: 9px; }
     }
@@ -719,7 +758,7 @@
       .photo-modal-close { top: 10px; right: 10px; width: 42px; height: 42px; }
       .gallery-modal { padding: 6px; }
       .gallery-panel { padding: 10px; }
-      .gallery-main-image { max-height: 55vh; }
+      .gallery-zoom-stage { height: 52vh; }
       .map-modal { padding: 6px; }
       .map-modal-panel { padding: 12px; border-radius: 10px; }
       .map-controls { grid-template-columns: 1fr 1fr; }
@@ -1043,6 +1082,8 @@
       .photo-thumbnail { width: 82px; height: 58px; }
       .form-modal { padding: 8px; }
       .unit-checkbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .defect-checkbox-grid { grid-template-columns: 1fr; }
+      .button-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -1070,6 +1111,7 @@
           <span class="process-category-icon">◉</span><span>Appearance</span><span class="process-category-chevron">⌄</span>
         </button>
         <div class="process-options">
+          <button type="button" class="process-button" data-process="before_hpcd">Before HPCD</button>
           <button type="button" class="process-button active" data-process="formation">Jig Formation</button>
           <button type="button" class="process-button" data-process="degas">Degas</button>
         </div>
@@ -1119,7 +1161,7 @@
           <h4 class="map-panel-title">Filters</h4>
           <div class="form-group"><label for="weeklyStartDate">Start Date</label><input type="date" id="weeklyStartDate" required></div>
           <div class="form-group"><label for="weeklyEndDate">End Date</label><input type="date" id="weeklyEndDate" required></div>
-          <div class="form-group"><label for="weeklyLineFilter" id="weeklyLineFilterLabel">Jig Line</label><select id="weeklyLineFilter"><option value="">All Lines</option></select></div>
+          <div class="form-group" id="weeklyLineFilterGroup"><label for="weeklyLineFilter" id="weeklyLineFilterLabel">Jig Line</label><select id="weeklyLineFilter"><option value="">All Lines</option></select></div>
           <div class="form-group" id="weeklyHotJigFilterGroup"><label for="weeklyHotJigFilter">Hot Jig</label><select id="weeklyHotJigFilter"><option value="">All Hot Jigs</option></select></div>
         </aside>
         <div class="map-canvas weekly-map-canvas">
@@ -1265,26 +1307,26 @@
 
         <div class="form-group process-inspection-field">
           <label for="trayId">Tray ID</label>
-          <input type="text" id="trayId" required placeholder="e.g., LHED000001">
+          <input type="text" id="trayId" required maxlength="32" pattern="[A-Z0-9]+" autocapitalize="characters" spellcheck="false" placeholder="e.g., LHED000001">
         </div>
 
-        <div class="form-group process-inspection-field">
-          <label for="defect">Defect Type</label>
-          <select id="defect" required>
-            <option value="" disabled selected>Select a defect type</option>
-            <option value="All OK">All OK</option>
-            <option value="Dent">Dent</option>
-            <option value="Contamination">Contamination</option>
-            <option value="Scratch">Scratch</option>
-            <option value="Lead bending">Lead bending</option>
-            <option value="Wrinkles">Wrinkles</option>
-            <option value="Others">Others</option>
-          </select>
-        </div>
+        <fieldset class="unit-fieldset process-inspection-field" id="defectTypeFieldset">
+          <legend>Defect Type <span aria-hidden="true">*</span></legend>
+          <div class="defect-checkbox-grid" id="defectTypes">
+            <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="All OK"><span>All OK</span></label>
+            <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Dent"><span>Dent</span></label>
+            <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Contamination"><span>Contamination</span></label>
+            <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Scratch"><span>Scratch</span></label>
+            <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Lead bending"><span>Lead bending</span></label>
+            <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Wrinkles"><span>Wrinkles</span></label>
+            <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Others"><span>Others</span></label>
+          </div>
+          <small class="input-help">Select one or more defect types. All OK cannot be combined with another type.</small>
+        </fieldset>
 
-        <div class="form-group process-inspection-field defect-detail-field">
+        <div class="form-group process-inspection-field defect-detail-field" id="processLineGroup">
           <label for="cellId">Cell ID</label>
-          <input type="text" id="cellId" required placeholder="e.g., EFG512345">
+          <input type="text" id="cellId" required maxlength="32" pattern="[A-Z0-9]+" autocapitalize="characters" spellcheck="false" placeholder="e.g., EFG512345">
         </div>
 
         <div class="form-group process-inspection-field defect-detail-field">
@@ -1327,6 +1369,7 @@
 
         <div class="button-row">
           <button type="submit" id="submitBtn">Submit Inspection</button>
+          <button type="submit" class="secondary-action-button" id="submitAndAddCellBtn">Submit &amp; Add Another Cell</button>
           <button type="button" class="cancel-button" id="cancelBtn">Cancel</button>
         </div>
       </form>
@@ -1349,11 +1392,11 @@
               <th class="col-team">Team</th>
               <th class="col-operator">Operator Name</th>
               <th>Tray ID</th>
-              <th>Cell ID</th>
-              <th>Channel</th>
+              <th id="cellIdHeader">Cell ID</th>
+              <th id="channelHeader">Channel</th>
               <th id="lineHeader">Jig line</th>
               <th id="hotJigHeader">Hot jig</th>
-              <th>Defect</th>
+              <th id="defectHeader">Defect</th>
               <th class="col-comment">Comment</th>
               <th>Photo</th>
               <th id="mapHeader">Map</th>
@@ -1406,7 +1449,17 @@
 
   <div class="photo-modal" id="photoModal" role="dialog" aria-modal="true" aria-label="Photo preview">
     <button type="button" class="photo-modal-close" id="photoModalClose" aria-label="Close photo preview">×</button>
-    <img class="photo-modal-image" id="photoModalImage" alt="Full-size defect photo">
+    <div class="photo-zoom-shell">
+      <div class="zoom-stage" id="photoZoomStage">
+        <img class="photo-modal-image" id="photoModalImage" alt="Full-size defect photo">
+      </div>
+      <div class="zoom-toolbar" aria-label="Photo zoom controls">
+        <button type="button" id="photoZoomOut" aria-label="Zoom out">−</button>
+        <span class="zoom-level" id="photoZoomLevel">100%</span>
+        <button type="button" id="photoZoomIn" aria-label="Zoom in">＋</button>
+        <button type="button" class="zoom-reset" id="photoZoomReset">Reset</button>
+      </div>
+    </div>
   </div>
 
   <div class="map-modal" id="mapModal" role="dialog" aria-modal="true" aria-labelledby="mapModalTitle">
@@ -1434,7 +1487,15 @@
         <div><h3 id="defectGalleryTitle">Defect Photos</h3><p id="defectGalleryMeta"></p></div>
         <button type="button" class="map-close-button" id="defectGalleryClose" aria-label="Close defect photo gallery">×</button>
       </div>
-      <img class="gallery-main-image" id="defectGalleryMain" alt="Selected defect photo">
+      <div class="zoom-stage gallery-zoom-stage" id="galleryZoomStage">
+        <img class="gallery-main-image" id="defectGalleryMain" alt="Selected defect photo">
+      </div>
+      <div class="zoom-toolbar" aria-label="Defect photo zoom controls">
+        <button type="button" id="galleryZoomOut" aria-label="Zoom out">−</button>
+        <span class="zoom-level" id="galleryZoomLevel">100%</span>
+        <button type="button" id="galleryZoomIn" aria-label="Zoom in">＋</button>
+        <button type="button" class="zoom-reset" id="galleryZoomReset">Reset</button>
+      </div>
       <div class="gallery-thumbnails" id="defectGalleryThumbnails"></div>
     </div>
   </div>
@@ -1462,8 +1523,11 @@
     let recordsHasMore = false;
     let recordsLoading = false;
     const RECORD_PAGE_SIZE = 50;
+    const CLIENT_CACHE_MS = 45000;
+    const dashboardCache = new Map();
+    let activeLoadController = null;
     let activeMapColor = '#dc2626';
-    const weeklyRecordsByProcess = { formation: [], degas: [] };
+    const weeklyRecordsByProcess = { before_hpcd: [], formation: [], degas: [] };
     const DEFECT_COLORS = Object.freeze({
       'Dent': '#dc2626',
       'Contamination': '#d97706',
@@ -1473,6 +1537,15 @@
       'Others': '#64748b',
       'All OK': '#16a34a'
     });
+
+    function isAppearanceProcess(process) {
+      return process === 'before_hpcd' || process === 'formation' || process === 'degas';
+    }
+
+    function getAppearanceProcessLabel(process) {
+      if (process === 'before_hpcd') return 'Before HPCD';
+      return process === 'degas' ? 'Degas' : 'Jig Formation';
+    }
 
     function updateHeaderClock() {
       const clock = document.getElementById('headerClock');
@@ -1534,27 +1607,29 @@
     updateConductiveMeasurementMode();
 
     function switchProcess(process) {
-      currentProcess = ['formation', 'degas', 'hta', 'maintenance', 'conductive'].includes(process) ? process : 'formation';
+      currentProcess = ['before_hpcd', 'formation', 'degas', 'hta', 'maintenance', 'conductive'].includes(process) ? process : 'formation';
+      const isBeforeHpcd = currentProcess === 'before_hpcd';
       const isDegas = currentProcess === 'degas';
       const isHta = currentProcess === 'hta';
       const isMaintenance = currentProcess === 'maintenance';
       const isConductive = currentProcess === 'conductive';
-      const isAppearance = currentProcess === 'formation' || currentProcess === 'degas';
+      const isAppearance = isAppearanceProcess(currentProcess);
+      const appearanceLabel = getAppearanceProcessLabel(currentProcess);
 
       document.querySelectorAll('.process-button').forEach(button => {
         button.classList.toggle('active', button.dataset.process === currentProcess);
       });
       document.getElementById('pageTitle').textContent =
-        isConductive ? 'Conductive Rubber Maintenance' : isMaintenance ? 'EOL Tape/Knife Maintenance' : isHta ? 'HTA Temperature Monitoring' : isDegas ? 'Degas Inspection' : 'Jig Formation Inspection';
+        isConductive ? 'Conductive Rubber Maintenance' : isMaintenance ? 'EOL Tape/Knife Maintenance' : isHta ? 'HTA Temperature Monitoring' : `${appearanceLabel} Inspection`;
       document.getElementById('pageEyebrow').textContent =
         isConductive || isMaintenance ? 'Operations / Maintenance' : isHta ? 'Operations / Temperature' : 'Operations / Appearance';
       document.getElementById('kpiProcess').textContent =
-        isConductive ? 'Conductive Rubber' : isMaintenance ? 'EOL Tape/Knife' : isHta ? 'HTA' : isDegas ? 'Degas' : 'Jig Formation';
+        isConductive ? 'Conductive Rubber' : isMaintenance ? 'EOL Tape/Knife' : isHta ? 'HTA' : appearanceLabel;
       document.getElementById('kpiRecords').textContent = '—';
       document.getElementById('kpiQuality').textContent = '—';
       document.getElementById('kpiLatest').textContent = '—';
       document.getElementById('formTitle').textContent =
-        isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isHta ? 'New HTA Temperature Reading' : isDegas ? 'New Degas Inspection' : 'New Jig Formation Inspection';
+        isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isHta ? 'New HTA Temperature Reading' : `New ${appearanceLabel} Inspection`;
       document.getElementById('lineLabel').textContent =
         isDegas ? 'Degas line' : 'Jig line';
       document.getElementById('lineHeader').textContent =
@@ -1574,22 +1649,27 @@
       ['conductiveProcess', 'conductiveLine', 'conductiveMeasurement', 'conductiveAction'].forEach(id => {
         document.getElementById(id).required = isConductive;
       });
-      ['trayId', 'defect'].forEach(id => {
-        document.getElementById(id).required = isAppearance;
-      });
-      document.getElementById('hotJigGroup').style.display = isDegas || !isAppearance ? 'none' : '';
+      document.getElementById('trayId').required = isAppearance;
+      document.querySelectorAll('input[name="defectType"]').forEach(input => { input.disabled = !isAppearance; });
+      document.getElementById('processLineGroup').style.display = isBeforeHpcd || !isAppearance ? 'none' : '';
+      document.getElementById('hotJigGroup').style.display = isBeforeHpcd || isDegas || !isAppearance ? 'none' : '';
       document.getElementById('defectMapGroup').style.display = isAppearance ? '' : 'none';
-      document.getElementById('hotJigHeader').style.display = isDegas ? 'none' : '';
+      document.getElementById('lineHeader').style.display = isBeforeHpcd ? 'none' : '';
+      document.getElementById('hotJigHeader').style.display = isBeforeHpcd || isDegas ? 'none' : '';
+      const defectHeader = document.getElementById('defectHeader');
+      if (isBeforeHpcd) document.getElementById('cellIdHeader').before(defectHeader);
+      else document.getElementById('hotJigHeader').after(defectHeader);
       document.getElementById('mapHeader').style.display = isHta ? 'none' : '';
-      hotJigInput.required = isAppearance && !isDegas;
+      hotJigInput.required = currentProcess === 'formation';
       document.getElementById('historyCard').style.display = isAppearance ? '' : 'none';
       document.getElementById('maintenanceHistoryCard').style.display = isMaintenance ? '' : 'none';
       document.getElementById('conductiveHistoryCard').style.display = isConductive ? '' : 'none';
       document.getElementById('weeklyMapCard').style.display = isAppearance ? '' : 'none';
-      document.getElementById('weeklyMapTitle').textContent = `${isDegas ? 'Degas' : 'Jig Formation'} Defect Map`;
-      document.getElementById('defectMapLabel').textContent = `${isDegas ? 'Degas' : 'Jig Formation'} Defect Map`;
+      document.getElementById('weeklyMapTitle').textContent = `${appearanceLabel} Defect Map`;
+      document.getElementById('defectMapLabel').textContent = `${appearanceLabel} Defect Map`;
       document.getElementById('weeklyLineFilterLabel').textContent = isDegas ? 'Degas Line' : 'Jig Line';
-      document.getElementById('weeklyHotJigFilterGroup').style.display = isDegas ? 'none' : '';
+      document.getElementById('weeklyLineFilterGroup').style.display = isBeforeHpcd ? 'none' : '';
+      document.getElementById('weeklyHotJigFilterGroup').style.display = isBeforeHpcd || isDegas ? 'none' : '';
       const mapImage = isDegas ? 'degas-defect-map.jpg' : 'jig-formation-defect-map.jpg';
       document.querySelectorAll('.process-map-image').forEach(image => { image.src = mapImage; });
       document.getElementById('weeklyMapMarkers').innerHTML = '';
@@ -1599,6 +1679,7 @@
       document.getElementById('chartDashboard').style.display = isHta ? 'block' : 'none';
       openFormBtn.textContent = isConductive ? '＋ New Record' : isMaintenance ? '＋ New Maintenance' : isHta ? 'New Reading' : 'New Inspection';
       document.getElementById('submitBtn').textContent = isConductive ? 'Submit Record' : isMaintenance ? 'Submit Maintenance' : isHta ? 'Submit Reading' : 'Submit Inspection';
+      document.getElementById('submitAndAddCellBtn').style.display = isAppearance ? '' : 'none';
       const activeButton = document.querySelector(`.process-button[data-process="${currentProcess}"]`);
       if (activeButton) {
         document.querySelectorAll('.process-group').forEach(group => {
@@ -1659,6 +1740,15 @@
       updateDefectDetailVisibility(false);
     }
 
+    function enforceUppercaseAlphanumeric(input) {
+      input.addEventListener('input', () => {
+        const sanitized = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (input.value !== sanitized) input.value = sanitized;
+      });
+    }
+
+    ['trayId', 'cellId'].forEach(id => enforceUppercaseAlphanumeric(document.getElementById(id)));
+
     function readPhoto(file) {
       return new Promise((resolve, reject) => {
         if (!file) {
@@ -1715,8 +1805,16 @@
       });
     }
 
+    function getSelectedDefectTypes() {
+      return Array.from(document.querySelectorAll('input[name="defectType"]:checked')).map(input => input.value);
+    }
+
+    function getPrimaryDefectType() {
+      return getSelectedDefectTypes().find(value => value !== 'All OK') || 'Others';
+    }
+
     function renderDefectMapPreview() {
-      renderMapMarkers(document.getElementById('mapPreviewMarkers'), defectMapPoints, true, getDefectColor(document.getElementById('defect').value));
+      renderMapMarkers(document.getElementById('mapPreviewMarkers'), defectMapPoints, true, getDefectColor(getPrimaryDefectType()));
       const count = defectMapPoints.length;
       document.getElementById('mapPointSummary').textContent = count
         ? `${count} defect point${count === 1 ? '' : 's'} selected. Tap the map to edit.`
@@ -1726,7 +1824,7 @@
     function openDefectMap(points, readOnly, defectType) {
       pendingMapPoints = normalizeMapPoints(points);
       mapReadOnly = Boolean(readOnly);
-      activeMapColor = getDefectColor(defectType || document.getElementById('defect').value);
+      activeMapColor = getDefectColor(defectType || getPrimaryDefectType());
       document.getElementById('mapModalTitle').textContent = mapReadOnly ? 'Recorded Defect Locations' : 'Mark Defect Locations';
       document.getElementById('mapModalHelp').textContent = mapReadOnly
         ? `${pendingMapPoints.length} recorded point${pendingMapPoints.length === 1 ? '' : 's'}.`
@@ -1745,10 +1843,11 @@
     }
 
     function updateDefectDetailVisibility(clearAllOkDetails) {
-      const isHta = currentProcess === 'hta';
+      const isBeforeHpcd = currentProcess === 'before_hpcd';
       const isDegas = currentProcess === 'degas';
-      const isAppearance = currentProcess === 'formation' || currentProcess === 'degas';
-      const isAllOk = isAppearance && document.getElementById('defect').value === 'All OK';
+      const isAppearance = isAppearanceProcess(currentProcess);
+      const selectedDefects = getSelectedDefectTypes();
+      const isAllOk = isAppearance && selectedDefects.length === 1 && selectedDefects[0] === 'All OK';
 
       if (isAllOk && clearAllOkDetails) {
         ['cellId', 'channel', 'processLine', 'hotJig', 'comment'].forEach(id => {
@@ -1765,20 +1864,42 @@
         field.style.display = !isAppearance || isAllOk ? 'none' : '';
       });
       if (isAppearance && !isAllOk) {
-        document.getElementById('hotJigGroup').style.display = isDegas ? 'none' : '';
+        document.getElementById('processLineGroup').style.display = isBeforeHpcd ? 'none' : '';
+        document.getElementById('hotJigGroup').style.display = isBeforeHpcd || isDegas ? 'none' : '';
       }
 
-      ['cellId', 'channel', 'processLine', 'defectPhoto'].forEach(id => {
+      ['cellId', 'channel', 'defectPhoto'].forEach(id => {
         document.getElementById(id).required = isAppearance && !isAllOk;
       });
-      hotJigInput.required = isAppearance && !isDegas && !isAllOk;
+      document.getElementById('processLine').required = isAppearance && !isBeforeHpcd && !isAllOk;
+      hotJigInput.required = currentProcess === 'formation' && !isAllOk;
+      document.getElementById('submitAndAddCellBtn').style.display = isAppearance && !isAllOk ? '' : 'none';
     }
 
-    document.getElementById('defect').addEventListener('change', () => {
-      updateDefectDetailVisibility(true);
+    function resetAppearanceCellFieldsForNextCell() {
+      document.querySelectorAll('input[name="defectType"]').forEach(input => { input.checked = false; });
+      ['cellId', 'channel', 'comment'].forEach(id => { document.getElementById(id).value = ''; });
+      photoInput.value = '';
+      photoPreview.removeAttribute('src');
+      photoPreview.style.display = 'none';
+      defectMapPoints = [];
       renderDefectMapPreview();
+      updateDefectDetailVisibility(false);
+      document.querySelector('input[name="defectType"][value="Dent"]').focus();
+    }
+
+    document.querySelectorAll('input[name="defectType"]').forEach(input => {
+      input.addEventListener('change', () => {
+        if (input.value === 'All OK' && input.checked) {
+          document.querySelectorAll('input[name="defectType"]:not([value="All OK"])').forEach(item => { item.checked = false; });
+        } else if (input.checked) {
+          document.querySelector('input[name="defectType"][value="All OK"]').checked = false;
+        }
+        updateDefectDetailVisibility(true);
+        renderDefectMapPreview();
+      });
     });
-    document.getElementById('defectMapTrigger').addEventListener('click', () => openDefectMap(defectMapPoints, false, document.getElementById('defect').value));
+    document.getElementById('defectMapTrigger').addEventListener('click', () => openDefectMap(defectMapPoints, false, getPrimaryDefectType()));
     document.getElementById('mapEditor').addEventListener('click', event => {
       if (mapReadOnly) return;
       const rect = event.currentTarget.getBoundingClientRect();
@@ -1813,24 +1934,36 @@
       e.preventDefault();
 
       const submitBtn = document.getElementById('submitBtn');
+      const submitAndAddCellBtn = document.getElementById('submitAndAddCellBtn');
       const statusDiv = document.getElementById('status');
+      const addAnotherCell = e.submitter && e.submitter.id === 'submitAndAddCellBtn';
 
       submitBtn.disabled = true;
+      submitAndAddCellBtn.disabled = true;
       statusDiv.style.color = '#2563eb';
       statusDiv.textContent = 'Submitting...';
 
       const isHta = currentProcess === 'hta';
       const isMaintenance = currentProcess === 'maintenance';
       const isConductive = currentProcess === 'conductive';
-      const isAppearance = currentProcess === 'formation' || currentProcess === 'degas';
-      const isAllOk = isAppearance && document.getElementById('defect').value === 'All OK';
+      const isAppearance = isAppearanceProcess(currentProcess);
+      const selectedDefects = getSelectedDefectTypes();
+      const isAllOk = isAppearance && selectedDefects.length === 1 && selectedDefects[0] === 'All OK';
       const conductiveUnits = isConductive
         ? Array.from(document.querySelectorAll('input[name="conductiveUnit"]:checked')).map(input => input.value)
         : [];
+      if (isAppearance && !selectedDefects.length) {
+        statusDiv.style.color = '#c93434';
+        statusDiv.textContent = '❌ Select at least one Defect Type.';
+        submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
+        return;
+      }
       if (isConductive && !conductiveUnits.length) {
         statusDiv.style.color = '#c93434';
         statusDiv.textContent = '❌ Select at least one Unit.';
         submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
         return;
       }
       const photoFile = isAppearance ? photoInput.files[0] : null;
@@ -1838,6 +1971,7 @@
         statusDiv.style.color = '#dc2626';
         statusDiv.textContent = '❌ The photo must be 8 MB or smaller.';
         submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
         return;
       }
       const payload = isHta ? {
@@ -1877,7 +2011,7 @@
         trayId: document.getElementById('trayId').value,
         cellId: isAllOk ? '' : document.getElementById('cellId').value,
         channel: isAllOk ? '' : Number(document.getElementById('channel').value),
-        defect: document.getElementById('defect').value,
+        defect: selectedDefects,
         comment: isAllOk ? '' : document.getElementById('comment').value,
         defectPhotoName: photoFile ? photoFile.name : '',
         defectPhotoType: photoFile ? photoFile.type : '',
@@ -1899,15 +2033,24 @@
       })
       .then(() => {
         statusDiv.style.color = '#16a34a';
-        statusDiv.textContent = isHta ? '✅ Temperature reading submitted successfully!' : isConductive ? '✅ Conductive Rubber record submitted successfully!' : isMaintenance ? '✅ Maintenance record submitted successfully!' : '✅ Inspection submitted successfully!';
-        closeForm();
-        setTimeout(loadData, 1000); // Refresh the list after submission
+        clearDashboardCache(currentProcess);
+        if (isAppearance && addAnotherCell) {
+          resetAppearanceCellFieldsForNextCell();
+          statusDiv.textContent = '✅ Saved. Enter the next Cell ID for the same Tray.';
+        } else {
+          statusDiv.textContent = isHta ? '✅ Temperature reading submitted successfully!' : isConductive ? '✅ Conductive Rubber record submitted successfully!' : isMaintenance ? '✅ Maintenance record submitted successfully!' : '✅ Inspection submitted successfully!';
+          closeForm();
+        }
+        setTimeout(() => loadData(true), 1000); // Refresh the list after submission
       })
       .catch(error => {
         statusDiv.style.color = '#dc2626';
         statusDiv.textContent = '❌ Submission failed: ' + error.message;
       })
-      .finally(() => { submitBtn.disabled = false; });
+      .finally(() => {
+        submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
+      });
     });
 
     // 2. Load inspection data (GET)
@@ -1920,9 +2063,151 @@
         : photoUrl;
     }
 
+    function createImageZoomController(stageId, imageId, zoomOutId, zoomInId, resetId, levelId) {
+      const stage = document.getElementById(stageId);
+      const image = document.getElementById(imageId);
+      const level = document.getElementById(levelId);
+      const pointers = new Map();
+      let scale = 1;
+      let offsetX = 0;
+      let offsetY = 0;
+      let lastPointer = null;
+      let pinchStart = null;
+
+      function clampScale(value) {
+        return Math.max(1, Math.min(5, value));
+      }
+
+      function clampOffsets() {
+        if (scale <= 1) {
+          offsetX = 0;
+          offsetY = 0;
+          return;
+        }
+        const maxX = Math.max(0, (image.offsetWidth * scale - stage.clientWidth) / 2);
+        const maxY = Math.max(0, (image.offsetHeight * scale - stage.clientHeight) / 2);
+        offsetX = Math.max(-maxX, Math.min(maxX, offsetX));
+        offsetY = Math.max(-maxY, Math.min(maxY, offsetY));
+      }
+
+      function apply() {
+        clampOffsets();
+        image.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+        level.textContent = `${Math.round(scale * 100)}%`;
+        stage.classList.toggle('is-zoomed', scale > 1);
+      }
+
+      function setScale(nextScale, originX = 0, originY = 0) {
+        const previousScale = scale;
+        scale = clampScale(nextScale);
+        if (scale === previousScale) return;
+        const ratio = scale / previousScale;
+        offsetX = originX - (originX - offsetX) * ratio;
+        offsetY = originY - (originY - offsetY) * ratio;
+        apply();
+      }
+
+      function reset() {
+        scale = 1;
+        offsetX = 0;
+        offsetY = 0;
+        pointers.clear();
+        lastPointer = null;
+        pinchStart = null;
+        stage.classList.remove('is-dragging');
+        apply();
+      }
+
+      function pointerCenter(values) {
+        return {
+          x: (values[0].x + values[1].x) / 2,
+          y: (values[0].y + values[1].y) / 2
+        };
+      }
+
+      function pointerDistance(values) {
+        return Math.hypot(values[0].x - values[1].x, values[0].y - values[1].y);
+      }
+
+      stage.addEventListener('wheel', event => {
+        event.preventDefault();
+        const rect = stage.getBoundingClientRect();
+        const originX = event.clientX - rect.left - rect.width / 2;
+        const originY = event.clientY - rect.top - rect.height / 2;
+        setScale(scale + (event.deltaY < 0 ? 0.35 : -0.35), originX, originY);
+      }, { passive: false });
+
+      stage.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+        stage.setPointerCapture(event.pointerId);
+        pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        if (pointers.size === 1) {
+          lastPointer = { x: event.clientX, y: event.clientY };
+          stage.classList.toggle('is-dragging', scale > 1);
+        } else if (pointers.size === 2) {
+          const values = Array.from(pointers.values());
+          pinchStart = {
+            distance: pointerDistance(values),
+            center: pointerCenter(values),
+            scale: scale,
+            x: offsetX,
+            y: offsetY
+          };
+          stage.classList.add('is-dragging');
+        }
+      });
+
+      stage.addEventListener('pointermove', event => {
+        if (!pointers.has(event.pointerId)) return;
+        pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        if (pointers.size === 2 && pinchStart) {
+          const values = Array.from(pointers.values());
+          const center = pointerCenter(values);
+          scale = clampScale(pinchStart.scale * pointerDistance(values) / Math.max(1, pinchStart.distance));
+          offsetX = pinchStart.x + center.x - pinchStart.center.x;
+          offsetY = pinchStart.y + center.y - pinchStart.center.y;
+          apply();
+          return;
+        }
+        if (pointers.size === 1 && lastPointer && scale > 1) {
+          offsetX += event.clientX - lastPointer.x;
+          offsetY += event.clientY - lastPointer.y;
+          lastPointer = { x: event.clientX, y: event.clientY };
+          apply();
+        }
+      });
+
+      function endPointer(event) {
+        pointers.delete(event.pointerId);
+        pinchStart = null;
+        if (pointers.size === 1) {
+          const remaining = Array.from(pointers.values())[0];
+          lastPointer = { x: remaining.x, y: remaining.y };
+        } else {
+          lastPointer = null;
+          stage.classList.remove('is-dragging');
+        }
+      }
+
+      stage.addEventListener('pointerup', endPointer);
+      stage.addEventListener('pointercancel', endPointer);
+      stage.addEventListener('dblclick', () => setScale(scale > 1 ? 1 : 2));
+      image.addEventListener('dragstart', event => event.preventDefault());
+      window.addEventListener('resize', apply);
+      document.getElementById(zoomOutId).addEventListener('click', () => setScale(scale - 0.5));
+      document.getElementById(zoomInId).addEventListener('click', () => setScale(scale + 0.5));
+      document.getElementById(resetId).addEventListener('click', reset);
+      apply();
+      return { reset: reset };
+    }
+
+    const photoZoom = createImageZoomController('photoZoomStage', 'photoModalImage', 'photoZoomOut', 'photoZoomIn', 'photoZoomReset', 'photoZoomLevel');
+    const galleryZoom = createImageZoomController('galleryZoomStage', 'defectGalleryMain', 'galleryZoomOut', 'galleryZoomIn', 'galleryZoomReset', 'galleryZoomLevel');
+
     function openPhoto(photoUrl) {
       const modal = document.getElementById('photoModal');
-      document.getElementById('photoModalImage').src = getDrivePhotoUrl(photoUrl, 'w1600');
+      photoZoom.reset();
+      document.getElementById('photoModalImage').src = getDrivePhotoUrl(photoUrl, 'w3000');
       modal.classList.add('open');
       document.body.style.overflow = 'hidden';
     }
@@ -1931,6 +2216,7 @@
       const modal = document.getElementById('photoModal');
       modal.classList.remove('open');
       document.getElementById('photoModalImage').removeAttribute('src');
+      photoZoom.reset();
       document.body.style.overflow = '';
     }
 
@@ -2040,7 +2326,8 @@
       const thumbnails = document.getElementById('defectGalleryThumbnails');
       thumbnails.innerHTML = '';
       const selectPhoto = (photo, button) => {
-        main.src = getDrivePhotoUrl(photo.url, 'w1600');
+        galleryZoom.reset();
+        main.src = getDrivePhotoUrl(photo.url, 'w3000');
         main.alt = photo.label;
         thumbnails.querySelectorAll('.gallery-thumbnail-button').forEach(item => item.classList.toggle('active', item === button));
       };
@@ -2064,6 +2351,7 @@
       document.getElementById('defectGalleryModal').classList.remove('open');
       document.getElementById('defectGalleryMain').removeAttribute('src');
       document.getElementById('defectGalleryThumbnails').innerHTML = '';
+      galleryZoom.reset();
       document.body.style.overflow = '';
     }
 
@@ -2081,10 +2369,10 @@
         return date && date >= range.start && date <= range.end;
       });
       document.getElementById('weeklyMapDescription').textContent =
-        `Combined ${currentProcess === 'degas' ? 'Degas' : 'Jig Formation'} defect locations from ${range.startLabel} to ${range.endLabel}.`;
-      const lineKey = currentProcess === 'degas' ? 'degasLine' : 'jigLine';
-      updateMapFilterOptions('weeklyLineFilter', recentRecords.map(record => record[lineKey]), 'All Lines');
-      updateMapFilterOptions('weeklyHotJigFilter', currentProcess === 'degas' ? [] : recentRecords.map(record => record.hotJig), 'All Hot Jigs');
+        `Combined ${getAppearanceProcessLabel(currentProcess)} defect locations from ${range.startLabel} to ${range.endLabel}.`;
+      const lineKey = currentProcess === 'before_hpcd' ? '' : currentProcess === 'degas' ? 'degasLine' : 'jigLine';
+      updateMapFilterOptions('weeklyLineFilter', lineKey ? recentRecords.map(record => record[lineKey]) : [], 'All Lines');
+      updateMapFilterOptions('weeklyHotJigFilter', currentProcess === 'formation' ? recentRecords.map(record => record.hotJig) : [], 'All Hot Jigs');
       applyWeeklyMapFilters();
     }
 
@@ -2112,9 +2400,9 @@
       processRecords.forEach(record => {
         const date = parseRecordDate(record.date);
         if (!date || date < range.start || date > range.end) return;
-        const recordLine = currentProcess === 'degas' ? record.degasLine : record.jigLine;
-        if (line && String(recordLine || '') !== line) return;
-        if (currentProcess !== 'degas' && hotJig && String(record.hotJig || '') !== hotJig) return;
+        const recordLine = currentProcess === 'before_hpcd' ? '' : currentProcess === 'degas' ? record.degasLine : record.jigLine;
+        if (currentProcess !== 'before_hpcd' && line && String(recordLine || '') !== line) return;
+        if (currentProcess === 'formation' && hotJig && String(record.hotJig || '') !== hotJig) return;
         const defectType = normalizeDefectType(record.defect);
         normalizeMapPoints(record.defectMap).forEach(point => {
           points.push(Object.assign({}, point, {
@@ -2173,7 +2461,7 @@
       }
       startInput.max = endInput.value;
       endInput.min = startInput.value;
-      if (currentProcess === 'formation' || currentProcess === 'degas') {
+      if (isAppearanceProcess(currentProcess)) {
         loadAppearanceMapData(currentProcess, loadRequestId).catch(() => {
           document.getElementById('weeklyMapDescription').textContent = 'Unable to load the selected date range.';
         });
@@ -2277,8 +2565,43 @@
     }
 
     function buildApiUrl(parameters) {
-      const query = new URLSearchParams(Object.assign({}, parameters, { _: Date.now() }));
+      const query = new URLSearchParams(parameters);
+      if (String(parameters.refresh || '') === '1') query.set('_', String(Date.now()));
       return `${SCRIPT_URL}?${query.toString()}`;
+    }
+
+    function getDashboardRange(process) {
+      if (isAppearanceProcess(process)) return getWeeklyDateRange();
+      if (process === 'hta') return getHtaDateRange();
+      return { startLabel: '', endLabel: '' };
+    }
+
+    function getDashboardCacheKey(process) {
+      const range = getDashboardRange(process);
+      return `${process}:${range.startLabel}:${range.endLabel}`;
+    }
+
+    function clearDashboardCache(process) {
+      Array.from(dashboardCache.keys()).forEach(key => {
+        if (key.startsWith(`${process}:`)) dashboardCache.delete(key);
+      });
+    }
+
+    function renderBootstrapResponse(response, process) {
+      updateSummaryFromApi(response.summary || {}, process);
+      const records = response.records || [];
+      if (process !== 'hta') renderInspectionRecords(records, process, false);
+      const pagination = response.pagination || {};
+      recordsOffset = Number(pagination.nextOffset) || records.length;
+      recordsHasMore = Boolean(pagination.hasMore);
+      updateLoadMoreButton();
+
+      if (isAppearanceProcess(process)) {
+        renderWeeklyDefectMap(response.rangeData || []);
+      } else if (process === 'hta') {
+        htaChartRecords = response.rangeData || [];
+        renderFilteredHtaCharts();
+      }
     }
 
     function updateSummaryFromApi(summary, process) {
@@ -2342,7 +2665,8 @@
         });
         return;
       }
-      const columnCount = process === 'degas' ? 11 : 12;
+      const isBeforeHpcd = process === 'before_hpcd';
+      const columnCount = isBeforeHpcd ? 10 : process === 'degas' ? 11 : 12;
       if (!append) tbody.innerHTML = '';
       if (!records.length && !append) {
         tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">No inspection records found.</td></tr>`;
@@ -2351,13 +2675,14 @@
       records.forEach(item => {
         const tr = document.createElement('tr');
         const lineValue = process === 'degas' ? item.degasLine : item.jigLine;
-        const hotJigCell = process === 'degas' ? '' : `<td data-label="Hot jig">${item.hotJig}</td>`;
+        const lineCell = isBeforeHpcd ? '' : `<td data-label="${process === 'degas' ? 'Degas line' : 'Jig line'}">${lineValue}</td>`;
+        const hotJigCell = process === 'formation' ? `<td data-label="Hot jig">${item.hotJig}</td>` : '';
+        const defectCell = `<td data-label="Defect"><span class="${item.defect === 'All OK' ? 'badge-ok' : 'badge-defect'}">${item.defect}</span></td>`;
         const pointCount = normalizeMapPoints(item.defectMap).length;
         tr.innerHTML = `
           <td data-label="Date / Time">${formatRecordDate(item.date)}</td><td class="col-team" data-label="Team">${item.team}</td>
           <td class="col-operator" data-label="Operator">${item.operatorName}</td><td data-label="Tray ID"><b>${item.trayId}</b></td>
-          <td data-label="Cell ID">${item.cellId}</td><td data-label="Channel">${item.channel}</td><td data-label="${process === 'degas' ? 'Degas line' : 'Jig line'}">${lineValue}</td>${hotJigCell}
-          <td data-label="Defect"><span class="${item.defect === 'All OK' ? 'badge-ok' : 'badge-defect'}">${item.defect}</span></td>
+          ${isBeforeHpcd ? defectCell : ''}<td data-label="Cell ID">${item.cellId}</td><td data-label="Channel">${item.channel}</td>${lineCell}${hotJigCell}${isBeforeHpcd ? '' : defectCell}
           <td class="col-comment" data-label="Comment">${item.comment || '-'}</td>
           <td data-label="Photo">${item.defectPhoto ? `<button type="button" class="thumbnail-button" data-photo="${encodeURIComponent(item.defectPhoto)}" aria-label="Enlarge photo"><img class="photo-thumbnail" src="${getDrivePhotoUrl(item.defectPhoto, 'w200')}" alt="Defect photo" loading="lazy"></button>` : '-'}</td>
           <td data-label="Map">${pointCount ? `<button type="button" class="map-record-button" data-points="${encodeURIComponent(item.defectMap || '[]')}" data-defect="${encodeURIComponent(item.defect || 'Others')}">${pointCount} pts</button>` : '-'}</td>`;
@@ -2369,7 +2694,7 @@
       const button = document.getElementById('loadMoreRecordsBtn');
       const maintenanceButton = document.getElementById('maintenanceLoadMoreBtn');
       const conductiveButton = document.getElementById('conductiveLoadMoreBtn');
-      button.style.display = recordsHasMore && (currentProcess === 'formation' || currentProcess === 'degas') ? '' : 'none';
+      button.style.display = recordsHasMore && isAppearanceProcess(currentProcess) ? '' : 'none';
       maintenanceButton.style.display = recordsHasMore && currentProcess === 'maintenance' ? '' : 'none';
       conductiveButton.style.display = recordsHasMore && currentProcess === 'conductive' ? '' : 'none';
       button.disabled = recordsLoading;
@@ -2417,11 +2742,29 @@
     document.getElementById('maintenanceLoadMoreBtn').addEventListener('click', loadMoreRecords);
     document.getElementById('conductiveLoadMoreBtn').addEventListener('click', loadMoreRecords);
 
-    async function loadData() {
+    async function loadData(forceRefresh = false) {
       const requestedProcess = currentProcess;
       const requestId = ++loadRequestId;
       const systemStatus = document.getElementById('systemStatus');
-      const columnCount = requestedProcess === 'conductive' ? 9 : requestedProcess === 'maintenance' ? 7 : requestedProcess === 'degas' ? 11 : 12;
+      const columnCount = requestedProcess === 'conductive' ? 9 : requestedProcess === 'maintenance' ? 7 : requestedProcess === 'before_hpcd' ? 10 : requestedProcess === 'degas' ? 11 : 12;
+      const cacheKey = getDashboardCacheKey(requestedProcess);
+      const cached = dashboardCache.get(cacheKey);
+
+      if (activeLoadController) {
+        activeLoadController.abort();
+        activeLoadController = null;
+      }
+
+      if (!forceRefresh && cached && Date.now() - cached.savedAt < CLIENT_CACHE_MS) {
+        renderBootstrapResponse(cached.response, requestedProcess);
+        systemStatus.textContent = 'System Online';
+        systemStatus.className = 'system-status';
+        updateSyncLabels('Loaded from recent cache', false);
+        return;
+      }
+
+      activeLoadController = new AbortController();
+      const controller = activeLoadController;
       systemStatus.textContent = 'Syncing Data';
       systemStatus.className = 'system-status syncing';
       updateSyncLabels('Syncing…', false);
@@ -2434,37 +2777,30 @@
         document.getElementById('maintenanceTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading maintenance records...</td></tr>';
       } else if (requestedProcess !== 'hta') {
         document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">Loading inspection data...</td></tr>`;
+      } else {
+        document.getElementById('chartGrid').innerHTML = '<div class="chart-empty">Loading temperature data...</div>';
       }
       try {
-        const summaryPromise = fetchJsonWithRetry(buildApiUrl({ process: requestedProcess, action: 'summary' }));
-        if (requestedProcess === 'hta') {
-          const results = await Promise.all([summaryPromise, loadHtaChartData(requestId)]);
-          if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
-          updateSummaryFromApi(results[0].summary || {}, requestedProcess);
-        } else if (requestedProcess === 'maintenance' || requestedProcess === 'conductive') {
-          const recordsResponse = await fetchJsonWithRetry(buildApiUrl({ process: requestedProcess, action: 'records', limit: RECORD_PAGE_SIZE, offset: 0 }));
-          const summaryResponse = await summaryPromise;
-          if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
-          updateSummaryFromApi(summaryResponse.summary || {}, requestedProcess);
-          renderInspectionRecords(recordsResponse.data || [], requestedProcess, false);
-          recordsOffset = recordsResponse.pagination.nextOffset;
-          recordsHasMore = recordsResponse.pagination.hasMore;
-          updateLoadMoreButton();
-        } else {
-          const recordsPromise = fetchJsonWithRetry(buildApiUrl({ process: requestedProcess, action: 'records', limit: RECORD_PAGE_SIZE, offset: 0 }));
-          const results = await Promise.all([summaryPromise, loadAppearanceMapData(requestedProcess, requestId), recordsPromise]);
-          if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
-          updateSummaryFromApi(results[0].summary || {}, requestedProcess);
-          renderInspectionRecords(results[2].data || [], requestedProcess, false);
-          recordsOffset = results[2].pagination.nextOffset;
-          recordsHasMore = results[2].pagination.hasMore;
-          updateLoadMoreButton();
-        }
+        const range = getDashboardRange(requestedProcess);
+        const parameters = {
+          process: requestedProcess,
+          action: 'bootstrap',
+          limit: RECORD_PAGE_SIZE,
+          offset: 0
+        };
+        if (range.startLabel) parameters.startDate = range.startLabel;
+        if (range.endLabel) parameters.endDate = range.endLabel;
+        if (forceRefresh) parameters.refresh = 1;
+        const response = await fetchJsonWithRetry(buildApiUrl(parameters), 2, controller.signal);
+        if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
+        dashboardCache.set(cacheKey, { response: response, savedAt: Date.now() });
+        renderBootstrapResponse(response, requestedProcess);
         systemStatus.textContent = 'System Online';
         systemStatus.className = 'system-status';
         const syncedAt = new Date();
         updateSyncLabels(`Last synced ${String(syncedAt.getHours()).padStart(2, '0')}:${String(syncedAt.getMinutes()).padStart(2, '0')}`, false);
       } catch (error) {
+        if (error.name === 'AbortError') return;
         if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
         systemStatus.textContent = 'Connection Error';
         systemStatus.className = 'system-status offline';
@@ -2473,17 +2809,20 @@
         else if (requestedProcess === 'conductive') document.getElementById('conductiveTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Unable to load Conductive Rubber records.</td></tr>';
         else if (requestedProcess === 'maintenance') document.getElementById('maintenanceTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Unable to load maintenance records.</td></tr>';
         else document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the Google Apps Script deployment.</td></tr>`;
+      } finally {
+        if (activeLoadController === controller) activeLoadController = null;
       }
     }
 
-    async function fetchJsonWithRetry(url, attempts = 2) {
+    async function fetchJsonWithRetry(url, attempts = 2, signal) {
       let lastError;
       for (let attempt = 1; attempt <= attempts; attempt += 1) {
         try {
-          const response = await fetch(url, { cache: 'no-store' });
+          const response = await fetch(url, { cache: 'no-store', signal: signal });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           return await response.json();
         } catch (error) {
+          if (error.name === 'AbortError') throw error;
           lastError = error;
           if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, 900));
         }
@@ -2496,6 +2835,10 @@
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
       })[character]);
     }
+
+    document.querySelectorAll('.history-actions .btn-secondary').forEach(button => {
+      button.onclick = () => loadData(true);
+    });
 
     function renderHtaCharts(records) {
       const grid = document.getElementById('chartGrid');
