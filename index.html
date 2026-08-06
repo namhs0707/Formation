@@ -666,17 +666,41 @@
     }
     .jig-equipment-cell.has-records { background: #eff6ff; border-color: #64748b; cursor: pointer; }
     .jig-equipment-cell.has-records:hover { z-index: 2; background: #dbeafe; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37, 84, 216, .16); }
+    .jig-equipment-cell.has-photos { cursor: zoom-in; }
     .jig-equipment-cell.is-selected { z-index: 1; background: #dbeafe; border: 2px solid var(--primary); }
     .jig-equipment-cell.is-muted { opacity: .3; }
     .jig-equipment-cell.group-start, .jig-equipment-row-label.group-start { margin-top: 5px; }
     .jig-equipment-dots { position: absolute; right: 2px; bottom: 2px; display: flex; gap: 1px; }
     .jig-equipment-dot { width: 4px; height: 4px; border-radius: 50%; }
+    .jig-equipment-tooltip {
+      display: none;
+      position: absolute;
+      z-index: 30;
+      bottom: calc(100% + 7px);
+      left: 50%;
+      width: 154px;
+      padding: 8px;
+      transform: translateX(-50%);
+      color: var(--text);
+      background: rgba(255, 255, 255, .98);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .18);
+      text-align: left;
+      pointer-events: none;
+    }
+    .jig-equipment-cell:hover .jig-equipment-tooltip,
+    .jig-equipment-cell:focus-visible .jig-equipment-tooltip { display: block; }
+    .jig-equipment-tooltip-title { display: block; margin-bottom: 5px; color: var(--ink); font-size: 10px; font-weight: 800; }
+    .jig-equipment-tooltip-row { display: grid; grid-template-columns: 7px minmax(0, 1fr) auto; align-items: center; gap: 5px; margin-top: 3px; font-size: 10px; font-weight: 600; }
+    .jig-equipment-tooltip-row .jig-equipment-dot { width: 7px; height: 7px; }
+    .jig-equipment-tooltip-count { color: var(--muted); font-weight: 800; }
     @media (min-width: 1200px) {
       .weekly-map-layout {
         grid-template-columns: 180px minmax(410px, .95fr) minmax(420px, 1.05fr) 160px;
-        gap: 12px;
+        gap: 16px;
       }
-      .weekly-map-canvas { width: 100%; max-width: 540px; margin: 0; align-self: start; }
+      .weekly-map-canvas { width: 100%; max-width: none; margin: 0; align-self: start; }
       .jig-equipment-panel { display: block; align-self: stretch; }
       .weekly-map-layout.compact-map-layout { grid-template-columns: 180px minmax(320px, 1fr) 170px; gap: 16px; }
       .weekly-map-layout.compact-map-layout .weekly-map-canvas { max-width: 620px; margin: 0 auto; }
@@ -2487,12 +2511,16 @@
       const grouped = new Map();
       locationRecords.forEach(record => {
         const key = `${String(record.jigLine).trim()}|${String(record.hotJig).trim()}`;
-        if (!grouped.has(key)) grouped.set(key, { count: 0, types: new Set(), latest: '' });
+        if (!grouped.has(key)) grouped.set(key, { count: 0, types: new Map(), photos: [] });
         const item = grouped.get(key);
         item.count += 1;
-        getRecordDefectTypes(record.defect).forEach(type => item.types.add(type));
-        const dateLabel = formatRecordDate(record.date);
-        if (dateLabel > item.latest) item.latest = dateLabel;
+        getRecordDefectTypes(record.defect).forEach(type => item.types.set(type, (item.types.get(type) || 0) + 1));
+        if (record.defectPhoto && !item.photos.some(photo => photo.url === record.defectPhoto)) {
+          item.photos.push({
+            url: record.defectPhoto,
+            label: `${record.defect || 'Defect'} · ${record.trayId || ''} · ${formatRecordDate(record.date)}`
+          });
+        }
       });
 
       grid.innerHTML = '';
@@ -2518,25 +2546,44 @@
           const item = grouped.get(`${line}|${hotJig}`);
           const cell = document.createElement('button');
           cell.type = 'button';
-          cell.className = `jig-equipment-cell${item ? ' has-records' : ''}${groupStart ? ' group-start' : ''}${selectedLine === line && selectedHotJig === hotJig ? ' is-selected' : ''}${selectedHotJig && selectedHotJig !== hotJig ? ' is-muted' : ''}`;
-          cell.setAttribute('aria-label', `${line}, Hot Jig ${hotJig}${item ? `, ${item.count} records` : ', no records'}`);
-          cell.title = item ? `${line} · Hot Jig ${hotJig}\n${item.count} record${item.count === 1 ? '' : 's'}\nLatest: ${item.latest}` : `${line} · Hot Jig ${hotJig} · No records`;
+          cell.className = `jig-equipment-cell${item ? ' has-records' : ''}${item && item.photos.length ? ' has-photos' : ''}${groupStart ? ' group-start' : ''}${selectedLine === line && selectedHotJig === hotJig ? ' is-selected' : ''}${selectedHotJig && selectedHotJig !== hotJig ? ' is-muted' : ''}`;
+          cell.setAttribute('aria-label', `${line}, Hot Jig ${hotJig}${item ? `, ${item.count} records${item.photos.length ? ', click to view photos' : ''}` : ', no records'}`);
           if (item) {
             cell.textContent = item.count;
             const dots = document.createElement('span');
             dots.className = 'jig-equipment-dots';
-            [...item.types].slice(0, 3).forEach(type => {
+            [...item.types.keys()].slice(0, 3).forEach(type => {
               const dot = document.createElement('span');
               dot.className = 'jig-equipment-dot';
               dot.style.background = DEFECT_COLORS[type];
               dots.appendChild(dot);
             });
             cell.appendChild(dots);
-            cell.addEventListener('click', () => {
-              document.getElementById('weeklyLineFilter').value = line;
-              document.getElementById('weeklyHotJigFilter').value = hotJig;
-              applyWeeklyMapFilters();
+            const tooltip = document.createElement('span');
+            tooltip.className = 'jig-equipment-tooltip';
+            const tooltipTitle = document.createElement('span');
+            tooltipTitle.className = 'jig-equipment-tooltip-title';
+            tooltipTitle.textContent = `${item.count} defect record${item.count === 1 ? '' : 's'}`;
+            tooltip.appendChild(tooltipTitle);
+            item.types.forEach((count, type) => {
+              const row = document.createElement('span');
+              row.className = 'jig-equipment-tooltip-row';
+              const swatch = document.createElement('span');
+              swatch.className = 'jig-equipment-dot';
+              swatch.style.background = DEFECT_COLORS[type];
+              const label = document.createElement('span');
+              label.textContent = type;
+              const quantity = document.createElement('span');
+              quantity.className = 'jig-equipment-tooltip-count';
+              quantity.textContent = count;
+              row.append(swatch, label, quantity);
+              tooltip.appendChild(row);
             });
+            cell.appendChild(tooltip);
+            if (item.photos.length) cell.addEventListener('click', () => openDefectGallery({
+              defectType: `${line} · Hot Jig ${hotJig}`,
+              photos: item.photos
+            }));
           }
           grid.appendChild(cell);
         });
