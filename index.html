@@ -618,6 +618,79 @@
     .weekly-map-count { padding: 5px 10px; color: #991b1b; background: #fee2e2; border-radius: 999px; font-size: 12px; font-weight: 800; }
     .weekly-map-canvas { max-width: 620px; overflow: visible; border: 1px solid var(--border); }
     .weekly-map-canvas .map-marker { width: 14px; height: 14px; border-width: 1px; font-size: 0; opacity: .72; }
+    .jig-equipment-panel {
+      display: none;
+      min-width: 0;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .jig-equipment-header { display: flex; align-items: start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .jig-equipment-header h4 { margin: 0; color: var(--ink); font-size: 13px; font-weight: 800; letter-spacing: .02em; }
+    .jig-equipment-header p { margin: 2px 0 0; color: var(--muted); font-size: 10px; }
+    .jig-equipment-count { flex: 0 0 auto; padding: 3px 7px; color: #1e3a8a; background: #dbeafe; border-radius: 999px; font-size: 10px; font-weight: 800; }
+    .jig-equipment-axis { margin: 0 0 5px 48px; color: var(--muted); font-size: 10px; font-weight: 800; text-align: center; text-transform: uppercase; letter-spacing: .08em; }
+    .jig-equipment-grid {
+      display: grid;
+      grid-template-columns: 44px repeat(15, minmax(20px, 1fr));
+      gap: 2px;
+      align-content: start;
+    }
+    .jig-equipment-grid.single-line { align-content: center; min-height: 230px; }
+    .jig-equipment-corner, .jig-equipment-column, .jig-equipment-row-label {
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      min-height: 23px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .jig-equipment-row-label { justify-items: end; padding-right: 5px; color: var(--label); font-size: 10px; }
+    .jig-equipment-cell {
+      position: relative;
+      min-width: 0;
+      min-height: 25px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: white;
+      border: 1px solid #94a3b8;
+      border-radius: 2px;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .jig-equipment-cell.has-records { background: #eff6ff; border-color: #64748b; cursor: pointer; }
+    .jig-equipment-cell.has-records:hover { z-index: 2; background: #dbeafe; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37, 84, 216, .16); }
+    .jig-equipment-cell.is-selected { z-index: 1; background: #dbeafe; border: 2px solid var(--primary); }
+    .jig-equipment-cell.is-muted { opacity: .3; }
+    .jig-equipment-cell.group-start, .jig-equipment-row-label.group-start { margin-top: 5px; }
+    .jig-equipment-dots { position: absolute; right: 2px; bottom: 2px; display: flex; gap: 1px; }
+    .jig-equipment-dot { width: 4px; height: 4px; border-radius: 50%; }
+    @media (min-width: 1200px) {
+      .weekly-map-layout {
+        grid-template-columns: 180px minmax(410px, .95fr) minmax(420px, 1.05fr) 160px;
+        gap: 12px;
+      }
+      .weekly-map-canvas { width: 100%; max-width: 540px; margin: 0; align-self: start; }
+      .jig-equipment-panel { display: block; align-self: stretch; }
+      .weekly-map-layout.compact-map-layout { grid-template-columns: 180px minmax(320px, 1fr) 170px; gap: 16px; }
+      .weekly-map-layout.compact-map-layout .weekly-map-canvas { max-width: 620px; margin: 0 auto; }
+      .weekly-map-layout.compact-map-layout .jig-equipment-panel { display: none; }
+    }
+    @media (min-width: 1200px) and (max-width: 1499px) {
+      .weekly-map-layout {
+        grid-template-columns: 150px minmax(300px, .82fr) minmax(390px, 1.18fr) 140px;
+        gap: 8px;
+      }
+      .map-filter-panel, .map-legend-panel, .jig-equipment-panel { padding: 9px; }
+      .map-filter-panel select, .map-filter-panel input { padding: 7px; font-size: 12px; }
+      .map-legend-item { gap: 5px; font-size: 11px; }
+    }
     .map-record-button { width: auto; min-height: 32px; padding: 5px 8px; font-size: 11px; white-space: nowrap; }
     .gallery-modal {
       display: none;
@@ -1154,7 +1227,7 @@
     <article class="kpi-card"><div class="kpi-label">Latest Update</div><div class="kpi-value" id="kpiLatest">—</div></article>
   </section>
 
-  <section class="card weekly-map-card open" id="weeklyMapCard">
+  <section class="card weekly-map-card open show-equipment-map" id="weeklyMapCard">
     <button type="button" class="weekly-map-toggle" id="weeklyMapToggle" aria-expanded="true" aria-controls="weeklyMapBody">
       <span class="weekly-map-toggle-title" id="weeklyMapTitle">Jig Formation Defect Map</span>
       <span class="weekly-map-toggle-meta"><span class="weekly-map-count" id="weeklyMapCount">0 points</span><span class="weekly-map-chevron">⌄</span></span>
@@ -1175,6 +1248,14 @@
           <img class="process-map-image" src="jig-formation-defect-map.jpg" alt="Seven-day accumulated defect map">
           <div class="map-markers" id="weeklyMapMarkers"></div>
         </div>
+        <section class="jig-equipment-panel" id="jigEquipmentPanel" aria-label="Jig line and hot jig equipment location map">
+          <div class="jig-equipment-header">
+            <div><h4>Equipment Location</h4><p>Jig Line × Hot Jig occurrence map</p></div>
+            <span class="jig-equipment-count" id="jigEquipmentCount">0 records</span>
+          </div>
+          <div class="jig-equipment-axis">Hot Jig</div>
+          <div class="jig-equipment-grid" id="jigEquipmentGrid"></div>
+        </section>
         <aside class="map-legend-panel" aria-label="Defect type color legend">
           <h4 class="map-panel-title">Defect Type</h4>
           <div class="map-legend" id="weeklyMapLegend"></div>
@@ -1535,6 +1616,8 @@
     let activeLoadController = null;
     let activeMapColor = '#dc2626';
     const weeklyRecordsByProcess = { before_hpcd: [], formation: [], degas: [] };
+    const FORMATION_LINES = Object.freeze(['3-1', '3-2', '3-3', '4-1', '4-2', '4-3', '5-1', '5-2', '5-3', '6-1', '6-2', '6-3']);
+    const FORMATION_HOT_JIGS = Object.freeze(Array.from({ length: 15 }, (_, index) => String(index + 1)));
     const DEFECT_COLORS = Object.freeze({
       'Dent': '#dc2626',
       'Contamination': '#d97706',
@@ -1672,6 +1755,8 @@
       document.getElementById('maintenanceHistoryCard').style.display = isMaintenance ? '' : 'none';
       document.getElementById('conductiveHistoryCard').style.display = isConductive ? '' : 'none';
       document.getElementById('weeklyMapCard').style.display = isAppearance ? '' : 'none';
+      document.getElementById('weeklyMapCard').classList.toggle('show-equipment-map', currentProcess === 'formation');
+      document.querySelector('.weekly-map-layout').classList.toggle('compact-map-layout', currentProcess !== 'formation');
       document.getElementById('weeklyMapTitle').textContent = `${appearanceLabel} Defect Map`;
       document.getElementById('defectMapLabel').textContent = `${appearanceLabel} Defect Map`;
       document.getElementById('weeklyLineFilterLabel').textContent = isDegas ? 'Degas Line' : 'Jig Line';
@@ -1680,6 +1765,8 @@
       const mapImage = isDegas ? 'degas-defect-map.jpg' : 'jig-formation-defect-map.jpg';
       document.querySelectorAll('.process-map-image').forEach(image => { image.src = mapImage; });
       document.getElementById('weeklyMapMarkers').innerHTML = '';
+      document.getElementById('jigEquipmentGrid').innerHTML = '';
+      document.getElementById('jigEquipmentCount').textContent = '0 records';
       document.getElementById('weeklyMapLegend').innerHTML = '';
       document.getElementById('weeklyMapCount').textContent = '0 points';
       setWeeklyMapOpen(true);
@@ -2378,9 +2465,83 @@
       document.getElementById('weeklyMapDescription').textContent =
         `Combined ${getAppearanceProcessLabel(currentProcess)} defect locations from ${range.startLabel} to ${range.endLabel}.`;
       const lineKey = currentProcess === 'before_hpcd' ? '' : currentProcess === 'degas' ? 'degasLine' : 'jigLine';
-      updateMapFilterOptions('weeklyLineFilter', lineKey ? recentRecords.map(record => record[lineKey]) : [], 'All Lines');
-      updateMapFilterOptions('weeklyHotJigFilter', currentProcess === 'formation' ? recentRecords.map(record => record.hotJig) : [], 'All Hot Jigs');
+      const lineValues = lineKey ? recentRecords.map(record => record[lineKey]) : [];
+      const hotJigValues = currentProcess === 'formation' ? recentRecords.map(record => record.hotJig) : [];
+      updateMapFilterOptions('weeklyLineFilter', currentProcess === 'formation' ? FORMATION_LINES.concat(lineValues) : lineValues, 'All Lines');
+      updateMapFilterOptions('weeklyHotJigFilter', currentProcess === 'formation' ? FORMATION_HOT_JIGS.concat(hotJigValues) : hotJigValues, 'All Hot Jigs');
       applyWeeklyMapFilters();
+    }
+
+    function getRecordDefectTypes(value) {
+      return [...new Set(String(value || '').split(',').map(item => normalizeDefectType(item)).filter(type => type !== 'All OK'))];
+    }
+
+    function renderJigEquipmentMap(records, selectedLine, selectedHotJig) {
+      const grid = document.getElementById('jigEquipmentGrid');
+      const visibleLines = selectedLine ? [selectedLine] : FORMATION_LINES;
+      const locationRecords = records.filter(record => {
+        const line = String(record.jigLine || '').trim();
+        const hotJig = String(record.hotJig || '').trim();
+        return FORMATION_LINES.includes(line) && FORMATION_HOT_JIGS.includes(hotJig) && getRecordDefectTypes(record.defect).length;
+      });
+      const grouped = new Map();
+      locationRecords.forEach(record => {
+        const key = `${String(record.jigLine).trim()}|${String(record.hotJig).trim()}`;
+        if (!grouped.has(key)) grouped.set(key, { count: 0, types: new Set(), latest: '' });
+        const item = grouped.get(key);
+        item.count += 1;
+        getRecordDefectTypes(record.defect).forEach(type => item.types.add(type));
+        const dateLabel = formatRecordDate(record.date);
+        if (dateLabel > item.latest) item.latest = dateLabel;
+      });
+
+      grid.innerHTML = '';
+      grid.classList.toggle('single-line', Boolean(selectedLine));
+      const corner = document.createElement('span');
+      corner.className = 'jig-equipment-corner';
+      corner.textContent = 'Line';
+      grid.appendChild(corner);
+      FORMATION_HOT_JIGS.forEach(hotJig => {
+        const label = document.createElement('span');
+        label.className = 'jig-equipment-column';
+        label.textContent = hotJig;
+        grid.appendChild(label);
+      });
+
+      visibleLines.forEach((line, lineIndex) => {
+        const groupStart = !selectedLine && lineIndex > 0 && line.endsWith('-1');
+        const rowLabel = document.createElement('span');
+        rowLabel.className = `jig-equipment-row-label${groupStart ? ' group-start' : ''}`;
+        rowLabel.textContent = line;
+        grid.appendChild(rowLabel);
+        FORMATION_HOT_JIGS.forEach(hotJig => {
+          const item = grouped.get(`${line}|${hotJig}`);
+          const cell = document.createElement('button');
+          cell.type = 'button';
+          cell.className = `jig-equipment-cell${item ? ' has-records' : ''}${groupStart ? ' group-start' : ''}${selectedLine === line && selectedHotJig === hotJig ? ' is-selected' : ''}${selectedHotJig && selectedHotJig !== hotJig ? ' is-muted' : ''}`;
+          cell.setAttribute('aria-label', `${line}, Hot Jig ${hotJig}${item ? `, ${item.count} records` : ', no records'}`);
+          cell.title = item ? `${line} · Hot Jig ${hotJig}\n${item.count} record${item.count === 1 ? '' : 's'}\nLatest: ${item.latest}` : `${line} · Hot Jig ${hotJig} · No records`;
+          if (item) {
+            cell.textContent = item.count;
+            const dots = document.createElement('span');
+            dots.className = 'jig-equipment-dots';
+            [...item.types].slice(0, 3).forEach(type => {
+              const dot = document.createElement('span');
+              dot.className = 'jig-equipment-dot';
+              dot.style.background = DEFECT_COLORS[type];
+              dots.appendChild(dot);
+            });
+            cell.appendChild(dots);
+            cell.addEventListener('click', () => {
+              document.getElementById('weeklyLineFilter').value = line;
+              document.getElementById('weeklyHotJigFilter').value = hotJig;
+              applyWeeklyMapFilters();
+            });
+          }
+          grid.appendChild(cell);
+        });
+      });
+      document.getElementById('jigEquipmentCount').textContent = `${locationRecords.length} record${locationRecords.length === 1 ? '' : 's'}`;
     }
 
     function updateMapFilterOptions(selectId, rawValues, allLabel) {
@@ -2403,10 +2564,12 @@
       const line = document.getElementById('weeklyLineFilter').value;
       const hotJig = document.getElementById('weeklyHotJigFilter').value;
       const points = [];
+      const dateFilteredRecords = [];
       const processRecords = weeklyRecordsByProcess[currentProcess] || [];
       processRecords.forEach(record => {
         const date = parseRecordDate(record.date);
         if (!date || date < range.start || date > range.end) return;
+        dateFilteredRecords.push(record);
         const recordLine = currentProcess === 'before_hpcd' ? '' : currentProcess === 'degas' ? record.degasLine : record.jigLine;
         if (currentProcess !== 'before_hpcd' && line && String(recordLine || '') !== line) return;
         if (currentProcess === 'formation' && hotJig && String(record.hotJig || '') !== hotJig) return;
@@ -2423,6 +2586,7 @@
           }));
         });
       });
+      if (currentProcess === 'formation') renderJigEquipmentMap(dateFilteredRecords, line, hotJig);
       renderWeeklyPhotoMarkers(points);
       document.getElementById('weeklyMapCount').textContent = `${points.length} point${points.length === 1 ? '' : 's'}`;
       const counts = points.reduce((result, point) => {
