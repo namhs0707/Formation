@@ -224,7 +224,9 @@
     }
     .page-header h2 { margin: 0; color: var(--ink); font-size: 26px; font-weight: 800; letter-spacing: -.03em; line-height: 1.2; }
     .page-eyebrow { margin-bottom: 6px; color: var(--primary); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .page-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
     .new-entry-button { width: auto; min-height: 48px; padding: 10px 18px; }
+    .top-refresh-button { width: auto; min-height: 48px; padding: 10px 16px; }
     .kpi-grid {
       max-width: 1034px;
       margin: 0 auto 20px;
@@ -956,6 +958,7 @@
     .history-card-header { min-height: 48px; margin-bottom: 12px; }
     .history-card-header h3 { font-size: 19px; font-weight: 700; }
     .history-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+    .history-actions .btn-secondary { display: none; }
     .last-sync { color: var(--muted); font-size: 13px; white-space: nowrap; }
     .last-sync.sync-error { color: var(--danger); font-weight: 600; }
     .btn-secondary { min-height: 44px; color: var(--label); background: var(--surface); border: 1px solid var(--border); border-radius: 7px; font-size: 14px; }
@@ -1044,7 +1047,8 @@
       .main-content { padding: 12px; }
       .page-header { align-items: stretch; flex-direction: column; gap: 10px; margin-bottom: 12px; }
       .page-header h2 { font-size: 23px; }
-      .new-entry-button { width: 100%; }
+      .page-actions { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); width: 100%; }
+      .new-entry-button, .top-refresh-button { width: 100%; }
       .kpi-grid { margin-bottom: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .kpi-card { min-height: 70px; padding: 10px 12px; }
       .kpi-value { font-size: 18px; }
@@ -1137,7 +1141,10 @@
     <main class="main-content">
   <div class="page-header">
     <div><div class="page-eyebrow" id="pageEyebrow">Operations / Appearance</div><h2 id="pageTitle">Jig Formation Inspection</h2></div>
-    <button type="button" class="new-entry-button" id="openFormBtn">＋ New Inspection</button>
+    <div class="page-actions">
+      <button type="button" class="btn-secondary top-refresh-button" id="refreshDataBtn">↻ Refresh</button>
+      <button type="button" class="new-entry-button" id="openFormBtn">＋ New Inspection</button>
+    </div>
   </div>
 
   <section class="kpi-grid" aria-label="Process summary">
@@ -2746,6 +2753,11 @@
       const requestedProcess = currentProcess;
       const requestId = ++loadRequestId;
       const systemStatus = document.getElementById('systemStatus');
+      const refreshButton = document.getElementById('refreshDataBtn');
+      if (forceRefresh) {
+        refreshButton.disabled = true;
+        refreshButton.textContent = '↻ Refreshing…';
+      }
       const columnCount = requestedProcess === 'conductive' ? 9 : requestedProcess === 'maintenance' ? 7 : requestedProcess === 'before_hpcd' ? 10 : requestedProcess === 'degas' ? 11 : 12;
       const cacheKey = getDashboardCacheKey(requestedProcess);
       const cached = dashboardCache.get(cacheKey);
@@ -2811,6 +2823,10 @@
         else document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the Google Apps Script deployment.</td></tr>`;
       } finally {
         if (activeLoadController === controller) activeLoadController = null;
+        if (forceRefresh) {
+          refreshButton.disabled = false;
+          refreshButton.textContent = '↻ Refresh';
+        }
       }
     }
 
@@ -2836,9 +2852,7 @@
       })[character]);
     }
 
-    document.querySelectorAll('.history-actions .btn-secondary').forEach(button => {
-      button.onclick = () => loadData(true);
-    });
+    document.getElementById('refreshDataBtn').addEventListener('click', () => loadData(true));
 
     function renderHtaCharts(records) {
       const grid = document.getElementById('chartGrid');
