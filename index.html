@@ -366,6 +366,10 @@
       border-radius: 8px;
       background: #f8fafc;
     }
+    .photo-processing-status { min-height: 18px; margin-top: 6px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .photo-processing-status.processing { color: var(--primary); }
+    .photo-processing-status.ready { color: var(--success); }
+    .photo-processing-status.error { color: var(--danger); }
     .input-help { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.45; font-weight: 500; }
     #status {
       margin-top: 12px;
@@ -1497,7 +1501,8 @@
         <div class="form-group process-inspection-field defect-detail-field">
           <label for="defectPhoto">Defect Photo</label>
           <input type="file" id="defectPhoto" accept="image/*" capture="environment" required>
-          <small class="input-help">Take a photo with the tablet camera or select an existing image. Maximum 8 MB.</small>
+          <small class="input-help">Photos are automatically optimized to a maximum 3000 px and JPEG quality 72 before upload.</small>
+          <div class="photo-processing-status" id="photoProcessingStatus" role="status" aria-live="polite"></div>
           <img id="photoPreview" class="photo-preview" alt="Selected photo preview">
         </div>
 
@@ -1656,6 +1661,7 @@
     const formModalClose = document.getElementById('formModalClose');
     const photoInput = document.getElementById('defectPhoto');
     const photoPreview = document.getElementById('photoPreview');
+    const photoProcessingStatus = document.getElementById('photoProcessingStatus');
     const hotJigInput = document.getElementById('hotJig');
     const htaInputIds = ['hta11', 'hta12', 'hta21', 'hta22', 'hta31', 'hta32', 'hta41', 'hta42'];
     let currentProcess = 'formation';
@@ -1669,6 +1675,15 @@
     let recordsLoading = false;
     const RECORD_PAGE_SIZE = 50;
     const CLIENT_CACHE_MS = 45000;
+    const PHOTO_MAX_DIMENSION = 3000;
+    const PHOTO_JPEG_QUALITY = 0.72;
+    const PHOTO_INPUT_MAX_BYTES = 25 * 1024 * 1024;
+    const PHOTO_UPLOAD_MAX_BYTES = 8 * 1024 * 1024;
+    let preparedPhoto = null;
+    let photoPreparationError = null;
+    let photoPreparationPromise = Promise.resolve(null);
+    let photoPreparationToken = 0;
+    let photoPreviewUrl = '';
     const dashboardCache = new Map();
     let activeLoadController = null;
     let activeMapColor = '#dc2626';
@@ -1884,8 +1899,7 @@
       updateConductiveMeasurementMode();
       defectMapPoints = [];
       renderDefectMapPreview();
-      photoPreview.removeAttribute('src');
-      photoPreview.style.display = 'none';
+      clearPreparedPhoto(false);
       document.getElementById('status').textContent = '';
       formModal.classList.remove('open');
       formCard.classList.remove('open');
@@ -1916,6 +1930,106 @@
       });
     }
 
+    function formatFileSize(bytes) {
+      if (!Number.isFinite(bytes) || bytes <= 0) return '0 KB';
+      if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+      return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    }
+
+    function setPhotoProcessingStatus(message, state = '') {
+      photoProcessingStatus.textContent = message;
+      photoProcessingStatus.className = `photo-processing-status${state ? ` ${state}` : ''}`;
+    }
+
+    function clearPreparedPhoto(clearInput = true) {
+      photoPreparationToken += 1;
+      preparedPhoto = null;
+      photoPreparationError = null;
+      photoPreparationPromise = Promise.resolve(null);
+      if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+      photoPreviewUrl = '';
+      if (clearInput) photoInput.value = '';
+      photoPreview.removeAttribute('src');
+      photoPreview.style.display = 'none';
+      setPhotoProcessingStatus('');
+    }
+
+    async function loadPhotoSource(file) {
+      if ('createImageBitmap' in window) {
+        try {
+          return await createImageBitmap(file, { imageOrientation: 'from-image' });
+        } catch (error) {
+          try {
+            return await createImageBitmap(file);
+          } catch (fallbackError) {
+            // Fall through to the image element decoder for older tablet browsers.
+          }
+        }
+      }
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        const url = URL.createObjectURL(file);
+        image.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve(image);
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Unable to decode the selected photo.'));
+        };
+        image.src = url;
+      });
+    }
+
+    function canvasToJpegBlob(canvas) {
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(blob => {
+          if (blob) resolve(blob);
+          else reject(new Error('Unable to optimize the selected photo.'));
+        }, 'image/jpeg', PHOTO_JPEG_QUALITY);
+      });
+    }
+
+    async function preparePhotoForUpload(file) {
+      if (!file.type.startsWith('image/')) throw new Error('Only image files can be uploaded.');
+      if (file.size > PHOTO_INPUT_MAX_BYTES) throw new Error('The original photo must be 25 MB or smaller.');
+
+      const source = await loadPhotoSource(file);
+      const sourceWidth = source.width || source.naturalWidth;
+      const sourceHeight = source.height || source.naturalHeight;
+      if (!sourceWidth || !sourceHeight) throw new Error('Unable to read the photo dimensions.');
+      const scale = Math.min(1, PHOTO_MAX_DIMENSION / Math.max(sourceWidth, sourceHeight));
+      const width = Math.max(1, Math.round(sourceWidth * scale));
+      const height = Math.max(1, Math.round(sourceHeight * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d', { alpha: false });
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, width, height);
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      context.drawImage(source, 0, 0, width, height);
+      if (typeof source.close === 'function') source.close();
+
+      const compressedBlob = await canvasToJpegBlob(canvas);
+      const useCompressed = compressedBlob.size < file.size;
+      const uploadBlob = useCompressed ? compressedBlob : file;
+      if (uploadBlob.size > PHOTO_UPLOAD_MAX_BYTES) throw new Error('The optimized photo must be 8 MB or smaller.');
+      const originalBaseName = String(file.name || 'defect-photo').replace(/\.[^.]+$/, '') || 'defect-photo';
+      return {
+        blob: uploadBlob,
+        data: await readPhoto(uploadBlob),
+        name: useCompressed ? `${originalBaseName}.jpg` : file.name,
+        type: useCompressed ? 'image/jpeg' : file.type,
+        size: uploadBlob.size,
+        originalSize: file.size,
+        width: useCompressed ? width : sourceWidth,
+        height: useCompressed ? height : sourceHeight,
+        optimized: useCompressed
+      };
+    }
+
     openFormBtn.addEventListener('click', openForm);
     cancelBtn.addEventListener('click', closeForm);
     formModalClose.addEventListener('click', closeForm);
@@ -1924,12 +2038,35 @@
     });
     photoInput.addEventListener('change', function() {
       const file = this.files[0];
+      clearPreparedPhoto(false);
       if (!file) {
-        photoPreview.style.display = 'none';
         return;
       }
-      photoPreview.src = URL.createObjectURL(file);
-      photoPreview.style.display = 'block';
+      const token = photoPreparationToken;
+      setPhotoProcessingStatus('Optimizing photo…', 'processing');
+      photoPreparationPromise = preparePhotoForUpload(file)
+        .then(result => {
+          if (token !== photoPreparationToken) return null;
+          preparedPhoto = result;
+          photoPreviewUrl = URL.createObjectURL(result.blob);
+          photoPreview.src = photoPreviewUrl;
+          photoPreview.style.display = 'block';
+          const reduction = result.originalSize > 0 ? Math.max(0, Math.round((1 - result.size / result.originalSize) * 100)) : 0;
+          setPhotoProcessingStatus(
+            result.optimized
+              ? `Ready · ${formatFileSize(result.originalSize)} → ${formatFileSize(result.size)} (${reduction}% smaller) · ${result.width}×${result.height}`
+              : `Ready · Original retained (${formatFileSize(result.size)}) · ${result.width}×${result.height}`,
+            'ready'
+          );
+          return result;
+        })
+        .catch(error => {
+          if (token !== photoPreparationToken) return null;
+          photoPreparationError = error;
+          preparedPhoto = null;
+          setPhotoProcessingStatus(`❌ ${error.message}`, 'error');
+          return null;
+        });
     });
 
     function normalizeMapPoints(value) {
@@ -2020,9 +2157,7 @@
           document.getElementById(id).value = '';
         });
         clearJigLineSelection();
-        photoInput.value = '';
-        photoPreview.removeAttribute('src');
-        photoPreview.style.display = 'none';
+        clearPreparedPhoto();
         defectMapPoints = [];
         renderDefectMapPreview();
       }
@@ -2047,9 +2182,7 @@
     function resetAppearanceCellFieldsForNextCell() {
       document.querySelectorAll('input[name="defectType"]').forEach(input => { input.checked = false; });
       ['cellId', 'channel', 'comment'].forEach(id => { document.getElementById(id).value = ''; });
-      photoInput.value = '';
-      photoPreview.removeAttribute('src');
-      photoPreview.style.display = 'none';
+      clearPreparedPhoto();
       defectMapPoints = [];
       renderDefectMapPreview();
       updateDefectDetailVisibility(false);
@@ -2134,13 +2267,18 @@
         submitAndAddCellBtn.disabled = false;
         return;
       }
-      const photoFile = isAppearance ? photoInput.files[0] : null;
-      if (photoFile && photoFile.size > 8 * 1024 * 1024) {
-        statusDiv.style.color = '#dc2626';
-        statusDiv.textContent = '❌ The photo must be 8 MB or smaller.';
-        submitBtn.disabled = false;
-        submitAndAddCellBtn.disabled = false;
-        return;
+      let uploadPhoto = null;
+      if (isAppearance && !isAllOk && photoInput.files[0]) {
+        statusDiv.textContent = 'Preparing optimized photo…';
+        uploadPhoto = await photoPreparationPromise;
+        if (photoPreparationError || !uploadPhoto) {
+          statusDiv.style.color = '#dc2626';
+          statusDiv.textContent = `❌ ${photoPreparationError ? photoPreparationError.message : 'Select a valid photo.'}`;
+          submitBtn.disabled = false;
+          submitAndAddCellBtn.disabled = false;
+          return;
+        }
+        statusDiv.textContent = 'Submitting optimized photo…';
       }
       const payload = isHta ? {
         process: 'hta',
@@ -2181,9 +2319,9 @@
         channel: isAllOk ? '' : Number(document.getElementById('channel').value),
         defect: selectedDefects,
         comment: isAllOk ? '' : document.getElementById('comment').value,
-        defectPhotoName: photoFile ? photoFile.name : '',
-        defectPhotoType: photoFile ? photoFile.type : '',
-        defectPhotoData: await readPhoto(photoFile),
+        defectPhotoName: uploadPhoto ? uploadPhoto.name : '',
+        defectPhotoType: uploadPhoto ? uploadPhoto.type : '',
+        defectPhotoData: uploadPhoto ? uploadPhoto.data : '',
         defectMap: JSON.stringify(defectMapPoints)
       };
       if (currentProcess === 'degas') {
