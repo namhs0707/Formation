@@ -1436,7 +1436,7 @@
           <small class="input-help">Select one or more defect types. All OK cannot be combined with another type.</small>
         </fieldset>
 
-        <div class="form-group process-inspection-field defect-detail-field" id="processLineGroup">
+        <div class="form-group process-inspection-field defect-detail-field">
           <label for="cellId">Cell ID</label>
           <input type="text" id="cellId" required maxlength="32" pattern="[A-Z0-9]+" autocapitalize="characters" spellcheck="false" placeholder="e.g., EFG512345">
         </div>
@@ -1446,9 +1446,24 @@
           <input type="number" id="channel" required min="1" step="1" inputmode="numeric" placeholder="e.g., 1">
         </div>
 
-        <div class="form-group process-inspection-field defect-detail-field">
+        <div class="form-group process-inspection-field defect-detail-field" id="appearanceLineGroup">
           <label for="processLine" id="lineLabel">Jig line</label>
-          <input type="text" id="processLine" required placeholder="e.g., 4-1, 4-2, 5-1, 5-2">
+          <select id="processLine" required>
+            <option value="">Select Jig line</option>
+            <option value="3-1">3-1</option>
+            <option value="3-2">3-2</option>
+            <option value="3-3">3-3</option>
+            <option value="4-1">4-1</option>
+            <option value="4-2">4-2</option>
+            <option value="4-3">4-3</option>
+            <option value="5-1">5-1</option>
+            <option value="5-2">5-2</option>
+            <option value="5-3">5-3</option>
+            <option value="6-1">6-1</option>
+            <option value="6-2">6-2</option>
+            <option value="6-3">6-3</option>
+          </select>
+          <input type="text" id="degasProcessLine" placeholder="e.g., 1, 2, 3" style="display:none">
         </div>
 
         <div class="form-group process-inspection-field defect-detail-field" id="hotJigGroup">
@@ -1746,10 +1761,11 @@
         isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isHta ? 'New HTA Temperature Reading' : `New ${appearanceLabel} Inspection`;
       document.getElementById('lineLabel').textContent =
         isDegas ? 'Degas line' : 'Jig line';
+      document.getElementById('lineLabel').htmlFor = isDegas ? 'degasProcessLine' : 'processLine';
       document.getElementById('lineHeader').textContent =
         isDegas ? 'Degas line' : 'Jig line';
-      document.getElementById('processLine').placeholder =
-        isDegas ? 'e.g., 1, 2, 3' : 'e.g., 4-1, 4-2, 5-1, 5-2';
+      document.getElementById('processLine').style.display = currentProcess === 'formation' ? '' : 'none';
+      document.getElementById('degasProcessLine').style.display = isDegas ? '' : 'none';
       document.querySelectorAll('.process-inspection-field').forEach(field => {
         field.style.display = isAppearance ? '' : 'none';
       });
@@ -1764,8 +1780,10 @@
         document.getElementById(id).required = isConductive;
       });
       document.getElementById('trayId').required = isAppearance;
+      document.getElementById('processLine').required = currentProcess === 'formation';
+      document.getElementById('degasProcessLine').required = isDegas;
       document.querySelectorAll('input[name="defectType"]').forEach(input => { input.disabled = !isAppearance; });
-      document.getElementById('processLineGroup').style.display = isBeforeHpcd || !isAppearance ? 'none' : '';
+      document.getElementById('appearanceLineGroup').style.display = isBeforeHpcd || !isAppearance ? 'none' : '';
       document.getElementById('hotJigGroup').style.display = isBeforeHpcd || isDegas || !isAppearance ? 'none' : '';
       document.getElementById('defectMapGroup').style.display = isAppearance ? '' : 'none';
       document.getElementById('lineHeader').style.display = isBeforeHpcd ? 'none' : '';
@@ -1968,7 +1986,7 @@
       const isAllOk = isAppearance && selectedDefects.length === 1 && selectedDefects[0] === 'All OK';
 
       if (isAllOk && clearAllOkDetails) {
-        ['cellId', 'channel', 'processLine', 'hotJig', 'comment'].forEach(id => {
+        ['cellId', 'channel', 'processLine', 'degasProcessLine', 'hotJig', 'comment'].forEach(id => {
           document.getElementById(id).value = '';
         });
         photoInput.value = '';
@@ -1982,14 +2000,15 @@
         field.style.display = !isAppearance || isAllOk ? 'none' : '';
       });
       if (isAppearance && !isAllOk) {
-        document.getElementById('processLineGroup').style.display = isBeforeHpcd ? 'none' : '';
+        document.getElementById('appearanceLineGroup').style.display = isBeforeHpcd ? 'none' : '';
         document.getElementById('hotJigGroup').style.display = isBeforeHpcd || isDegas ? 'none' : '';
       }
 
       ['cellId', 'channel', 'defectPhoto'].forEach(id => {
         document.getElementById(id).required = isAppearance && !isAllOk;
       });
-      document.getElementById('processLine').required = isAppearance && !isBeforeHpcd && !isAllOk;
+      document.getElementById('processLine').required = currentProcess === 'formation' && !isAllOk;
+      document.getElementById('degasProcessLine').required = isDegas && !isAllOk;
       hotJigInput.required = currentProcess === 'formation' && !isAllOk;
       document.getElementById('submitAndAddCellBtn').style.display = isAppearance && !isAllOk ? '' : 'none';
     }
@@ -2137,7 +2156,7 @@
         defectMap: JSON.stringify(defectMapPoints)
       };
       if (currentProcess === 'degas') {
-        payload.degasLine = isAllOk ? '' : document.getElementById('processLine').value;
+        payload.degasLine = isAllOk ? '' : document.getElementById('degasProcessLine').value;
       } else if (currentProcess === 'formation') {
         payload.jigLine = isAllOk ? '' : document.getElementById('processLine').value;
         payload.hotJig = isAllOk ? '' : hotJigInput.value;
