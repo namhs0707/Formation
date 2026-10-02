@@ -4548,7 +4548,7 @@
       { process: 'temp_eol', label: 'EOL', line: { label: 'EOL Line #', options: TEMPERATURE_EOL_LINES }, seriesByLine: true, groups: [
         { title: 'EOL by line', fields: [{ key: 'eol', label: 'EOL' }] }
       ] },
-      { process: 'hta', label: 'HTA', autoSpec: true, spec: { min: 57, max: 63 }, groups: [
+      { process: 'hta', label: 'HTA', autoSpec: true, groups: [
         { title: 'HTA 1', fields: temperatureFieldList('hta', 'HTA ', ['1-1', '1-2']) },
         { title: 'HTA 2', fields: temperatureFieldList('hta', 'HTA ', ['2-1', '2-2']) },
         { title: 'HTA 3', fields: temperatureFieldList('hta', 'HTA ', ['3-1', '3-2']) },
@@ -4570,6 +4570,16 @@
         { title: 'West Aisle (#1 closest to Spine)', fields: temperatureFieldList('shaWest', 'SHA West Aisle #', ['1', '2', '3', '4', '5']) }
       ] }
     ]);
+    // Spec = target ± 3 °C: CDC 29, HTA 60, every other area 23.
+    const TEMPERATURE_SPEC_TOLERANCE = 3;
+    const TEMPERATURE_SPEC_TARGETS = Object.freeze({ temp_cdc: 29, hta: 60 });
+    TEMPERATURE_AREAS.forEach(area => {
+      const target = TEMPERATURE_SPEC_TARGETS[area.process] ?? 23;
+      area.spec = Object.freeze({
+        target, min: target - TEMPERATURE_SPEC_TOLERANCE, max: target + TEMPERATURE_SPEC_TOLERANCE,
+        label: target + ' ± ' + TEMPERATURE_SPEC_TOLERANCE + ' °C'
+      });
+    });
     const TEMPERATURE_AREA_BY_PROCESS = new Map(TEMPERATURE_AREAS.map(area => [area.process, area]));
     const temperatureCharts = new Map();
     let temperatureCacheRange = '';
@@ -4597,11 +4607,11 @@
           }).join('')
         ).join('');
         const spec = area.autoSpec
-          ? '<small class="input-help">Spec (' + area.spec.min + '–' + area.spec.max + ' °C) is checked automatically.</small>'
+          ? '<small class="input-help">In-spec status is checked automatically against ' + escapeText(area.spec.label) + '.</small>'
           : '<div class="temperature-spec-row" role="radiogroup" aria-label="' + escapeText(area.label) + ' temperatures in spec"><span>Temperature(s) in spec?</span>' +
             ['Yes', 'No'].map(value => '<label><input type="radio" name="temperature-' + area.process + '-spec" value="' + value + '">' + value + '</label>').join('') + '</div>';
         const help = area.optionalFields ? '<small class="input-help">Fill in only the temperatures that apply to the selected line.</small>' : '';
-        return '<section class="temperature-area-form" data-temperature-area="' + area.process + '" hidden><h4>' + escapeText(area.label) + '</h4>' +
+        return '<section class="temperature-area-form" data-temperature-area="' + area.process + '" hidden><h4>' + escapeText(area.label + ' (' + area.spec.label + ')') + '</h4>' +
           line + help + '<div class="temperature-input-grid">' + inputs + '</div>' + spec + '</section>';
       }).join('');
     }
@@ -4693,7 +4703,7 @@
           const date = parseRecordDate(record.date);
           if (date && (!latest || date > latest.date)) latest = { date, label: record.date };
         });
-        const header = '<div class="temperature-panel-header"><h3>' + escapeText(area.label) + '</h3><span class="input-help">' +
+        const header = '<div class="temperature-panel-header"><h3>' + escapeText(area.label + ' (' + area.spec.label + ')') + '</h3><span class="input-help">' +
           records.length + ' reading' + (records.length === 1 ? '' : 's') + '</span></div>';
         if (!records.length) {
           return '<article class="card temperature-panel">' + header + '<p class="input-help">No readings in this date range.</p></article>';
@@ -4773,7 +4783,7 @@
       const lastLabel = escapeText(formatRecordDate(points.find(point => point.time === maxTime).record.date));
       temperatureCharts.set(chartId, { series, x, y, top, bottom: height - bottom, width, height });
       const legend = series.map(item => '<span><i style="background:' + item.color + '"></i>' + escapeText(item.label) + '</span>').join('') +
-        (area.spec ? '<span><i class="spec"></i>Spec ' + area.spec.min + '–' + area.spec.max + ' °C</span>' : '');
+        (area.spec ? '<span><i class="spec"></i>Spec ' + escapeText(area.spec.label) + '</span>' : '');
       return '<div class="temperature-chart">' +
         '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="' + escapeText(area.label + ' ' + group.title) + ' temperature trend" data-temperature-chart="' + chartId + '">' +
           grid + spec +
