@@ -12,6 +12,8 @@ const CONFIG = Object.freeze({
   HTA_SHEET_NAME: 'HTA temp',
   MAINTENANCE_SHEET_NAME: 'EOL Tape Knife',
   CONDUCTIVE_RUBBER_SHEET_NAME: 'Conductive Rubber',
+  STARTUP_HPCD_SHEET_NAME: 'Start-up HPCD Check',
+  STARTUP_JIG_SHEET_NAME: 'Start-up Jig Check',
   FORMATION_PHOTO_FOLDER_ID: '1sjdqljzpJOtAuudYBeotwXeUsxJjSdyM',
   DEGAS_PHOTO_FOLDER_ID: '10hybzCCycMsBLscf2qxIADiNgaBsQqbQ',
   MAKE_PHOTOS_PUBLIC: true,
@@ -98,6 +100,39 @@ const CONDUCTIVE_RUBBER_HEADERS = Object.freeze([
   'Comment'
 ]);
 
+const STARTUP_JIG_HEADERS = Object.freeze([
+  'Date',
+  'Team',
+  'Line',
+  'Check completed',
+  'Frequency',
+  'Category',
+  'Item',
+  'Status',
+  'Comment'
+]);
+
+const STARTUP_HPCD_HEADERS = STARTUP_JIG_HEADERS;
+
+const STARTUP_CHECK_ITEMS = Object.freeze({
+  startup_hpcd: Object.freeze([
+    'Loader/Unloader P&P / Gripper',
+    'Cleaning / Paper',
+    'Cleaning / Conveyor',
+    'Cleaning / Plexi-Glass'
+  ]),
+  startup_jig: Object.freeze([
+    'Loader/Unloader P&P / Gripper',
+    'Loader/Unloader P&P / Rail',
+    'Loader/Unloader P&P / Shuttle',
+    'Loader/Unloader P&P / Dummy cell',
+    'Main P&P / Gripper',
+    'Main P&P / Rail',
+    'Cleaning / PP',
+    'Cleaning / Hot jig'
+  ])
+});
+
 const CONDUCTIVE_RUBBER_UNITS = Object.freeze([
   '1A', '1B', '1C', '1D',
   '2A', '2B', '2C', '2D'
@@ -110,6 +145,7 @@ const DEFECT_TYPES = Object.freeze([
   'Scratch',
   'Lead bending',
   'Wrinkles',
+  'Unsealing pouch',
   'Others'
 ]);
 
@@ -136,6 +172,8 @@ function setup() {
   const htaSheet = getSheet_('hta');
   const maintenanceSheet = getSheet_('maintenance');
   const conductiveRubberSheet = getSheet_('conductive');
+  const startupHpcdSheet = getSheet_('startup_hpcd');
+  const startupJigSheet = getSheet_('startup_jig');
 
   ensureHeaders_(beforeHpcdSheet, BEFORE_HPCD_HEADERS);
   ensureHeaders_(formationSheet, FORMATION_HEADERS);
@@ -143,6 +181,8 @@ function setup() {
   ensureHeaders_(htaSheet, HTA_HEADERS);
   ensureHeaders_(maintenanceSheet, MAINTENANCE_HEADERS);
   ensureConductiveRubberHeaders_(conductiveRubberSheet);
+  ensureHeaders_(startupHpcdSheet, STARTUP_HPCD_HEADERS);
+  ensureHeaders_(startupJigSheet, STARTUP_JIG_HEADERS);
   normalizeFormationJigLines_(formationSheet);
 
   DriveApp.getFolderById(CONFIG.FORMATION_PHOTO_FOLDER_ID).getName();
@@ -320,6 +360,9 @@ function readRecords_(sheet, process, headers, startRow, count) {
 }
 
 function rowToRecord_(row, process) {
+    if (process === 'startup_hpcd' || process === 'startup_jig') {
+      return { date: row[0], team: row[1], line: row[2], checkCompleted: row[3], frequency: row[4], item: row[5] + ' / ' + row[6], status: row[7], comment: row[8] };
+    }
     if (process === 'hta') {
       return { date: row[0], team: row[1], operatorName: row[2], hta11: row[3], hta12: row[4], hta21: row[5], hta22: row[6], hta31: row[7], hta32: row[8], hta41: row[9], hta42: row[10], tempInSpec: row[11] };
     }
@@ -373,7 +416,23 @@ function doPost(e) {
       ensureHeaders_(sheet, headers);
 
       let row;
-      if (process === 'hta') {
+      let rows = null;
+      if (process === 'startup_hpcd' || process === 'startup_jig') {
+        rows = input.items.map(function(item) {
+          const categoryItem = String(item.item || '').split(' / ');
+          return [
+            new Date(),
+            cleanText_(input.team),
+            process === 'startup_hpcd' ? normalizeHpcdLines_(input.lines).join(', ') : normalizeStartupLines_(input.lines).join(', '),
+            cleanText_(input.checkCompleted),
+            cleanText_(input.frequency),
+            cleanText_(categoryItem[0]),
+            cleanText_(categoryItem.slice(1).join(' / ')),
+            cleanText_(item.status),
+            cleanText_(item.comment)
+          ];
+        });
+      } else if (process === 'hta') {
         const temperatures = HTA_FIELDS.map(function(field) {
           return Number(input[field.key]);
         });
@@ -449,15 +508,17 @@ function doPost(e) {
       }
 
       const nextRow = sheet.getLastRow() + 1;
-      if (isAppearanceProcess_(process)) {
+      if (process === 'startup_hpcd' || process === 'startup_jig') {
+        sheet.getRange(nextRow, 3, rows.length, 7).setNumberFormat('@');
+      } else if (isAppearanceProcess_(process)) {
         sheet.getRange(nextRow, 7).setNumberFormat('@');
       } else if (process === 'maintenance') {
         sheet.getRange(nextRow, 4, 1, 4).setNumberFormat('@');
       } else if (process === 'conductive') {
         sheet.getRange(nextRow, 4, 1, 6).setNumberFormat('@');
       }
-      sheet.getRange(nextRow, 1, 1, row.length).setValues([row]);
-      sheet.getRange(nextRow, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
+      sheet.getRange(nextRow, 1, rows ? rows.length : 1, (rows ? rows[0] : row).length).setValues(rows || [row]);
+      sheet.getRange(nextRow, 1, rows ? rows.length : 1, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
     } finally {
       lock.releaseLock();
     }
@@ -480,6 +541,8 @@ function isAppearanceProcess_(process) {
 
 function getProcess_(value) {
   const process = String(value || 'formation').toLowerCase();
+  if (process === 'startup_hpcd') return 'startup_hpcd';
+  if (process === 'startup_jig') return 'startup_jig';
   if (process === 'before_hpcd') return 'before_hpcd';
   if (process === 'degas') return 'degas';
   if (process === 'hta') return 'hta';
@@ -489,6 +552,8 @@ function getProcess_(value) {
 }
 
 function getHeaders_(process) {
+  if (process === 'startup_hpcd') return STARTUP_HPCD_HEADERS;
+  if (process === 'startup_jig') return STARTUP_JIG_HEADERS;
   if (process === 'hta') return HTA_HEADERS;
   if (process === 'maintenance') return MAINTENANCE_HEADERS;
   if (process === 'conductive') return CONDUCTIVE_RUBBER_HEADERS;
@@ -504,6 +569,10 @@ function getSheet_(process) {
       ? CONFIG.MAINTENANCE_SHEET_NAME
       : process === 'conductive'
         ? CONFIG.CONDUCTIVE_RUBBER_SHEET_NAME
+        : process === 'startup_hpcd'
+          ? CONFIG.STARTUP_HPCD_SHEET_NAME
+        : process === 'startup_jig'
+          ? CONFIG.STARTUP_JIG_SHEET_NAME
         : process === 'before_hpcd'
           ? CONFIG.BEFORE_HPCD_SHEET_NAME
           : process === 'degas'
@@ -586,12 +655,38 @@ function normalizeFormationJigLines_(sheet) {
 }
 
 function validateInput_(input, process) {
-  if (process === 'conductive') {
-    ['team', 'operatorName', 'rubberProcess', 'line', 'measurement', 'action'].forEach(function(key) {
-      if (input[key] === undefined || String(input[key]).trim() === '') {
-        throw new Error(key + ' is required.');
+  if (process === 'startup_hpcd' || process === 'startup_jig') {
+    validateTextField_(input.team, 'Team', 16);
+    if (!TEAMS.includes(String(input.team))) throw new Error('Team must be 1A, 1B, 2A, or 2B.');
+    if (process === 'startup_hpcd') normalizeHpcdLines_(input.lines);
+    if (process === 'startup_jig') normalizeStartupLines_(input.lines);
+    validateTextField_(input.checkCompleted, 'Check completed', 8);
+    validateTextField_(input.frequency, 'Frequency', 16);
+    if (!['Yes', 'No'].includes(String(input.checkCompleted))) throw new Error('Check completed must be Yes or No.');
+    if (!['Shift', 'Weekly', 'Monthly'].includes(String(input.frequency))) throw new Error('Frequency must be Shift, Weekly, or Monthly.');
+    if (!Array.isArray(input.items) || !input.items.length) throw new Error('At least one start-up check item is required.');
+    if (input.items.length > 100) throw new Error('Too many start-up check items were submitted.');
+    input.items.forEach(function(item) {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error('Every start-up item must be an object.');
+      validateTextField_(item.item, 'Start-up item', 160);
+      validateTextField_(item.status, 'Start-up status', 16);
+      validateTextField_(item.comment, 'Start-up comment', 2000, false);
+      const isOverallNotCompleted = item && item.item === 'Check completed / Overall' && String(input.checkCompleted) === 'No' && String(item.status) === 'No';
+      const allowedItems = STARTUP_CHECK_ITEMS[process] || [];
+      if ((!allowedItems.includes(String(item.item)) && !isOverallNotCompleted) || (!['Pass', 'Flagged', 'Incomplete'].includes(String(item.status)) && !isOverallNotCompleted)) {
+        throw new Error('Every start-up item needs a valid status.');
+      }
+      if (String(item.status) !== 'Pass' && !String(item.comment || '').trim()) {
+        throw new Error('A comment is required for Flagged or incomplete.');
       }
     });
+    return;
+  }
+  if (process === 'conductive') {
+    ['team', 'operatorName', 'rubberProcess', 'line', 'measurement', 'action'].forEach(function(key) {
+      validateTextField_(input[key], key, key === 'operatorName' ? 120 : 64);
+    });
+    validateTextField_(input.comment, 'comment', 2000, false);
     if (!TEAMS.includes(String(input.team))) throw new Error('Team must be 1A, 1B, 2A, or 2B.');
 
     const rubberProcess = cleanText_(input.rubberProcess);
@@ -611,9 +706,7 @@ function validateInput_(input, process) {
 
   if (process === 'maintenance') {
     ['team', 'operatorName', 'line', 'equipment', 'maintenance', 'tapingLine'].forEach(function(key) {
-      if (input[key] === undefined || String(input[key]).trim() === '') {
-        throw new Error(key + ' is required.');
-      }
+      validateTextField_(input[key], key, key === 'operatorName' ? 120 : 64);
     });
     if (!TEAMS.includes(String(input.team))) throw new Error('Team must be 1A, 1B, 2A, or 2B.');
     if (!['EOL 4-1', 'EOL 4-2', 'EOL 5-1', 'EOL 5-2'].includes(String(input.line))) {
@@ -627,9 +720,7 @@ function validateInput_(input, process) {
 
   if (process === 'hta') {
     ['team', 'operatorName'].forEach(function(key) {
-      if (input[key] === undefined || String(input[key]).trim() === '') {
-        throw new Error(key + ' is required.');
-      }
+      validateTextField_(input[key], key, key === 'operatorName' ? 120 : 16);
     });
     if (!TEAMS.includes(String(input.team))) {
       throw new Error('Team must be 1A, 1B, 2A, or 2B.');
@@ -662,6 +753,16 @@ function validateInput_(input, process) {
       throw new Error(key + ' is required.');
     }
   });
+
+  ['team', 'operatorName', 'trayId', 'cellId', 'degasLine', 'jigLine', 'hotJig'].forEach(function(key) {
+    if (input[key] !== undefined) validateTextField_(input[key], key, key === 'operatorName' ? 120 : 64);
+  });
+  validateTextField_(input.comment, 'comment', 2000, false);
+  validateTextField_(input.defectPhotoName, 'defectPhotoName', 160, false);
+  validateTextField_(input.defectPhotoType, 'defectPhotoType', 64, false);
+  if (input.defectPhotoData !== undefined && input.defectPhotoData !== null) {
+    validateTextField_(input.defectPhotoData, 'defectPhotoData', Math.ceil(CONFIG.MAX_PHOTO_BYTES * 4 / 3) + 256, false);
+  }
 
   if (!TEAMS.includes(String(input.team))) {
     throw new Error('Team must be 1A, 1B, 2A, or 2B.');
@@ -699,6 +800,51 @@ function validateInput_(input, process) {
   if (isAppearanceProcess_(process)) {
     normalizeDefectMap_(input.defectMap);
   }
+}
+
+function normalizeStartupLines_(value) {
+  const values = Array.isArray(value) ? value : String(value || '').split(',');
+  const lines = values.map(function(line) { return cleanText_(line); }).filter(Boolean);
+  const uniqueLines = [];
+  lines.forEach(function(line) {
+    if (!['3-1', '3-2', '3-3', '4-1', '4-2', '4-3', '5-1', '5-2', '5-3', '6-1', '6-2', '6-3'].includes(line)) {
+      throw new Error('Invalid Jig line: ' + line);
+    }
+    if (!uniqueLines.includes(line)) uniqueLines.push(line);
+  });
+  if (!uniqueLines.length) throw new Error('At least one Jig line must be selected.');
+  return uniqueLines;
+}
+
+function validateTextField_(value, fieldName, maxLength, required) {
+  const isRequired = required !== false;
+  if (value === undefined || value === null || String(value).trim() === '') {
+    if (isRequired) throw new Error(fieldName + ' is required.');
+    return '';
+  }
+  if (typeof value !== 'string' && typeof value !== 'number') {
+    throw new Error(fieldName + ' must be text.');
+  }
+  const text = String(value).trim();
+  if (text.length > maxLength) throw new Error(fieldName + ' is too long.');
+  if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(text)) {
+    throw new Error(fieldName + ' contains invalid control characters.');
+  }
+  return text;
+}
+
+function normalizeHpcdLines_(value) {
+  const values = Array.isArray(value) ? value : String(value || '').split(',');
+  const lines = values.map(function(line) { return cleanText_(line); }).filter(Boolean);
+  const uniqueLines = [];
+  lines.forEach(function(line) {
+    if (!['3', '4', '5', '6'].includes(line)) {
+      throw new Error('Invalid HPCD line: ' + line);
+    }
+    if (!uniqueLines.includes(line)) uniqueLines.push(line);
+  });
+  if (!uniqueLines.length) throw new Error('At least one HPCD line must be selected.');
+  return uniqueLines;
 }
 
 function normalizeDefectTypes_(value) {

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "formation-inspection-poc-client-side-solution",
+    "id": "c1b59325-5937-4610-8661-1a35afed4fe5",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.23.2"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "FormationInspectionPOC description"
+      },
+      "longDescription": {
+        "default": "FormationInspectionPOC description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "formation-inspection-poc Feature",
+        "description": "The feature that activates elements of the formation-inspection-poc solution.",
+        "id": "d0fb007e-0da7-4c3f-919b-c85b6a0f7aef",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/formation-inspection-poc.sppkg"
+  }
+}

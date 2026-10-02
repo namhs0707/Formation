@@ -1,0 +1,18 @@
+{
+    "Servers":  {
+                    "2":  {
+                              "Comment":  "Local Formation inspection database",
+                              "Username":  "formation_app",
+                              "SSLMode":  "prefer",
+                              "ConnectionParameters":  {
+                                                           "sslmode":  "prefer",
+                                                           "connect_timeout":  10
+                                                       },
+                              "Name":  "Formation Local",
+                              "Group":  "Servers",
+                              "Port":  5432,
+                              "Host":  "127.0.0.1",
+                              "MaintenanceDB":  "formation_inspection"
+                          }
+                }
+}

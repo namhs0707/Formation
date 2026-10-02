@@ -1,0 +1,13 @@
+-- Run with psql as the PostgreSQL administrator (postgres).
+-- The password prompt below does not save the password in this project.
+
+SELECT 'CREATE ROLE formation_app LOGIN'
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'formation_app')
+\gexec
+
+\echo Set or reset the password for the formation_app application role.
+\password formation_app
+
+SELECT 'CREATE DATABASE formation_inspection'
+WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'formation_inspection')
+\gexec

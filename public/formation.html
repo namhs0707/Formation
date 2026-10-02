@@ -1,12 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
   <title>Formation Inspection Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
     :root {
@@ -1203,6 +1201,101 @@
       .jig-line-checkbox-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .button-row { grid-template-columns: 1fr; }
     }
+    .startup-fields { display: none; }
+    .startup-fields.open { display: block; }
+    .startup-line-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .startup-line-option { min-height: 42px; justify-content: center; font-weight: 700; }
+    .startup-line-option input { width: 18px; height: 18px; min-height: 18px; }
+    .startup-checklist { display: grid; gap: 14px; margin: 8px 0 20px; }
+    .startup-check-group { padding: 0; border: 0; background: transparent; }
+    .startup-check-group h4 { margin: 0 0 8px; padding: 0 2px; color: var(--ink); font-size: 15px; }
+    .startup-action-heading { margin: 12px 0 4px; padding: 4px 2px; color: var(--muted); font-size: 13px; font-weight: 700; }
+    .startup-action-heading:first-child { margin-top: 0; }
+    .startup-action-heading + .startup-check-item { border-top: 0; padding-top: 4px; }
+    .startup-check-items-box { padding: 9px 14px 10px 19px; border: 1px solid var(--border); border-radius: 9px; background: #f8fafc; }
+    .startup-no-comment { display: none; margin: 4px 0 18px; }
+    .startup-no-comment.open { display: block; }
+    .startup-no-comment textarea { min-height: 86px; }
+    .startup-escalation-help { display: none; }
+    .startup-escalation-help.open { display: block; }
+    .ip-group { background: #f0fdfa; border-color: #99f6e4; }
+    .ip-group .process-options { background: #f0fdfa; border-color: #99f6e4; }
+    .ip-group .process-category-toggle { color: #0f766e; }
+    .ip-group .process-category-icon { background: #ccfbf1; }
+    .ip-group .process-button.active { color: #0f766e; background: #ccfbf1; box-shadow: inset 0 0 0 1px #5eead4; }
+    .form-card.ip-check-form { max-width: 900px; }
+    .ip-fields { display: none; }
+    .ip-fields.open { display: block; }
+    .ip-meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .ip-checklist { display: grid; gap: 16px; margin: 12px 0 20px; }
+    .ip-group-card { padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: #f8fafc; }
+    .ip-group-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+    .ip-group-header h4 { margin: 0; color: var(--ink); font-size: 16px; }
+    .ip-group-header img { width: 170px; max-width: 35%; height: auto; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+    .ip-lane-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .ip-lane-card { min-width: 0; padding: 0 12px 6px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+    .ip-lane-card h5 { margin: 0 -12px; padding: 10px 12px; border-bottom: 1px solid var(--border); background: #f0fdfa; color: #0f766e; font-size: 14px; }
+    .ip-lane-card .ip-measure-row { grid-template-columns: 1fr; gap: 8px; }
+    .ip-lane-card .ip-target-status { grid-column: 1; }
+    .ip-lane-card .ip-measure-row:first-of-type { border-top: 0; }
+    .ip-measure-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .9fr); align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border-subtle); }
+    .ip-measure-name { color: var(--label); font-weight: 700; }
+    .ip-measure-meta { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 400; }
+    .ip-measure-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .ip-measure-inputs label { display: grid; gap: 4px; color: var(--label); font-size: 13px; font-weight: 700; }
+    .ip-measure-inputs input { width: 100%; }
+    .ip-target-status { grid-column: 2; color: var(--muted); font-size: 13px; font-weight: 700; }
+    .ip-target-status.in-range { color: #166534; }
+    .ip-target-status.out-of-range { color: #b91c1c; }
+    .resealing-fields { display: none; }
+    .resealing-fields.open { display: block; }
+    .resealing-fields .form-group { margin-bottom: 16px; }
+    .resealing-fields .startup-checklist { margin-top: 12px; }
+    .startup-selector-fieldset { display: none; }
+    .startup-selector-fieldset.open { display: block; }
+    .startup-selector-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .startup-cdc-fields { display: none; }
+    .startup-cdc-fields.open { display: block; }
+    .startup-check-hint { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 400; }
+    .startup-check-item { display: grid; grid-template-columns: minmax(130px, .75fr) minmax(0, 1.25fr); align-items: start; gap: 2px; padding: 10px 0; border-top: 1px solid var(--border-subtle); }
+    .startup-check-item:first-of-type { border-top: 0; padding-top: 0; }
+    .startup-check-label { padding-top: 8px; color: var(--label); font-weight: 700; }
+    .startup-status-options { display: block; min-width: 0; }
+    .startup-status-select { width: 100%; min-height: 42px; padding: 7px 10px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 7px; font-size: 13px; font-weight: 700; }
+    .startup-status-option { min-width: 0; min-height: 38px; justify-content: center; padding: 6px 6px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .startup-status-option input { width: 17px; height: 17px; min-height: 17px; }
+    .startup-choice-option input[type="radio"], .startup-status-option input[type="radio"] { appearance: none; border: 2px solid #94a3b8; border-radius: 4px; background: #fff; }
+    .startup-choice-option input[type="radio"]:checked, .startup-status-option input[type="radio"]:checked { border-color: var(--primary); background: var(--primary); box-shadow: inset 0 0 0 3px #fff; }
+    .startup-comment { display: none; grid-column: 1 / -1; margin-top: 2px; }
+    .startup-comment.open { display: block; }
+    .startup-comment textarea { min-height: 66px; }
+    .startup-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .startup-choice-option { justify-content: center; font-weight: 700; }
+    .startup-history-table { min-width: 1060px; }
+    .startup-status-badge { display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .startup-status-badge.done { color: #166534; background: #dcfce7; }
+    .startup-status-badge.pending { color: #92400e; background: #fef3c7; }
+    .startup-status-badge.issue { color: #991b1b; background: #fee2e2; }
+    .startup-status-badge.na { color: #475569; background: #e2e8f0; }
+    .startup-group { background: #f5f3ff; border-color: #c4b5fd; }
+    .startup-group .process-options { background: #f5f3ff; border-color: #c4b5fd; }
+    .startup-group .process-category-toggle { color: #6d28d9; }
+    .startup-group .process-category-icon { background: #ede9fe; }
+    .startup-group .process-button.active { color: #6d28d9; background: #ede9fe; box-shadow: inset 0 0 0 1px #c4b5fd; }
+    @media (min-width: 768px) {
+      .startup-status-options { width: calc(100% + 10px); transform: translateX(-10px); }
+    }
+    @media (max-width: 767px) {
+      .startup-line-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .startup-selector-grid { grid-template-columns: 1fr; }
+      .startup-check-item { grid-template-columns: 1fr; gap: 8px; }
+      .ip-meta-grid, .ip-lane-grid, .ip-measure-row { grid-template-columns: 1fr; }
+      .ip-target-status { grid-column: 1; }
+      .ip-group-header img { width: 130px; }
+
+      .startup-comment { grid-column: 1; }
+      .startup-status-options { width: auto; transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -1249,6 +1342,28 @@
         <div class="process-options">
           <button type="button" class="process-button" data-process="maintenance">EOL Tape/Knife</button>
           <button type="button" class="process-button" data-process="conductive">Conductive Rubber</button>
+        </div>
+      </div>
+      <div class="process-group startup-group">
+        <button type="button" class="process-category process-category-toggle" data-category="startup" aria-expanded="false">
+          <span class="process-category-icon">✓</span><span>Start-up</span><span class="process-category-chevron">⌄</span>
+        </button>
+        <div class="process-options">
+          <button type="button" class="process-button" data-process="startup_hpcd">HPCD Check Sheet</button>
+          <button type="button" class="process-button" data-process="startup_jig">Jig Check Sheet</button>
+          <button type="button" class="process-button" data-process="startup_degas">Degas Check Sheet</button>
+          <button type="button" class="process-button" data-process="startup_cdc">CDC Check Sheet</button>
+          <button type="button" class="process-button" data-process="startup_eol">EOL Check Sheet</button>
+          <button type="button" class="process-button" data-process="startup_selector">Selector Check Sheet</button>
+          <button type="button" class="process-button" data-process="startup_resealing">Resealing Machine</button>
+        </div>
+      </div>
+      <div class="process-group ip-group">
+        <button type="button" class="process-category process-category-toggle" data-category="ip" aria-expanded="false">
+          <span class="process-category-icon">IP</span><span>IP check sheet</span><span class="process-category-chevron">?</span>
+        </button>
+        <div class="process-options">
+          <button type="button" class="process-button" data-process="ip_dsf">DSF Daily IP</button>
         </div>
       </div>
     </aside>
@@ -1313,7 +1428,7 @@
       <h3 id="formTitle">New Jig Formation Inspection</h3>
       <form id="inspectionForm">
         <div class="form-group">
-          <label for="team">Team</label>
+          <label for="team" id="teamLabel">Team</label>
           <select id="team" required>
             <option value="" disabled selected>Select a team</option>
             <option value="1A">1A</option>
@@ -1324,8 +1439,208 @@
         </div>
 
         <div class="form-group">
-          <label for="operatorName">Operator Name</label>
+          <label for="operatorName" id="operatorNameLabel">Operator Name</label>
           <input type="text" id="operatorName" required placeholder="e.g., John Smith">
+        </div>
+
+        <div class="startup-fields" id="startupFields">
+          <fieldset class="unit-fieldset startup-selector-fieldset" id="startupSelectorFieldset">
+            <legend>Selector <span aria-hidden="true">*</span></legend>
+            <div class="startup-selector-grid">
+              <label class="unit-option startup-line-option"><input type="radio" name="startupSelector" value="Jig Selector"><span>Jig Selector</span></label>
+              <label class="unit-option startup-line-option"><input type="radio" name="startupSelector" value="CDC Selector"><span>CDC Selector</span></label>
+              <label class="unit-option startup-line-option"><input type="radio" name="startupSelector" value="OCV Selector"><span>OCV Selector</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="unit-fieldset" id="startupLineFieldset">
+            <legend id="startupLineLegend">Line <span aria-hidden="true">*</span></legend>
+            <div class="startup-line-grid" id="startupLines">
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="3-1"><span>3-1</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="3-2"><span>3-2</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="3-3"><span>3-3</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="4-1"><span>4-1</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="4-2"><span>4-2</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="4-3"><span>4-3</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="5-1"><span>5-1</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="5-2"><span>5-2</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="5-3"><span>5-3</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="6-1"><span>6-1</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="6-2"><span>6-2</span></label>
+              <label class="unit-option startup-line-option"><input type="checkbox" name="startupLine" value="6-3"><span>6-3</span></label>
+            </div>
+            <small class="input-help" id="startupLineHelp">Select one or more Jig lines.</small>
+          </fieldset>
+
+          <div class="startup-cdc-fields" id="startupCdcFields">
+            <div class="form-group">
+              <label for="startupCdcLine">CDC Line # <span aria-hidden="true">*</span></label>
+              <input type="text" id="startupCdcLine" maxlength="32" placeholder="Enter CDC line">
+            </div>
+            <div class="form-group">
+              <label for="startupCdcFloor">Floor # <span aria-hidden="true">*</span></label>
+              <input type="text" id="startupCdcFloor" maxlength="16" placeholder="Enter floor">
+            </div>
+          </div>
+
+          <fieldset class="unit-fieldset">
+            <legend id="startupCompletedLegend">Check completed <span aria-hidden="true">*</span></legend>
+            <div class="startup-choice-grid">
+              <label class="unit-option startup-choice-option"><input type="radio" id="startupCompletedYes" name="startupCompleted" value="Yes" required><span>Yes</span></label>
+              <label class="unit-option startup-choice-option"><input type="radio" name="startupCompleted" value="No" required><span>No</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset class="unit-fieldset">
+            <legend>Frequency <span aria-hidden="true">*</span></legend>
+            <div class="startup-choice-grid">
+              <label class="unit-option startup-choice-option"><input type="radio" name="startupFrequency" value="Shift" required><span>Shift</span></label>
+              <label class="unit-option startup-choice-option"><input type="radio" name="startupFrequency" value="Weekly" required><span>Weekly</span></label>
+              <label class="unit-option startup-choice-option"><input type="radio" name="startupFrequency" value="Monthly" required><span>Monthly</span></label>
+            </div>
+          </fieldset>
+
+          <div class="startup-no-comment" id="startupNoComment">
+            <label for="startupOverallComment">Comment <span aria-hidden="true">*</span></label>
+            <textarea id="startupOverallComment" placeholder="Please explain why the check is not completed."></textarea>
+            <small class="input-help startup-escalation-help" id="startupEscalationHelp">Briefly explain unfinished tasks and notify your supervisor.</small>
+          </div>
+
+          <div class="startup-checklist" id="startupChecklist">
+            <section class="startup-check-group">
+              <h4>Loader/Unloader P&amp;P</h4>
+              <div class="startup-check-items-box">
+              <div class="startup-check-item" data-startup-item="Loader/Unloader P&amp;P / Gripper">
+                <div class="startup-check-label">Gripper</div>
+                <div class="startup-status-options">
+                  <select class="startup-status-select" name="startupStatusLoaderGripper" required aria-label="Gripper status"><option value="" selected disabled>Select status</option><option value="Pass">Pass</option><option value="Flagged">Flagged</option><option value="Incomplete">Incomplete</option></select>
+                </div>
+                <div class="startup-comment"><label>Comment<textarea data-startup-comment placeholder="Required for Flagged or incomplete"></textarea></label></div>
+              </div>
+              <div class="startup-check-item" data-startup-item="Loader/Unloader P&amp;P / Rail">
+                <div class="startup-check-label">Rail</div>
+                <div class="startup-status-options">
+                  <select class="startup-status-select" name="startupStatusLoaderRail" required aria-label="Rail status"><option value="" selected disabled>Select status</option><option value="Pass">Pass</option><option value="Flagged">Flagged</option><option value="Incomplete">Incomplete</option></select>
+                </div>
+                <div class="startup-comment"><label>Comment<textarea data-startup-comment placeholder="Required for Flagged or incomplete"></textarea></label></div>
+              </div>
+              <div class="startup-check-item" data-startup-item="Loader/Unloader P&amp;P / Shuttle">
+                <div class="startup-check-label">Shuttle</div>
+                <div class="startup-status-options">
+                  <select class="startup-status-select" name="startupStatusLoaderShuttle" required aria-label="Shuttle status"><option value="" selected disabled>Select status</option><option value="Pass">Pass</option><option value="Flagged">Flagged</option><option value="Incomplete">Incomplete</option></select>
+                </div>
+                <div class="startup-comment"><label>Comment<textarea data-startup-comment placeholder="Required for Flagged or incomplete"></textarea></label></div>
+              </div>
+              <div class="startup-check-item" data-startup-item="Loader/Unloader P&amp;P / Dummy cell">
+                <div class="startup-check-label">Dummy cell</div>
+                <div class="startup-status-options">
+                  <select class="startup-status-select" name="startupStatusLoaderDummyCell" required aria-label="Dummy cell status"><option value="" selected disabled>Select status</option><option value="Pass">Pass</option><option value="Flagged">Flagged</option><option value="Incomplete">Incomplete</option></select>
+                </div>
+                <div class="startup-comment"><label>Comment<textarea data-startup-comment placeholder="Required for Flagged or incomplete"></textarea></label></div>
+              </div>
+              </div>
+            </section>
+
+            <section class="startup-check-group">
+              <h4>Main P&amp;P</h4>
+              <div class="startup-check-items-box">
+              <div class="startup-check-item" data-startup-item="Main P&amp;P / Gripper">
+                <div class="startup-check-label">Gripper</div>
+                <div class="startup-status-options">
+                  <select class="startup-status-select" name="startupStatusMainGripper" required aria-label="Gripper status"><option value="" selected disabled>Select status</option><option value="Pass">Pass</option><option value="Flagged">Flagged</option><option value="Incomplete">Incomplete</option></select>
+                </div>
+                <div class="startup-comment"><label>Comment<textarea data-startup-comment placeholder="Required for Flagged or incomplete"></textarea></label></div>
+              </div>
+              <div class="startup-check-item" data-startup-item="Main P&amp;P / Rail">
+                <div class="startup-check-label">Rail</div>
+                <div class="startup-status-options">
+                  <select class="startup-status-select" name="startupStatusMainRail" required aria-label="Rail status"><option value="" selected disabled>Select status</option><option value="Pass">Pass</option><option value="Flagged">Flagged</option><option value="Incomplete">Incomplete</option></select>
+                </div>
+                <div class="startup-comment"><label>Comment<textarea data-startup-comment placeholder="Required for Flagged or incomplete"></textarea></label></div>
+              </div>
+              </div>
+            </section>
+
+            <section class="startup-check-group">
+              <h4>Cleaning</h4>
+              <div class="startup-check-items-box">
+              <div class="startup-check-item" data-startup-item="Cleaning / PP">
+                <div class="startup-check-label">PP</div>
+                <div class="startup-status-options">
+                  <select class="startup-status-select" name="startupStatusCleaningPp" required aria-label="PP status"><option value="" selected disabled>Select status</option><option value="Pass">Pass</option><option value="Flagged">Flagged</option><option value="Incomplete">Incomplete</option></select>
+                </div>
+                <div class="startup-comment"><label>Comment<textarea data-startup-comment placeholder="Required for Flagged or incomplete"></textarea></label></div>
+              </div>
+              <div class="startup-check-item" data-startup-item="Cleaning / Hot jig">
+                <div class="startup-check-label">Hot jig</div>
+                <div class="startup-status-options">
+                  <select class="startup-status-select" name="startupStatusCleaningHotJig" required aria-label="Hot jig status"><option value="" selected disabled>Select status</option><option value="Pass">Pass</option><option value="Flagged">Flagged</option><option value="Incomplete">Incomplete</option></select>
+                </div>
+                <div class="startup-comment"><label>Comment<textarea data-startup-comment placeholder="Required for Flagged or incomplete"></textarea></label></div>
+              </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="resealing-fields" id="resealingFields">
+          <div class="form-group">
+            <label for="resealingShift">Shift <span aria-hidden="true">*</span></label>
+            <input type="text" id="resealingShift" maxlength="40" placeholder="Enter shift">
+          </div>
+          <div class="form-group">
+            <label for="resealingWork">What is being performed today? <span aria-hidden="true">*</span></label>
+            <input type="text" id="resealingWork" maxlength="160" placeholder="Describe today's work">
+          </div>
+          <div class="startup-checklist">
+            <section class="startup-check-group">
+              <h4>Resealing Tool</h4>
+              <div class="startup-check-items-box">
+                <div class="startup-action-heading">Inspection</div>
+                <div class="startup-check-item">
+                  <div class="startup-check-label">Tool</div>
+                  <div class="startup-status-options">
+                    <select class="startup-status-select" id="resealingInspectStatus" aria-label="Inspect Resealing tool status">
+                      <option value="" selected disabled>Select status</option>
+                      <option value="Pass">Pass</option>
+                      <option value="Flagged">Flagged</option>
+                      <option value="N/A">N/A</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="startup-action-heading">Cleaning</div>
+                <div class="startup-check-item">
+                  <div class="startup-check-label">Tool</div>
+                  <div class="startup-status-options">
+                    <select class="startup-status-select" id="resealingCleanStatus" aria-label="Clean Resealing tool status">
+                      <option value="" selected disabled>Select status</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Incomplete">Incomplete</option>
+                      <option value="N/A">N/A</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="form-group">
+            <label for="resealingComments">Comments</label>
+            <textarea id="resealingComments" placeholder="Add details if needed"></textarea>
+          </div>
+        </div>
+
+        <div class="ip-fields" id="ipFields">
+          <div class="ip-meta-grid">
+            <div class="form-group">
+              <label for="ipDate">Date <span aria-hidden="true">*</span></label>
+              <input type="date" id="ipDate">
+            </div>
+            <div class="form-group">
+              <label for="ipLine">Line <span aria-hidden="true">*</span></label>
+              <input type="text" id="ipLine" maxlength="60" placeholder="e.g., ESHD #5-1">
+            </div>
+          </div>
+          <small class="input-help">Enter the measurements at the (+) and (-) points. Values outside the target range can still be saved.</small>
+          <div class="ip-checklist" id="ipChecklist"></div>
         </div>
 
         <div class="hta-fields" id="htaFields">
@@ -1448,6 +1763,7 @@
             <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Scratch"><span>Scratch</span></label>
             <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Lead bending"><span>Lead bending</span></label>
             <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Wrinkles"><span>Wrinkles</span></label>
+            <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Unsealing pouch"><span>Unsealing pouch</span></label>
             <label class="unit-option defect-option"><input type="checkbox" name="defectType" value="Others"><span>Others</span></label>
           </div>
           <small class="input-help">Select one or more defect types. All OK cannot be combined with another type.</small>
@@ -1585,6 +1901,26 @@
       </div>
       <div class="records-pagination"><button type="button" id="conductiveLoadMoreBtn" style="display:none;">Load More</button></div>
     </div>
+    <div class="card history-card" id="startupHistoryCard" style="display:none;">
+      <div class="history-card-header">
+        <h3 style="margin:0;" id="startupHistoryTitle">Jig Start-up Check Sheets</h3>
+        <div class="history-actions"><span class="last-sync">Not synced</span><button type="button" class="btn-secondary" onclick="loadData()">Refresh data</button></div>
+      </div>
+      <div class="table-container">
+        <table class="startup-history-table" id="startupHistoryTable">
+          <thead><tr><th>Date</th><th>Team</th><th class="startup-operator-column" style="display:none;">First and Last Name</th><th class="startup-selector-column" style="display:none;">Selector</th><th id="startupScopeHeader">Line</th><th class="startup-cdc-column" style="display:none;">Floor #</th><th>Check completed</th><th>Frequency</th><th>Category</th><th>Item</th><th>Status</th><th>Comment</th></tr></thead>
+          <tbody id="startupTableBody"><tr><td colspan="9" style="text-align:center;">No start-up check sheets yet.</td></tr></tbody>
+        </table>
+        <table class="startup-history-table" id="ipHistoryTable" style="display:none;">
+          <thead><tr><th>Date</th><th>Line</th><th>Process</th><th>Measurement point</th><th>Lane</th><th>Target</th><th>(+)</th><th>(-)</th><th>Range check</th></tr></thead>
+          <tbody id="ipTableBody"><tr><td colspan="9" style="text-align:center;">No DSF Daily IP checks yet.</td></tr></tbody>
+        </table>
+        <table class="startup-history-table" id="resealingHistoryTable" style="display:none;">
+          <thead><tr><th>Date</th><th>Name</th><th>Shift</th><th>What is being performed today?</th><th>Inspect Resealing tool</th><th>Clean Resealing tool</th><th>Comments</th></tr></thead>
+          <tbody id="resealingTableBody"><tr><td colspan="7" style="text-align:center;">No Resealing Machine records yet.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
     <section class="chart-dashboard" id="chartDashboard">
       <div class="hta-chart-filter" aria-label="HTA chart date filters">
         <div class="form-group"><label for="htaStartDate">Start Date</label><input type="date" id="htaStartDate" required></div>
@@ -1651,8 +1987,8 @@
   </div>
 
   <script>
-    // Google Apps Script deployment URL
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4_P_F818omnp_ytln0JQnF4OIwlvdPBElUwHOQLS-Lrr2wJhc_eDv7KR72nluYLWW/exec';
+    // Same-origin PostgreSQL API
+    const SCRIPT_URL = '/api/inspections';
     const formCard = document.getElementById('formCard');
     const inspectionForm = document.getElementById('inspectionForm');
     const openFormBtn = document.getElementById('openFormBtn');
@@ -1690,15 +2026,583 @@
     const weeklyRecordsByProcess = { before_hpcd: [], formation: [], degas: [] };
     const FORMATION_LINES = Object.freeze(['3-1', '3-2', '3-3', '4-1', '4-2', '4-3', '5-1', '5-2', '5-3', '6-1', '6-2', '6-3']);
     const FORMATION_HOT_JIGS = Object.freeze(Array.from({ length: 15 }, (_, index) => String(index + 1)));
+    const STARTUP_LINES = FORMATION_LINES;
+    const HPCD_LINES = Object.freeze(['3', '4', '5', '6']);
+    // New Start-up check sheets omit separate start and completion time fields.
+    const STARTUP_CHECK_CONFIGS = Object.freeze({
+      startup_hpcd: {
+        title: 'HPCD Start-up Check Sheet',
+        eyebrow: 'Start-up / HPCD',
+        kpi: 'HPCD Start-up',
+        formTitle: 'New HPCD Start-up Check Sheet',
+        historyTitle: 'HPCD Start-up Check Sheets',
+        submitLabel: 'Submit Check Sheet',
+        successMessage: '✅ HPCD start-up check sheet saved.',
+        usesLine: true,
+        lineValue: '',
+        lineValues: HPCD_LINES,
+        groups: [
+          { label: 'Loader/Unloader P&P', items: ['Gripper'] },
+          { label: 'Cleaning', items: ['Paper', 'Conveyor', 'Plexi-Glass'] }
+        ]
+      },
+      startup_jig: {
+        title: 'Jig Start-up Check Sheet',
+        eyebrow: 'Start-up / Jig',
+        kpi: 'Jig Start-up',
+        formTitle: 'New Jig Start-up Check Sheet',
+        historyTitle: 'Jig Start-up Check Sheets',
+        submitLabel: 'Submit Check Sheet',
+        successMessage: '✅ Jig start-up check sheet saved.',
+        usesLine: true,
+        lineValue: '',
+        lineValues: STARTUP_LINES,
+        groups: [
+          { label: 'Loader/Unloader P&P', items: ['Gripper', 'Rail', 'Shuttle', 'Dummy cell'] },
+          { label: 'Main P&P', items: ['Gripper', 'Rail'] },
+          { label: 'Cleaning', items: ['PP', 'Hot jig'] }
+        ]
+      },
+      startup_degas: {
+        title: 'Degas Start-up Check Sheet',
+        eyebrow: 'Start-up / Degas',
+        kpi: 'Degas Start-up',
+        formTitle: 'New Degas Start-up Check Sheet',
+        historyTitle: 'Degas Start-up Check Sheets',
+        submitLabel: 'Submit Check Sheet',
+        successMessage: 'Degas start-up check sheet saved.',
+        usesLine: true,
+        singleLine: true,
+        lineValues: ['4-1', '4-2', '5-1', '5-2'],
+        groups: [
+          { label: 'Loader', items: [
+            { action: 'Position', label: 'Grippers', value: 'Grippers position', hint: 'Grippers must not pass the side seal.' },
+            { action: 'Clean', label: 'Conveyor', value: 'Clean Loader Conveyor' },
+            { action: 'Clean', label: 'Gripper pads', value: 'Clean Loader Gripper Pads' },
+            { action: 'Clean', label: 'Pitch changer', value: 'Clean Loader Pitch Changer' },
+            { action: 'Clean', label: 'Flat surfaces', value: 'Clean Loader Flat Surfaces' },
+            { action: 'Clean', label: 'Cell loader shuttle', value: 'Clean Cell Loader Shuttle' }
+          ] },
+          { label: 'Degas', items: [
+            { action: 'Clean', label: 'Gripper pads', value: 'Clean Degas Gripper Pads' },
+            { action: 'Clean', label: 'Flat surfaces', value: 'Clean Degas Flat Surfaces' },
+            { action: 'Clean', label: 'Chamber nests', value: 'Clean Degas Chamber Nests' }
+          ] },
+          { label: 'Main Sealing', items: [
+            { action: 'Clean', label: 'Tool', value: 'Clean Main Sealing Tool' },
+            { action: 'Clean', label: 'Suction cups', value: 'Clean Main Sealing Suction Cups' },
+            { action: 'Clean', label: 'Pouch cutter', value: 'Clean Pouch Cutter' },
+            { action: 'Clean', label: 'Wing press', value: 'Clean Wing Press' },
+            { action: 'Clean', label: 'Shuttle', value: 'Clean Main Sealing Shuttle' },
+            { action: 'Clean', label: 'Flat surfaces', value: 'Clean Main Sealing Flat Surfaces' }
+          ] },
+          { label: 'Hot Press', items: [
+            { action: 'Inspect', label: 'Conductive rubber', value: 'Inspect Conductive Rubber' },
+            { action: 'Inspect', label: 'Copper pin', value: 'Inspect Copper Pin' },
+            { action: 'Clean', label: 'Plates', value: 'Clean Hot Press Plates' },
+            { action: 'Clean', label: 'Suction cups', value: 'Clean Hot Press Suction Cups' },
+            { action: 'Clean', label: 'Conveyor belt', value: 'Clean Hot Press Conveyor Belt' }
+          ] },
+          { label: 'Weight Checker', items: [
+            { action: 'Clean', label: 'Equipment', value: 'Clean Weight Checker' }
+          ] },
+          { label: 'Unloader', items: [
+            { action: 'Inspect', label: 'Gripper pads', value: 'Inspect Unloader Gripper Pads' },
+            { action: 'Clean', label: 'Gripper pads', value: 'Clean Unloader Gripper Pads' },
+            { action: 'Clean', label: 'Flat surfaces', value: 'Clean Unloader Flat Surfaces' },
+            { action: 'Clean', label: 'Conveyor', value: 'Clean Unloader Conveyor' }
+          ] }
+        ]
+      },
+      startup_cdc: {
+        title: 'CDC Start-up Check Sheet',
+        eyebrow: 'Start-up / CDC',
+        kpi: 'CDC Start-up',
+        formTitle: 'New CDC Start-up Check Sheet',
+        historyTitle: 'CDC Start-up Check Sheets',
+        submitLabel: 'Submit Check Sheet',
+        successMessage: 'CDC start-up check sheet saved.',
+        usesLine: false,
+        lineValue: '',
+        groups: [
+          { label: 'Box Doors & Panels', items: [
+            { action: 'Inspect', label: 'Box doors / surrounding areas', value: 'Inspect Box Doors/ Surrounding Areas', legacyGroup: 'Inspection' },
+            { action: 'Inspect', label: 'Metal panels (opposite boxes)', value: 'Inspect Metal Panels (opposite of boxes)', legacyGroup: 'Inspection' },
+            { action: 'Clean', label: 'Box doors / surrounding areas', value: 'Clean Box Doors/ Surrounding Areas', legacyGroup: 'Cleaning' },
+            { action: 'Clean', label: 'Metal panels (opposite boxes)', value: 'Clean Metal Panels (opposite of boxes)', legacyGroup: 'Cleaning' }
+          ] },
+          { label: 'Handling Equipment', items: [
+            { action: 'Inspect', label: 'Grippers', value: 'Inspect Grippers', legacyGroup: 'Inspection' },
+            { action: 'Inspect', label: 'Lifting platforms', value: 'Inspect Lifting Platforms', legacyGroup: 'Inspection' },
+            { action: 'Clean', label: 'Grippers', value: 'Clean Grippers', legacyGroup: 'Cleaning' },
+            { action: 'Clean', label: 'Lifting platforms', value: 'Clean Lifting Platforms', legacyGroup: 'Cleaning' }
+          ] },
+          { label: 'Floors & Access', items: [
+            { action: 'Inspect', label: 'Floors', value: 'Inspect Floors', legacyGroup: 'Inspection' },
+            { action: 'Inspect', label: 'Handrails / stairs', value: 'Inspect Handrails/ Stairs', legacyGroup: 'Inspection' },
+            { action: 'Clean', label: 'Floors', value: 'Clean Floors', legacyGroup: 'Cleaning' },
+            { action: 'Clean', label: 'Handrails / stairs', value: 'Clean Handrails/ Stairs', legacyGroup: 'Cleaning' }
+          ] },
+          { label: 'OCV Equipment', items: [
+            { action: 'Clean', label: 'Equipment', value: 'Clean OCV Equipment', legacyGroup: 'Cleaning' }
+          ] }
+        ]
+      },
+      startup_selector: {
+        title: 'Selector Start-up Check Sheet',
+        eyebrow: 'Start-up / Selector',
+        kpi: 'Selector Start-up',
+        formTitle: 'New Selector Start-up Check Sheet',
+        historyTitle: 'Selector Start-up Check Sheets',
+        submitLabel: 'Submit Check Sheet',
+        successMessage: 'Selector start-up check sheet saved.',
+        usesLine: true,
+        singleLine: true,
+        lineValues: ['#1', '#2', '#3', '#4', '#5', '#6'],
+        groups: [
+          { label: 'Grippers', items: [
+            { action: 'Inspect', label: 'Pads', value: 'Inspect Gripper Pads' },
+            { action: 'Position', label: 'Grippers', value: 'Grippers position', hint: 'Grippers must not pass the side seal.' },
+            { action: 'Clean', label: 'Pads', value: 'Clean Gripper Pads' }
+          ] },
+          { label: 'Plexi-Glass', items: [
+            { action: 'Inspect', label: 'All panels', value: 'Inspect all Plexi-Glass' },
+            { action: 'Clean', label: 'All panels', value: 'Clean all Plexi-Glass' }
+          ] },
+          { label: 'Rollers & Conveyors', items: [
+            { action: 'Inspect', label: 'Rollers and conveyors', value: 'Inspect Rollers and Conveyors' },
+            { action: 'Clean', label: 'Rollers and conveyors', value: 'Clean Rollers and Conveyors' }
+          ] },
+          { label: 'Pick and Place (P&P)', items: [
+            { action: 'Inspect', label: 'P&P', value: 'Inspect Pick and Place (P&P)' },
+            { action: 'Inspect', label: 'Rail', value: 'Inspect P&P Rail' },
+            { action: 'Clean', label: 'P&P', value: 'Clean Pick and Place (P&P)' },
+            { action: 'Clean', label: 'Rail', value: 'Clean P&P Rail' }
+          ] },
+          { label: 'Buffer & Aligning Stages', items: [
+            { action: 'Inspect', label: 'Buffer tray stage (holder)', value: 'Inspect Buffer Tray Stage (holder)' },
+            { action: 'Inspect', label: 'Aligning stage (aligners and contact points)', value: 'Inspect Aligning Stage (aligners and contact points)' },
+            { action: 'Clean', label: 'Buffer tray stage (holder)', value: 'Clean Buffer Tray Stage (holder)' },
+            { action: 'Clean', label: 'Aligning stage (aligners and contact points)', value: 'Clean Aligning Stage (aligners and contact points)' }
+          ] }
+        ]
+      },
+      ip_dsf: {
+        title: 'DSF Daily IP Check Sheet',
+        eyebrow: 'IP check sheet / DSF',
+        kpi: 'DSF Daily IP',
+        formTitle: 'New DSF Daily IP Check',
+        historyTitle: 'DSF Daily IP Checks',
+        submitLabel: 'Save IP Check',
+        successMessage: 'DSF Daily IP check saved.',
+        usesLine: false,
+        lineValue: '',
+        groups: []
+      },
+      startup_resealing: {
+        title: 'Resealing Machine',
+        eyebrow: 'Start-up / Resealing Machine',
+        kpi: 'Resealing Machine',
+        formTitle: 'New Resealing Machine Check',
+        historyTitle: 'Resealing Machine Records',
+        submitLabel: 'Submit Check',
+        successMessage: 'Resealing Machine check saved.',
+        usesLine: false,
+        lineValue: '',
+        groups: []
+      },
+      startup_eol: {
+        title: 'EOL Start-up Check Sheet',
+        eyebrow: 'Start-up / EOL',
+        kpi: 'EOL Start-up',
+        formTitle: 'New EOL Start-up Check Sheet',
+        historyTitle: 'EOL Start-up Check Sheets',
+        submitLabel: 'Submit Check Sheet',
+        successMessage: 'EOL start-up check sheet saved.',
+        usesLine: true,
+        singleLine: true,
+        lineValues: ['4-1', '4-2', '5-1', '5-2'],
+        groups: [
+          { label: 'Loader', items: [
+            { action: 'Inspect', label: 'Gripper pads', value: 'Inspect Loader Gripper Pads' },
+            { action: 'Inspect', label: 'Suction cups', value: 'Inspect Loader Suction Cups' },
+            { action: 'Position', label: 'Grippers', value: 'Grippers position', hint: 'Grippers must not pass the side seal.' },
+            { action: 'Clean', label: 'Conveyor', value: 'Clean Loader Conveyor' },
+            { action: 'Clean', label: 'Gripper pads', value: 'Clean Loader Gripper Pads' },
+            { action: 'Clean', label: 'Suction cups', value: 'Clean Loader Suction Cups' },
+            { action: 'Clean', label: 'Flat surfaces', value: 'Clean Loader Flat Surfaces' }
+          ] },
+          { label: 'DSF', items: [
+            { action: 'Inspect', label: 'P&P suction cups', value: 'Inspect DSF P&P Suction Cups' },
+            { action: 'Inspect', label: 'Aligners', value: 'Inspect DSF Aligners' },
+            { action: 'Inspect', label: 'Wing press', value: 'Inspect DSF Wing Press' },
+            { action: 'Inspect', label: 'Pouch cutter', value: 'Inspect DSF Pouch Cutter' },
+            { action: 'Inspect', label: 'Corner cutters', value: 'Inspect DSF Corner Cutters' },
+            { action: 'Inspect', label: 'Shuttle', value: 'Inspect DSF Shuttle' },
+            { action: 'Inspect', label: 'Wing folder press', value: 'Inspect DSF Wing Folder Press' },
+            { action: 'Inspect', label: 'Folding unit', value: 'Inspect DSF Folding Unit' },
+            { action: 'Inspect', label: 'NG boxes', value: 'Inspect DSF NG Boxes' },
+            { action: 'Inspect', label: 'BCR scanner', value: 'Inspect DSF BCR Scanner' },
+            { action: 'Daily', label: 'One side of the EOL line', value: 'IP Check every day one side of the EOL line' },
+            { action: 'Clean', label: 'P&P suction cups', value: 'Clean DSF P&P Suction Cups' },
+            { action: 'Clean', label: 'Aligners', value: 'Clean DSF Aligners' },
+            { action: 'Clean', label: 'Pouch cutter', value: 'Clean DSF Pouch Cutter' },
+            { action: 'Clean', label: 'Corner cutters', value: 'Clean DSF Corner Cutters' },
+            { action: 'Clean', label: 'Flat surfaces', value: 'Clean DSF Flat Surfaces' }
+          ] },
+          { label: 'Taper', items: [
+            { action: 'Inspect', label: 'Suction cups', value: 'Inspect Taper Suction Cups' },
+            { action: 'Clean', label: 'Suction cups', value: 'Clean Taper Suction Cups' },
+            { action: 'Clean', label: 'Blade', value: 'Clean Taper Blade' }
+          ] },
+          { label: 'Measurement', items: [
+            { action: 'Inspect', label: 'Weight measurement', value: 'Inspect Weight Measurement' },
+            { action: 'Inspect', label: 'IR measurement', value: 'Inspect IR Measurement' },
+            { action: 'Inspect', label: 'Suction cups', value: 'Inspect Measurement Suction Cups' },
+            { action: 'Inspect', label: 'Shuttle', value: 'Inspect Measurement Shuttle' },
+            { action: 'Inspect', label: 'NG boxes', value: 'Inspect Measurement NG Boxes' },
+            { action: 'Clean', label: 'IV measurement', value: 'Clean IV Measurement' },
+            { action: 'Clean', label: 'Thickness measurement', value: 'Clean Thickness Measurement' },
+            { action: 'Clean', label: 'Printer and ink', value: 'Clean Printer and Ink' },
+            { action: 'Clean', label: 'Weight measurement', value: 'Clean Weight Measurement' },
+            { action: 'Clean', label: 'Suction cups', value: 'Clean Measurement Suction Cups' }
+          ] },
+          { label: 'Packer', items: [
+            { action: 'Inspect', label: 'Suction cup', value: 'Inspect Packer Suction Cup' },
+            { action: 'Inspect', label: 'Aligners', value: 'Inspect Packer Aligners' },
+            { action: 'Inspect', label: 'BCR scanner', value: 'Inspect Packer BCR Scanner' },
+            { action: 'Clean', label: 'Suction cup', value: 'Clean Packer Suction Cup' },
+            { action: 'Clean', label: 'Aligners', value: 'Clean Packer Aligners' },
+            { action: 'Clean', label: 'Conveyor', value: 'Clean Packer Conveyor' }
+          ] }
+        ]
+      }
+    });
+    const IP_CHECK_GROUPS = Object.freeze([
+      {
+        id: 'second-wing', label: '2nd Wing Press', image: 'ip-check-image3.png', lanes: ['Common'],
+        metrics: [
+          { point: 'a', name: 'Gap between upper block and lower block', target: '0.4 < X < 0.5', lower: 0.4, upper: 0.5 },
+          { point: 'b', name: 'Datum Block ~ Press Tool', target: '2 < X < 2.5', lower: 2, upper: 2.5, sameBoth: true },
+          { point: 'c', name: 'Align Block ~ datum block', target: '120 < X < 122', lower: 120, upper: 122, sameBoth: true }
+        ]
+      },
+      {
+        id: 'ninety-fold', label: '90\u00b0 Folding', image: 'ip-check-image1.png', lanes: ['Common'],
+        metrics: [
+          { point: 'a', name: 'Gap between upper knife and lower knife', target: '0.5 < X', lower: 0.5, sameBoth: true },
+          { point: 'b', name: 'Gap between punch block and upper knife', target: '0.5 < X', lower: 0.5, sameBoth: true }
+        ]
+      },
+      {
+        id: 'third-wing', label: '3rd Wing Press', image: 'ip-check-image3.png', lanes: ['A', 'B'],
+        metrics: [
+          { point: 'a', name: 'Gap between upper block and lower block', target: '0.8 < X < 1.0', lower: 0.8, upper: 1, sameBoth: true },
+          { point: 'b', name: 'Datum Block ~ Press Tool', target: '3.0 < X < 3.5', lower: 3, upper: 3.5, sameBoth: true },
+          { point: 'c', name: 'Align Block ~ datum block', target: '120 < X < 122', lower: 120, upper: 122, sameBoth: true }
+        ]
+      },
+      {
+        id: 'two-seventy-fold', label: '270\u00b0 Folding', image: 'ip-check-image2.png', lanes: ['A', 'B'],
+        metrics: [
+          { point: 'a', name: 'Gap between punch block and lower knife after forward (punch descent)', target: '3 < X', lower: 3, sameBoth: true },
+          { point: 'b', name: 'Gap between punch block and upper knife after forward (punch ascent)', target: '1.5 < X', lower: 1.5 },
+          { point: 'c', name: 'Gap between upper knife and lower knife', target: '1.5 < X', lower: 1.5, sameBoth: true }
+        ]
+      }
+    ]);
+    const IP_CHECK_ROWS = IP_CHECK_GROUPS.flatMap(group => group.lanes.flatMap(lane =>
+      group.metrics.map(metric => ({
+        id: group.id + '-' + metric.point + '-' + lane.toLowerCase(),
+        process: group.label,
+        point: metric.point,
+        name: metric.name,
+        target: metric.target,
+        lower: metric.lower,
+        upper: metric.upper,
+        sameBoth: Boolean(metric.sameBoth),
+        lane
+      }))
+    ));
+    const IP_CHECK_ROW_BY_ID = new Map(IP_CHECK_ROWS.map(row => [row.id, row]));
+    const STARTUP_ACTION_LABELS = Object.freeze({ Inspect: 'Inspection', Clean: 'Cleaning', Position: 'Position', Daily: 'Daily IP check' });
+    const STARTUP_ITEM_DISPLAY = Object.fromEntries(['startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector'].map(process => [
+      process,
+      new Map(STARTUP_CHECK_CONFIGS[process].groups.flatMap(group =>
+        group.items.map(item => [
+          (item.legacyGroup || group.label) + ' / ' + item.value,
+          { category: group.label, item: STARTUP_ACTION_LABELS[item.action] + ' / ' + item.label }
+        ])
+      ))
+    ]));
     const DEFECT_COLORS = Object.freeze({
       'Dent': '#dc2626',
       'Contamination': '#d97706',
       'Scratch': '#2563eb',
       'Lead bending': '#7c3aed',
       'Wrinkles': '#db2777',
+      'Unsealing pouch': '#0e7490',
       'Others': '#64748b',
       'All OK': '#16a34a'
     });
+
+    function isStartupCheckProcess(process = currentProcess) {
+      return Boolean(STARTUP_CHECK_CONFIGS[process]);
+    }
+
+    function getStartupConfig(process = currentProcess) {
+      return STARTUP_CHECK_CONFIGS[process] || null;
+    }
+
+    function renderStartupLineOptions(process = currentProcess) {
+      const config = getStartupConfig(process);
+      const lineGrid = document.getElementById('startupLines');
+      if (!config || !lineGrid) return;
+      const type = config.singleLine ? 'radio' : 'checkbox';
+      lineGrid.innerHTML = (config.lineValues || []).map(line =>
+        '<label class="unit-option startup-line-option"><input type="' + type + '" name="startupLine" value="' + escapeText(line) + '"><span>' + escapeText(line) + '</span></label>'
+      ).join('');
+      document.getElementById('startupLineLegend').innerHTML = (process === 'startup_degas' ? 'Degas Line' : process === 'startup_eol' ? 'EOL Line #' : process === 'startup_selector' ? 'Line #' : 'Line') + ' <span aria-hidden="true">*</span>';
+      document.getElementById('startupLineHelp').textContent = process === 'startup_degas'
+        ? 'Select one Degas line.'
+        : process === 'startup_eol' ? 'Select one EOL line.'
+        : process === 'startup_selector' ? 'Select one Selector line.'
+        : 'Select one or more ' + (process === 'startup_hpcd' ? 'HPCD' : 'Jig') + ' lines.';
+    }
+
+    function renderStartupChecklist(process = currentProcess) {
+      const config = getStartupConfig(process);
+      const checklist = document.getElementById('startupChecklist');
+      if (!config || !checklist) return;
+      checklist.innerHTML = config.groups.map((group, groupIndex) => {
+        let previousAction = '';
+        const items = group.items.map((entry, itemIndex) => {
+          const itemLabel = typeof entry === 'string' ? entry : entry.label;
+          const itemAction = typeof entry === 'string' ? '' : entry.action;
+          const itemValue = (typeof entry === 'string' ? group.label : (entry.legacyGroup || group.label)) + ' / ' + (typeof entry === 'string' ? entry : entry.value);
+          const fieldName = 'startupStatus' + process.replace(/[^a-z0-9]/gi, '') + groupIndex + itemIndex;
+          const isDetailedStartup = ['startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector'].includes(process);
+          const isCleaning = isDetailedStartup && (itemAction === 'Clean' || itemLabel.startsWith('Clean '));
+          const options = isDetailedStartup
+            ? (isCleaning ? ['Completed', 'Incomplete', 'N/A'] : ['Pass', 'Flagged', 'N/A'])
+            : ['Pass', 'Flagged', 'Incomplete'];
+          const hintText = typeof entry === 'string'
+            ? (process === 'startup_degas' && itemLabel === 'Grippers position' ? 'Grippers must not pass the side seal.' : '')
+            : (entry.hint || '');
+          const hint = hintText ? '<small class="startup-check-hint">' + escapeText(hintText) + '</small>' : '';
+          const heading = itemAction && itemAction !== previousAction
+            ? '<div class="startup-action-heading">' + escapeText(STARTUP_ACTION_LABELS[itemAction]) + '</div>'
+            : '';
+          previousAction = itemAction;
+          const accessibleLabel = itemAction ? STARTUP_ACTION_LABELS[itemAction] + ' ' + itemLabel : itemLabel;
+          return heading + '<div class="startup-check-item" data-startup-item="' + escapeText(itemValue) + '">' +
+            '<div class="startup-check-label">' + escapeText(itemLabel) + hint + '</div>' +
+            '<div class="startup-status-options">' +
+              '<select class="startup-status-select" name="' + fieldName + '" required aria-label="' + escapeText(accessibleLabel) + ' status"><option value="" selected disabled>Select status</option>' +
+              options.map(value => '<option value="' + value + '">' + value + '</option>').join('') + '</select>' +
+            '</div>' +
+            '<div class="startup-comment"><label>Comment<textarea data-startup-comment placeholder="Required for flagged or incomplete"></textarea></label></div>' +
+          '</div>';
+        }).join('');
+        return '<section class="startup-check-group"><h4>' + escapeText(group.label) + '</h4><div class="startup-check-items-box">' + items + '</div></section>';
+      }).join('');
+    }
+
+    function getStartupChecklistItems() {
+      return Array.from(document.querySelectorAll('#startupChecklist .startup-check-item')).map(item => {
+        const statusInput = item.querySelector('.startup-status-select');
+        return {
+          item: item.dataset.startupItem,
+          status: statusInput ? statusInput.value : '',
+          comment: item.querySelector('[data-startup-comment]').value.trim()
+        };
+      });
+    }
+
+    function updateStartupCommentVisibility(item) {
+      const statusInput = item.querySelector('.startup-status-select');
+      const comment = item.querySelector('[data-startup-comment]');
+      const needsComment = statusInput && ['Flagged', 'Incomplete'].includes(statusInput.value);
+      item.querySelector('.startup-comment').classList.toggle('open', Boolean(needsComment));
+      comment.required = Boolean(needsComment);
+    }
+
+    function updateStartupCompletionMode() {
+      const isStartupCheck = isStartupCheckProcess();
+      const isNotCompleted = isStartupCheck && document.querySelector('input[name="startupCompleted"]:checked')?.value === 'No';
+      const hideChecklist = isNotCompleted;
+      document.getElementById('startupChecklist').style.display = hideChecklist ? 'none' : '';
+      document.getElementById('startupNoComment').classList.toggle('open', isNotCompleted);
+      document.getElementById('startupOverallComment').required = isNotCompleted;
+      document.querySelectorAll('#startupChecklist .startup-status-select').forEach(input => { input.required = isStartupCheck && !hideChecklist; });
+      document.querySelectorAll('#startupChecklist [data-startup-comment]').forEach(input => {
+        const status = input.closest('.startup-check-item').querySelector('.startup-status-select').value;
+        input.required = isStartupCheck && !hideChecklist && ['Flagged', 'Incomplete'].includes(status);
+      });
+      if (!isNotCompleted) document.getElementById('startupOverallComment').value = '';
+    }
+
+    function renderIpChecklist() {
+      const checklist = document.getElementById('ipChecklist');
+      checklist.innerHTML = IP_CHECK_GROUPS.map(group => {
+        const renderRows = lane => IP_CHECK_ROWS.filter(row => row.process === group.label && row.lane === lane).map(row => {
+          const laneLabel = lane === 'Common' ? '' : ' ' + lane + ' Lane';
+          const samePointNote = row.sameBoth ? '<br>Should be same at both points' : '';
+          return '<div class="ip-measure-row" data-ip-measure="' + escapeText(row.id) + '">' +
+            '<div><div class="ip-measure-name">Point (' + escapeText(row.point) + ') ' + escapeText(row.name) + '</div>' +
+            '<small class="ip-measure-meta">Target: ' + escapeText(row.target) + samePointNote + '</small></div>' +
+            '<div class="ip-measure-inputs">' +
+              '<label>(+)<input type="number" step="any" inputmode="decimal" data-ip-value="plus" aria-label="' + escapeText(group.label + laneLabel + ' point ' + row.point + ' plus') + '"></label>' +
+              '<label>(-)<input type="number" step="any" inputmode="decimal" data-ip-value="minus" aria-label="' + escapeText(group.label + laneLabel + ' point ' + row.point + ' minus') + '"></label>' +
+            '</div>' +
+            '<span class="ip-target-status">Enter both values</span>' +
+          '</div>';
+        }).join('');
+        const content = group.lanes.length === 1
+          ? renderRows('Common')
+          : '<div class="ip-lane-grid">' + group.lanes.map(lane =>
+              '<section class="ip-lane-card"><h5>' + escapeText(lane) + ' Lane</h5>' + renderRows(lane) + '</section>'
+            ).join('') + '</div>';
+        return '<section class="ip-group-card"><div class="ip-group-header"><h4>' + escapeText(group.label) + '</h4>' +
+          '<img src="' + escapeText(group.image) + '" alt="' + escapeText(group.label) + ' measurement diagram" loading="lazy"></div>' +
+          content + '</section>';
+      }).join('');
+    }
+
+    function ipValueInRange(value, measure) {
+      return Number.isFinite(value) && value > measure.lower && (measure.upper === undefined || value < measure.upper);
+    }
+
+    function updateIpMeasurementStatus(element) {
+      const measure = IP_CHECK_ROW_BY_ID.get(element.dataset.ipMeasure);
+      const plusText = element.querySelector('[data-ip-value="plus"]').value;
+      const minusText = element.querySelector('[data-ip-value="minus"]').value;
+      const status = element.querySelector('.ip-target-status');
+      status.classList.remove('in-range', 'out-of-range');
+      if (plusText === '' || minusText === '') {
+        status.textContent = 'Enter both values';
+        return;
+      }
+      const inRange = ipValueInRange(Number(plusText), measure) && ipValueInRange(Number(minusText), measure);
+      status.textContent = inRange ? 'Within target range' : 'Outside target range';
+      status.classList.add(inRange ? 'in-range' : 'out-of-range');
+    }
+
+    function getIpMeasurements() {
+      return Array.from(document.querySelectorAll('#ipChecklist .ip-measure-row')).map(element => {
+        const measure = IP_CHECK_ROW_BY_ID.get(element.dataset.ipMeasure);
+        const plus = Number(element.querySelector('[data-ip-value="plus"]').value);
+        const minus = Number(element.querySelector('[data-ip-value="minus"]').value);
+        return {
+          id: measure.id, process: measure.process, point: measure.point, name: measure.name,
+          target: measure.target, lane: measure.lane, plus, minus,
+          inRange: ipValueInRange(plus, measure) && ipValueInRange(minus, measure)
+        };
+      });
+    }
+
+    function renderIpRecords(records) {
+      const tbody = document.getElementById('ipTableBody');
+      const measurements = records.flatMap(record => record.measurements || []);
+      const inRangeCount = measurements.filter(measure => measure.inRange).length;
+      document.getElementById('kpiRecords').textContent = String(records.length);
+      document.getElementById('kpiQuality').textContent = measurements.length
+        ? Math.round(inRangeCount / measurements.length * 100) + '%'
+        : '\u2014';
+      document.getElementById('kpiLatest').textContent = records.length ? records[records.length - 1].checkDate : 'No records';
+      tbody.innerHTML = '';
+      if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No DSF Daily IP checks yet.</td></tr>';
+        return;
+      }
+      records.slice().reverse().forEach(record => {
+        const rowOrder = new Map(IP_CHECK_ROWS.map((row, index) => [row.id, index]));
+        (record.measurements || []).slice().sort((a, b) =>
+          (rowOrder.get(a.id) ?? Infinity) - (rowOrder.get(b.id) ?? Infinity)
+        ).forEach(measure => {
+          const tr = document.createElement('tr');
+          const cell = (label, value) => '<td data-label="' + label + '">' + escapeText(value ?? '-') + '</td>';
+          tr.innerHTML =
+            cell('Date', record.checkDate) +
+            cell('Line', record.line) +
+            cell('Process', measure.process) +
+            cell('Measurement point', '(' + measure.point + ') ' + measure.name) +
+            cell('Lane', measure.lane) +
+            cell('Target', measure.target) +
+            cell('(+)', measure.plus) +
+            cell('(-)', measure.minus) +
+            '<td data-label="Range check"><span class="startup-status-badge ' + (measure.inRange ? 'done' : 'issue') + '">' +
+              (measure.inRange ? 'Within range' : 'Outside range') + '</span></td>';
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    document.getElementById('ipChecklist').addEventListener('input', event => {
+      const row = event.target.closest('.ip-measure-row');
+      if (row) updateIpMeasurementStatus(row);
+    });
+
+    function renderStartupRecords(records) {
+      if (currentProcess === 'ip_dsf') {
+        renderIpRecords(records);
+        return;
+      }
+      if (currentProcess === 'startup_resealing') {
+        const tbody = document.getElementById('resealingTableBody');
+        tbody.innerHTML = '';
+        if (!records.length) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No Resealing Machine records yet.</td></tr>';
+          return;
+        }
+        records.slice().reverse().forEach(record => {
+          const tr = document.createElement('tr');
+          const cell = (label, value) => '<td data-label="' + label + '">' + escapeText(value || '-') + '</td>';
+          tr.innerHTML =
+            cell('Date', formatRecordDate(record.date)) +
+            cell('Name', record.operatorName) +
+            cell('Shift', record.shift) +
+            cell('Work today', record.work) +
+            cell('Inspection', record.inspectionStatus) +
+            cell('Cleaning', record.cleaningStatus) +
+            cell('Comments', record.comment);
+          tbody.appendChild(tr);
+        });
+        return;
+      }
+      const tbody = document.getElementById('startupTableBody');
+      const isDegasStartup = currentProcess === 'startup_degas';
+      const isCdcStartup = currentProcess === 'startup_cdc';
+      const isEolStartup = currentProcess === 'startup_eol';
+      const isSelectorStartup = currentProcess === 'startup_selector';
+      const needsOperator = isDegasStartup || isCdcStartup || isEolStartup || isSelectorStartup;
+      tbody.innerHTML = '';
+      if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="' + (9 + Number(needsOperator) + Number(isCdcStartup) + Number(isSelectorStartup)) + '" style="text-align:center;">No start-up check sheets yet.</td></tr>';
+        return;
+      }
+      records.slice().reverse().forEach(record => {
+        const statusClass = ['Pass', 'Completed'].includes(record.status) ? 'done' : record.status === 'Flagged' ? 'issue' : record.status === 'N/A' ? 'na' : 'pending';
+        const parts = String(record.item || '').split(' / ');
+        const startupDisplay = STARTUP_ITEM_DISPLAY[currentProcess]?.get(String(record.item || ''));
+        const tr = document.createElement('tr');
+        const cell = (label, value) => '<td data-label="' + label + '">' + escapeText(value || '-') + '</td>';
+        tr.innerHTML =
+          cell('Date', formatRecordDate(record.date)) +
+          cell('Team', record.team) +
+          (needsOperator ? cell('First and Last Name', record.operatorName) : '') +
+          (isSelectorStartup ? cell('Selector', record.selectorType) : '') +
+          cell('Line', record.line) +
+          (isCdcStartup ? cell('Floor #', record.floor) : '') +
+          cell('Check completed', record.checkCompleted) +
+          cell('Frequency', record.frequency) +
+          cell('Category', startupDisplay ? startupDisplay.category : parts[0]) +
+          cell('Item', startupDisplay ? startupDisplay.item : parts[1] || record.item) +
+          '<td data-label="Status"><span class="startup-status-badge ' + statusClass + '">' + escapeText(record.status) + '</span></td>' +
+          cell('Comment', record.comment);
+        tbody.appendChild(tr);
+      });
+    }
 
     function isAppearanceProcess(process) {
       return process === 'before_hpcd' || process === 'formation' || process === 'degas';
@@ -1735,6 +2639,7 @@
       if (text.includes('scratch')) return 'Scratch';
       if (text.includes('lead')) return 'Lead bending';
       if (text.includes('wrinkle')) return 'Wrinkles';
+      if (text.includes('unsealing')) return 'Unsealing pouch';
       if (text.includes('all ok')) return 'All OK';
       return 'Others';
     }
@@ -1769,12 +2674,14 @@
     updateConductiveMeasurementMode();
 
     function switchProcess(process) {
-      currentProcess = ['before_hpcd', 'formation', 'degas', 'hta', 'maintenance', 'conductive'].includes(process) ? process : 'formation';
+      currentProcess = ['before_hpcd', 'formation', 'degas', 'hta', 'maintenance', 'conductive', 'startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector', 'startup_resealing', 'ip_dsf'].includes(process) ? process : 'formation';
       const isBeforeHpcd = currentProcess === 'before_hpcd';
       const isDegas = currentProcess === 'degas';
       const isHta = currentProcess === 'hta';
       const isMaintenance = currentProcess === 'maintenance';
       const isConductive = currentProcess === 'conductive';
+      const isStartupCheck = isStartupCheckProcess();
+      const startupConfig = getStartupConfig();
       const isAppearance = isAppearanceProcess(currentProcess);
       const appearanceLabel = getAppearanceProcessLabel(currentProcess);
 
@@ -1782,16 +2689,16 @@
         button.classList.toggle('active', button.dataset.process === currentProcess);
       });
       document.getElementById('pageTitle').textContent =
-        isConductive ? 'Conductive Rubber Maintenance' : isMaintenance ? 'EOL Tape/Knife Maintenance' : isHta ? 'HTA Temperature Monitoring' : `${appearanceLabel} Inspection`;
+        isStartupCheck ? startupConfig.title : isConductive ? 'Conductive Rubber Maintenance' : isMaintenance ? 'EOL Tape/Knife Maintenance' : isHta ? 'HTA Temperature Monitoring' : `${appearanceLabel} Inspection`;
       document.getElementById('pageEyebrow').textContent =
-        isConductive || isMaintenance ? 'Operations / Maintenance' : isHta ? 'Operations / Temperature' : 'Operations / Appearance';
+        isStartupCheck ? startupConfig.eyebrow : isConductive || isMaintenance ? 'Operations / Maintenance' : isHta ? 'Operations / Temperature' : 'Operations / Appearance';
       document.getElementById('kpiProcess').textContent =
-        isConductive ? 'Conductive Rubber' : isMaintenance ? 'EOL Tape/Knife' : isHta ? 'HTA' : appearanceLabel;
+        isStartupCheck ? startupConfig.kpi : isConductive ? 'Conductive Rubber' : isMaintenance ? 'EOL Tape/Knife' : isHta ? 'HTA' : appearanceLabel;
       document.getElementById('kpiRecords').textContent = '—';
       document.getElementById('kpiQuality').textContent = '—';
       document.getElementById('kpiLatest').textContent = '—';
       document.getElementById('formTitle').textContent =
-        isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isHta ? 'New HTA Temperature Reading' : `New ${appearanceLabel} Inspection`;
+        isStartupCheck ? startupConfig.formTitle : isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isHta ? 'New HTA Temperature Reading' : `New ${appearanceLabel} Inspection`;
       document.getElementById('lineLabel').textContent =
         isDegas ? 'Degas line' : 'Jig line';
       document.getElementById('lineLabel').htmlFor = isDegas ? 'degasProcessLine' : 'processLine';
@@ -1802,9 +2709,43 @@
       document.querySelectorAll('.process-inspection-field').forEach(field => {
         field.style.display = isAppearance ? '' : 'none';
       });
+      renderStartupLineOptions(currentProcess);
+      renderStartupChecklist(currentProcess);
+      if (currentProcess === 'ip_dsf') renderIpChecklist();
+      document.getElementById('startupFields').classList.toggle('open', isStartupCheck);
+      const isDegasStartup = currentProcess === 'startup_degas';
+      const isCdcStartup = currentProcess === 'startup_cdc';
+      const isEolStartup = currentProcess === 'startup_eol';
+      const isSelectorStartup = currentProcess === 'startup_selector';
+      const isResealingStartup = currentProcess === 'startup_resealing';
+      const isIpCheck = currentProcess === 'ip_dsf';
+      document.getElementById('kpiQualityLabel').textContent = isIpCheck ? 'Measurements in range' : isStartupCheck ? 'Check status' : 'Defect Rate';
+      formCard.classList.toggle('ip-check-form', isIpCheck);
+      const needsStartupOperator = isDegasStartup || isCdcStartup || isEolStartup || isSelectorStartup || isResealingStartup;
+      document.getElementById('team').required = !isResealingStartup && !isIpCheck;
+      document.getElementById('team').closest('.form-group').style.display = isResealingStartup || isIpCheck ? 'none' : '';
+      document.getElementById('operatorName').required = !isStartupCheck || needsStartupOperator;
+      document.getElementById('operatorName').closest('.form-group').style.display = isStartupCheck && !needsStartupOperator ? 'none' : '';
+      document.getElementById('operatorNameLabel').textContent = isResealingStartup ? 'Name' : needsStartupOperator ? 'First and Last Name' : 'Operator Name';
+      document.getElementById('resealingFields').classList.toggle('open', isResealingStartup);
+      document.getElementById('ipFields').classList.toggle('open', isIpCheck);
+      ['ipDate', 'ipLine'].forEach(id => { document.getElementById(id).required = isIpCheck; });
+      document.querySelectorAll('#ipChecklist .ip-measure-inputs input').forEach(input => { input.required = isIpCheck; });
+      ['resealingShift', 'resealingWork', 'resealingInspectStatus', 'resealingCleanStatus'].forEach(id => { document.getElementById(id).required = isResealingStartup; });
+      document.getElementById('startupSelectorFieldset').classList.toggle('open', isSelectorStartup);
+      document.querySelectorAll('input[name="startupSelector"]').forEach(input => { input.required = isSelectorStartup; });
+      document.getElementById('startupCdcFields').classList.toggle('open', isCdcStartup);
+      document.getElementById('startupCdcLine').required = isCdcStartup;
+      document.getElementById('startupCdcFloor').required = isCdcStartup;
+      document.getElementById('startupCompletedLegend').innerHTML = (needsStartupOperator ? 'Can the Start-up Check be completed?' : 'Check completed') + ' <span aria-hidden="true">*</span>';
+      document.getElementById('startupEscalationHelp').classList.toggle('open', needsStartupOperator);
       document.getElementById('htaFields').style.display = isHta ? 'grid' : 'none';
       document.getElementById('maintenanceFields').style.display = isMaintenance ? 'block' : 'none';
       document.getElementById('conductiveFields').style.display = isConductive ? 'block' : 'none';
+      document.getElementById('startupLineFieldset').style.display = isStartupCheck && startupConfig.usesLine ? '' : 'none';
+      document.getElementById('startupFields').style.display = isStartupCheck && !isResealingStartup && !isIpCheck ? 'block' : 'none';
+      document.querySelectorAll('input[name="startupCompleted"], input[name="startupFrequency"], #startupChecklist .startup-status-select').forEach(input => { input.required = isStartupCheck && !isResealingStartup && !isIpCheck; });
+      updateStartupCompletionMode();
       htaInputIds.forEach(id => { document.getElementById(id).required = isHta; });
       ['maintenanceLine', 'maintenanceEquipment', 'maintenanceAction', 'tapingLine'].forEach(id => {
         document.getElementById(id).required = isMaintenance;
@@ -1829,6 +2770,15 @@
       document.getElementById('historyCard').style.display = isAppearance ? '' : 'none';
       document.getElementById('maintenanceHistoryCard').style.display = isMaintenance ? '' : 'none';
       document.getElementById('conductiveHistoryCard').style.display = isConductive ? '' : 'none';
+      document.getElementById('startupHistoryCard').style.display = isStartupCheck ? '' : 'none';
+      document.getElementById('startupHistoryTitle').textContent = isStartupCheck ? startupConfig.historyTitle : 'Start-up Check Sheets';
+      document.getElementById('startupHistoryTable').style.display = isResealingStartup || isIpCheck ? 'none' : '';
+      document.getElementById('ipHistoryTable').style.display = isIpCheck ? '' : 'none';
+      document.getElementById('resealingHistoryTable').style.display = isResealingStartup ? '' : 'none';
+      document.getElementById('startupScopeHeader').textContent = isEolStartup ? 'EOL Line' : isCdcStartup ? 'CDC Line' : isDegasStartup ? 'Degas Line' : isSelectorStartup ? 'Line #' : isStartupCheck && !startupConfig.usesLine ? 'Area' : 'Line';
+      document.querySelectorAll('.startup-operator-column').forEach(column => { column.style.display = needsStartupOperator ? '' : 'none'; });
+      document.querySelectorAll('.startup-selector-column').forEach(column => { column.style.display = isSelectorStartup ? '' : 'none'; });
+      document.querySelectorAll('.startup-cdc-column').forEach(column => { column.style.display = isCdcStartup ? '' : 'none'; });
       document.getElementById('weeklyMapCard').style.display = isAppearance ? '' : 'none';
       document.getElementById('weeklyMapCard').classList.toggle('show-equipment-map', currentProcess === 'formation');
       document.querySelector('.weekly-map-layout').classList.toggle('compact-map-layout', currentProcess !== 'formation');
@@ -1846,8 +2796,8 @@
       document.getElementById('weeklyMapCount').textContent = '0 points';
       setWeeklyMapOpen(true);
       document.getElementById('chartDashboard').style.display = isHta ? 'block' : 'none';
-      openFormBtn.textContent = isConductive ? '＋ New Record' : isMaintenance ? '＋ New Maintenance' : isHta ? 'New Reading' : 'New Inspection';
-      document.getElementById('submitBtn').textContent = isConductive ? 'Submit Record' : isMaintenance ? 'Submit Maintenance' : isHta ? 'Submit Reading' : 'Submit Inspection';
+      openFormBtn.textContent = isStartupCheck ? `＋ New ${startupConfig.title.replace(' Start-up Check Sheet', ' Check Sheet')}` : isConductive ? '＋ New Record' : isMaintenance ? '＋ New Maintenance' : isHta ? 'New Reading' : 'New Inspection';
+      document.getElementById('submitBtn').textContent = isStartupCheck ? startupConfig.submitLabel : isConductive ? 'Submit Record' : isMaintenance ? 'Submit Maintenance' : isHta ? 'Submit Reading' : 'Submit Inspection';
       document.getElementById('submitAndAddCellBtn').style.display = isAppearance ? '' : 'none';
       const activeButton = document.querySelector(`.process-button[data-process="${currentProcess}"]`);
       if (activeButton) {
@@ -1885,13 +2835,26 @@
       });
     });
 
+    document.getElementById('startupChecklist').addEventListener('change', event => {
+      if (event.target.matches('.startup-status-select')) {
+        updateStartupCommentVisibility(event.target.closest('.startup-check-item'));
+      }
+    });
+    document.querySelectorAll('input[name="startupCompleted"]').forEach(input => {
+      input.addEventListener('change', updateStartupCompletionMode);
+    });
+
     function openForm() {
       formModal.classList.add('open');
       formCard.classList.add('open');
       openFormBtn.style.display = 'none';
       document.body.style.overflow = 'hidden';
-      const focusId = currentProcess === 'hta' ? 'hta11' : currentProcess === 'maintenance' ? 'maintenanceLine' : currentProcess === 'conductive' ? 'conductiveProcess' : 'trayId';
-      setTimeout(() => document.getElementById(focusId).focus(), 300);
+      if (currentProcess === 'ip_dsf' && !document.getElementById('ipDate').value) document.getElementById('ipDate').value = toDateInputValue(new Date());
+      const focusId = currentProcess === 'ip_dsf' ? 'ipDate' : currentProcess === 'startup_resealing' ? 'operatorName' : currentProcess === 'startup_cdc' ? 'startupCdcLine' : currentProcess === 'startup_selector' ? 'startupSelectorFieldset' : isStartupCheckProcess() ? (getStartupConfig().usesLine ? 'startupLines' : 'startupCompletedYes') : currentProcess === 'hta' ? 'hta11' : currentProcess === 'maintenance' ? 'maintenanceLine' : currentProcess === 'conductive' ? 'conductiveProcess' : 'trayId';
+      const focusTarget = currentProcess === 'startup_selector' ? document.querySelector('input[name="startupSelector"]') : isStartupCheckProcess() && getStartupConfig().usesLine
+        ? document.querySelector('#startupLines input')
+        : document.getElementById(focusId);
+      setTimeout(() => focusTarget?.focus(), 300);
     }
 
     function closeForm() {
@@ -1906,6 +2869,8 @@
       openFormBtn.style.display = '';
       document.body.style.overflow = '';
       updateDefectDetailVisibility(false);
+      document.querySelectorAll('#startupChecklist .startup-check-item').forEach(item => updateStartupCommentVisibility(item));
+      updateStartupCompletionMode();
     }
 
     function enforceUppercaseAlphanumeric(input) {
@@ -2033,9 +2998,6 @@
     openFormBtn.addEventListener('click', openForm);
     cancelBtn.addEventListener('click', closeForm);
     formModalClose.addEventListener('click', closeForm);
-    formModal.addEventListener('click', event => {
-      if (event.target === formModal) closeForm();
-    });
     photoInput.addEventListener('change', function() {
       const file = this.files[0];
       clearPreparedPhoto(false);
@@ -2230,6 +3192,18 @@
       if (event.target.id === 'mapModal') closeDefectMap();
     });
 
+    async function submitToDatabase(payload) {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok || result.result !== 'success') {
+        throw new Error(result.message || 'Database save failed.');
+      }
+      return result;
+    }
     // 1. Submit inspection data (POST)
     inspectionForm.addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -2244,9 +3218,85 @@
       statusDiv.style.color = '#2563eb';
       statusDiv.textContent = 'Submitting...';
 
+      if (currentProcess === 'ip_dsf') {
+        const ipInputs = Array.from(document.querySelectorAll('#ipChecklist .ip-measure-inputs input'));
+        if (!document.getElementById('ipDate').value || !document.getElementById('ipLine').value.trim() ||
+            ipInputs.length !== IP_CHECK_ROWS.length * 2 || ipInputs.some(input => input.value === '' || !input.validity.valid)) {
+          statusDiv.style.color = '#c93434';
+          statusDiv.textContent = 'Enter the date, line, and both values for every measurement point.';
+          submitBtn.disabled = false;
+          submitAndAddCellBtn.disabled = false;
+          return;
+        }
+        const measurements = getIpMeasurements();
+        if (measurements.some(row => !Number.isFinite(row.plus) || !Number.isFinite(row.minus))) {
+          statusDiv.style.color = '#c93434';
+          statusDiv.textContent = 'Enter valid numbers for every measurement point.';
+          submitBtn.disabled = false;
+          submitAndAddCellBtn.disabled = false;
+          return;
+        }
+        try {
+          await submitToDatabase({
+            process: 'ip_dsf',
+            checkDate: document.getElementById('ipDate').value,
+            line: document.getElementById('ipLine').value.trim(),
+            measurements
+          });
+          closeForm();
+          await loadData(true);
+          statusDiv.style.color = '#16a34a';
+          statusDiv.textContent = 'DSF Daily IP check saved in PostgreSQL.';
+        } catch (error) {
+          statusDiv.style.color = '#dc2626';
+          statusDiv.textContent = 'Save failed: ' + error.message;
+        } finally {
+          submitBtn.disabled = false;
+          submitAndAddCellBtn.disabled = false;
+        }
+        return;
+      }
+
+      if (currentProcess === 'startup_resealing') {
+        const inspectionStatus = document.getElementById('resealingInspectStatus').value;
+        const cleaningStatus = document.getElementById('resealingCleanStatus').value;
+        const comment = document.getElementById('resealingComments').value.trim();
+        if ((inspectionStatus === 'Flagged' || cleaningStatus === 'Incomplete') && !comment) {
+          statusDiv.style.color = '#c93434';
+          statusDiv.textContent = 'Add a comment for a flagged or incomplete task.';
+          submitBtn.disabled = false;
+          submitAndAddCellBtn.disabled = false;
+          return;
+        }
+        try {
+          await submitToDatabase({
+            process: 'startup_resealing',
+            operatorName: document.getElementById('operatorName').value.trim(),
+            shift: document.getElementById('resealingShift').value.trim(),
+            work: document.getElementById('resealingWork').value.trim(),
+            inspectionStatus,
+            cleaningStatus,
+            comment
+          });
+          closeForm();
+          await loadData(true);
+          statusDiv.style.color = '#16a34a';
+          statusDiv.textContent = 'Resealing check saved in PostgreSQL.';
+        } catch (error) {
+          statusDiv.style.color = '#dc2626';
+          statusDiv.textContent = 'Save failed: ' + error.message;
+        } finally {
+          submitBtn.disabled = false;
+          submitAndAddCellBtn.disabled = false;
+        }
+        return;
+      }
+
       const isHta = currentProcess === 'hta';
       const isMaintenance = currentProcess === 'maintenance';
       const isConductive = currentProcess === 'conductive';
+      const isStartupCheck = isStartupCheckProcess();
+      const startupConfig = getStartupConfig();
       const isAppearance = isAppearanceProcess(currentProcess);
       const selectedDefects = getSelectedDefectTypes();
       const isAllOk = isAppearance && selectedDefects.length === 1 && selectedDefects[0] === 'All OK';
@@ -2267,6 +3317,70 @@
         submitAndAddCellBtn.disabled = false;
         return;
       }
+      const startupLines = isStartupCheck && startupConfig.usesLine
+        ? Array.from(document.querySelectorAll('input[name="startupLine"]:checked')).map(input => input.value)
+        : [];
+      const startupCheckCompleted = isStartupCheck ? document.querySelector('input[name="startupCompleted"]:checked')?.value : '';
+      const isDegasStartup = currentProcess === 'startup_degas';
+      const isCdcStartup = currentProcess === 'startup_cdc';
+      const isEolStartup = currentProcess === 'startup_eol';
+      const isSelectorStartup = currentProcess === 'startup_selector';
+      const selectorType = isSelectorStartup ? document.querySelector('input[name="startupSelector"]:checked')?.value : '';
+      const startupOverallComment = isStartupCheck ? document.getElementById('startupOverallComment').value.trim() : '';
+      const startupItems = isStartupCheck
+        ? startupCheckCompleted === 'No'
+          ? [{ item: 'Check completed / Overall', status: 'No', comment: startupOverallComment }]
+          : getStartupChecklistItems()
+        : [];
+      if (isSelectorStartup && !selectorType) {
+        statusDiv.style.color = '#c93434';
+        statusDiv.textContent = 'Select a Selector.';
+        submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
+        return;
+      }
+      if (isStartupCheck && startupConfig.usesLine && !startupLines.length) {
+        statusDiv.style.color = '#c93434';
+        statusDiv.textContent = '❌ Select at least one Line.';
+        submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
+        return;
+      }
+      if (isCdcStartup && (!document.getElementById('startupCdcLine').value.trim() || !document.getElementById('startupCdcFloor').value.trim())) {
+        statusDiv.style.color = '#c93434';
+        statusDiv.textContent = 'Enter the CDC line and floor.';
+        submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
+        return;
+      }
+      if (isStartupCheck && startupCheckCompleted === 'Yes' && startupItems.some(item => !item.status)) {
+        statusDiv.style.color = '#c93434';
+        statusDiv.textContent = '❌ Select a status for every check item.';
+        submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
+        return;
+      }
+      if (isStartupCheck && startupCheckCompleted === 'No' && !startupOverallComment) {
+        statusDiv.style.color = '#c93434';
+        statusDiv.textContent = '❌ Add a comment when Check completed is No.';
+        submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
+        return;
+      }
+      if (isStartupCheck && startupCheckCompleted === 'Yes' && startupItems.some(item => ['Flagged', 'Incomplete'].includes(item.status) && !item.comment)) {
+        statusDiv.style.color = '#c93434';
+        statusDiv.textContent = '❌ Add a comment for every Flagged or incomplete item.';
+        submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
+        return;
+      }
+      if ((isDegasStartup || isCdcStartup || isEolStartup || isSelectorStartup) && startupCheckCompleted === 'Yes' && startupItems.some(item => ['Flagged', 'Incomplete'].includes(item.status))) {
+        statusDiv.style.color = '#c93434';
+        statusDiv.textContent = 'Select No when an item is flagged or incomplete.';
+        submitBtn.disabled = false;
+        submitAndAddCellBtn.disabled = false;
+        return;
+      }
       let uploadPhoto = null;
       if (isAppearance && !isAllOk && photoInput.files[0]) {
         statusDiv.textContent = 'Preparing optimized photo…';
@@ -2280,7 +3394,18 @@
         }
         statusDiv.textContent = 'Submitting optimized photo…';
       }
-      const payload = isHta ? {
+      const payload = isStartupCheck ? {
+        process: currentProcess,
+        team: document.getElementById('team').value,
+        lines: startupLines,
+        selectorType,
+        cdcLine: isCdcStartup ? document.getElementById('startupCdcLine').value.trim() : '',
+        floor: isCdcStartup ? document.getElementById('startupCdcFloor').value.trim() : '',
+        operatorName: (isDegasStartup || isCdcStartup || isEolStartup || isSelectorStartup) ? document.getElementById('operatorName').value.trim() : '',
+        checkCompleted: startupCheckCompleted,
+        frequency: document.querySelector('input[name="startupFrequency"]:checked').value,
+        items: startupItems
+      } : isHta ? {
         process: 'hta',
         team: document.getElementById('team').value,
         operatorName: document.getElementById('operatorName').value,
@@ -2331,42 +3456,31 @@
         payload.hotJig = isAllOk ? '' : hotJigInput.value;
       }
 
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(() => {
-        statusDiv.style.color = '#16a34a';
+      try {
+        await submitToDatabase(payload);
         clearDashboardCache(currentProcess);
         if (isAppearance && addAnotherCell) {
           resetAppearanceCellFieldsForNextCell();
-          statusDiv.textContent = '✅ Saved. Enter the next Cell ID for the same Tray.';
+          statusDiv.textContent = 'Saved in PostgreSQL. Enter the next Cell ID for the same Tray.';
         } else {
-          statusDiv.textContent = isHta ? '✅ Temperature reading submitted successfully!' : isConductive ? '✅ Conductive Rubber record submitted successfully!' : isMaintenance ? '✅ Maintenance record submitted successfully!' : '✅ Inspection submitted successfully!';
+          statusDiv.textContent = 'Saved in PostgreSQL.';
           closeForm();
         }
-        setTimeout(() => loadData(true), 1000); // Refresh the list after submission
-      })
-      .catch(error => {
+        statusDiv.style.color = '#16a34a';
+        await loadData(true);
+      } catch (error) {
         statusDiv.style.color = '#dc2626';
-        statusDiv.textContent = '❌ Submission failed: ' + error.message;
-      })
-      .finally(() => {
+        statusDiv.textContent = 'Save failed: ' + error.message;
+      } finally {
         submitBtn.disabled = false;
         submitAndAddCellBtn.disabled = false;
-      });
+      }
     });
 
     // 2. Load inspection data (GET)
-    function getDrivePhotoUrl(photoUrl, size) {
-      if (!photoUrl) return '';
-      const match = String(photoUrl).match(/\/d\/([a-zA-Z0-9_-]+)/)
-        || String(photoUrl).match(/[?&]id=([a-zA-Z0-9_-]+)/);
-      return match
-        ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=${size}`
-        : photoUrl;
+    function getDrivePhotoUrl(photoUrl) {
+      const path = String(photoUrl || '');
+      return /^\/api\/photos\/\d+$/.test(path) ? path : '';
     }
 
     function createImageZoomController(stageId, imageId, zoomOutId, zoomInId, resetId, levelId) {
@@ -2553,8 +3667,6 @@
 
     function formatRecordDate(value) {
       const raw = String(value || '').trim();
-      const standard = raw.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/);
-      if (standard) return `${standard[1].slice(5).replace('-', '/')} ${standard[2]}`;
       const date = parseRecordDate(raw);
       if (!date) return raw || '—';
       const pad = number => String(number).padStart(2, '0');
@@ -3041,58 +4153,148 @@
       qualityCard.dataset.tone = rate === 0 ? 'success' : 'danger';
     }
 
+    function appendRecordCell(row, label, value, className) {
+      const cell = document.createElement('td');
+      cell.dataset.label = label;
+      if (className) cell.className = className;
+      cell.textContent = value == null || value === '' ? '-' : String(value);
+      row.appendChild(cell);
+      return cell;
+    }
+
+    function appendRecordBadgeCell(row, label, value) {
+      const cell = document.createElement('td');
+      cell.dataset.label = label;
+      const badge = document.createElement('span');
+      badge.className = value === 'All OK' ? 'badge-ok' : 'badge-defect';
+      badge.textContent = value == null || value === '' ? '-' : String(value);
+      cell.appendChild(badge);
+      row.appendChild(cell);
+    }
+
+    function appendRecordPhotoCell(row, photoUrl) {
+      const cell = document.createElement('td');
+      cell.dataset.label = 'Photo';
+      if (!photoUrl) {
+        cell.textContent = '-';
+        row.appendChild(cell);
+        return;
+      }
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'thumbnail-button';
+      button.dataset.photo = encodeURIComponent(String(photoUrl));
+      button.setAttribute('aria-label', 'Enlarge photo');
+      const image = document.createElement('img');
+      image.className = 'photo-thumbnail';
+      image.src = getDrivePhotoUrl(photoUrl, 'w200');
+      image.alt = 'Defect photo';
+      image.loading = 'lazy';
+      button.appendChild(image);
+      cell.appendChild(button);
+      row.appendChild(cell);
+    }
+
+    function appendRecordMapCell(row, defectMap, defect) {
+      const cell = document.createElement('td');
+      cell.dataset.label = 'Map';
+      const pointCount = normalizeMapPoints(defectMap).length;
+      if (!pointCount) {
+        cell.textContent = '-';
+      } else {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'map-record-button';
+        button.dataset.points = encodeURIComponent(String(defectMap || '[]'));
+        button.dataset.defect = encodeURIComponent(String(defect || 'Others'));
+        button.textContent = `${pointCount} pts`;
+        cell.appendChild(button);
+      }
+      row.appendChild(cell);
+    }
+
+    function renderTableEmptyState(tbody, columnCount, message) {
+      const row = document.createElement('tr');
+      const cell = document.createElement('td');
+      cell.colSpan = columnCount;
+      cell.style.textAlign = 'center';
+      cell.textContent = message;
+      row.appendChild(cell);
+      tbody.replaceChildren(row);
+    }
+
     function renderInspectionRecords(records, process, append) {
       const isMaintenance = process === 'maintenance';
       const isConductive = process === 'conductive';
       const tbody = document.getElementById(isConductive ? 'conductiveTableBody' : isMaintenance ? 'maintenanceTableBody' : 'dataTableBody');
+      if (!append) tbody.replaceChildren();
       if (isConductive) {
-        if (!append) tbody.innerHTML = '';
         if (!records.length && !append) {
-          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No Conductive Rubber records found.</td></tr>';
+          renderTableEmptyState(tbody, 9, 'No Conductive Rubber records found.');
           return;
         }
         records.forEach(item => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td data-label="Date / Time">${formatRecordDate(item.date)}</td><td data-label="Team">${item.team}</td><td data-label="Operator">${item.operatorName}</td><td data-label="Process">${item.rubberProcess}</td><td data-label="Line">${item.line}</td><td data-label="Measurement">${item.measurement}</td><td data-label="Unit">${item.units}</td><td data-label="Action">${item.action}</td><td data-label="Comment">${item.comment || '-'}</td>`;
-          tbody.appendChild(tr);
+          const row = document.createElement('tr');
+          appendRecordCell(row, 'Date / Time', formatRecordDate(item.date));
+          appendRecordCell(row, 'Team', item.team);
+          appendRecordCell(row, 'Operator', item.operatorName);
+          appendRecordCell(row, 'Process', item.rubberProcess);
+          appendRecordCell(row, 'Line', item.line);
+          appendRecordCell(row, 'Measurement', item.measurement);
+          appendRecordCell(row, 'Unit', item.units);
+          appendRecordCell(row, 'Action', item.action);
+          appendRecordCell(row, 'Comment', item.comment);
+          tbody.appendChild(row);
         });
         return;
       }
       if (isMaintenance) {
-        if (!append) tbody.innerHTML = '';
         if (!records.length && !append) {
-          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No maintenance records found.</td></tr>';
+          renderTableEmptyState(tbody, 7, 'No maintenance records found.');
           return;
         }
         records.forEach(item => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td data-label="Date / Time">${formatRecordDate(item.date)}</td><td data-label="Team">${item.team}</td><td data-label="Operator">${item.operatorName}</td><td data-label="Line">${item.line}</td><td data-label="Target">${item.equipment}</td><td data-label="Action">${item.maintenance}</td><td data-label="Taping line">${item.tapingLine}</td>`;
-          tbody.appendChild(tr);
+          const row = document.createElement('tr');
+          appendRecordCell(row, 'Date / Time', formatRecordDate(item.date));
+          appendRecordCell(row, 'Team', item.team);
+          appendRecordCell(row, 'Operator', item.operatorName);
+          appendRecordCell(row, 'Line', item.line);
+          appendRecordCell(row, 'Target', item.equipment);
+          appendRecordCell(row, 'Action', item.maintenance);
+          appendRecordCell(row, 'Taping line', item.tapingLine);
+          tbody.appendChild(row);
         });
         return;
       }
       const isBeforeHpcd = process === 'before_hpcd';
       const columnCount = isBeforeHpcd ? 10 : process === 'degas' ? 11 : 12;
-      if (!append) tbody.innerHTML = '';
       if (!records.length && !append) {
-        tbody.innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">No inspection records found.</td></tr>`;
+        renderTableEmptyState(tbody, columnCount, 'No inspection records found.');
         return;
       }
       records.forEach(item => {
-        const tr = document.createElement('tr');
+        const row = document.createElement('tr');
         const lineValue = process === 'degas' ? item.degasLine : item.jigLine;
-        const lineCell = isBeforeHpcd ? '' : `<td data-label="${process === 'degas' ? 'Degas line' : 'Jig line'}">${lineValue}</td>`;
-        const hotJigCell = process === 'formation' ? `<td data-label="Hot jig">${item.hotJig}</td>` : '';
-        const defectCell = `<td data-label="Defect"><span class="${item.defect === 'All OK' ? 'badge-ok' : 'badge-defect'}">${item.defect}</span></td>`;
-        const pointCount = normalizeMapPoints(item.defectMap).length;
-        tr.innerHTML = `
-          <td data-label="Date / Time">${formatRecordDate(item.date)}</td><td class="col-team" data-label="Team">${item.team}</td>
-          <td class="col-operator" data-label="Operator">${item.operatorName}</td><td data-label="Tray ID"><b>${item.trayId}</b></td>
-          ${isBeforeHpcd ? defectCell : ''}<td data-label="Cell ID">${item.cellId}</td><td data-label="Channel">${item.channel}</td>${lineCell}${hotJigCell}${isBeforeHpcd ? '' : defectCell}
-          <td class="col-comment" data-label="Comment">${item.comment || '-'}</td>
-          <td data-label="Photo">${item.defectPhoto ? `<button type="button" class="thumbnail-button" data-photo="${encodeURIComponent(item.defectPhoto)}" aria-label="Enlarge photo"><img class="photo-thumbnail" src="${getDrivePhotoUrl(item.defectPhoto, 'w200')}" alt="Defect photo" loading="lazy"></button>` : '-'}</td>
-          <td data-label="Map">${pointCount ? `<button type="button" class="map-record-button" data-points="${encodeURIComponent(item.defectMap || '[]')}" data-defect="${encodeURIComponent(item.defect || 'Others')}">${pointCount} pts</button>` : '-'}</td>`;
-        tbody.appendChild(tr);
+        appendRecordCell(row, 'Date / Time', formatRecordDate(item.date));
+        appendRecordCell(row, 'Team', item.team, 'col-team');
+        appendRecordCell(row, 'Operator', item.operatorName, 'col-operator');
+        const trayCell = appendRecordCell(row, 'Tray ID', item.trayId);
+        const trayText = trayCell.textContent;
+        const trayStrong = document.createElement('b');
+        trayStrong.textContent = trayText;
+        trayCell.replaceChildren(trayStrong);
+        if (isBeforeHpcd) appendRecordBadgeCell(row, 'Defect', item.defect);
+        appendRecordCell(row, 'Cell ID', item.cellId);
+        appendRecordCell(row, 'Channel', item.channel);
+        if (!isBeforeHpcd) {
+          appendRecordCell(row, process === 'degas' ? 'Degas line' : 'Jig line', lineValue);
+          if (process === 'formation') appendRecordCell(row, 'Hot jig', item.hotJig);
+          appendRecordBadgeCell(row, 'Defect', item.defect);
+        }
+        appendRecordCell(row, 'Comment', item.comment, 'col-comment');
+        appendRecordPhotoCell(row, item.defectPhoto);
+        appendRecordMapCell(row, item.defectMap, item.defect);
+        tbody.appendChild(row);
       });
     }
 
@@ -3153,6 +4355,30 @@
       const requestId = ++loadRequestId;
       const systemStatus = document.getElementById('systemStatus');
       const refreshButton = document.getElementById('refreshDataBtn');
+      if (isStartupCheckProcess(requestedProcess)) {
+        systemStatus.textContent = 'Syncing Data';
+        systemStatus.className = 'system-status syncing';
+        updateSyncLabels('Loading PostgreSQL records...', false);
+        refreshButton.disabled = true;
+        try {
+          const response = await fetchJsonWithRetry(buildApiUrl({
+            process: requestedProcess, action: 'records'
+          }));
+          if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
+          renderStartupRecords(response.data || []);
+          systemStatus.textContent = 'System Online';
+          systemStatus.className = 'system-status';
+          updateSyncLabels('Loaded from PostgreSQL', false);
+        } catch (error) {
+          systemStatus.textContent = 'Connection Error';
+          systemStatus.className = 'system-status offline';
+          updateSyncLabels('Database load failed: ' + error.message, true);
+        } finally {
+          refreshButton.disabled = false;
+          refreshButton.textContent = '↻ Refresh';
+        }
+        return;
+      }
       if (forceRefresh) {
         refreshButton.disabled = true;
         refreshButton.textContent = '↻ Refreshing…';
@@ -3216,10 +4442,10 @@
         systemStatus.textContent = 'Connection Error';
         systemStatus.className = 'system-status offline';
         updateSyncLabels('Sync failed', true);
-        if (requestedProcess === 'hta') document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the Google Apps Script deployment.</div>';
+        if (requestedProcess === 'hta') document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the PostgreSQL server.</div>';
         else if (requestedProcess === 'conductive') document.getElementById('conductiveTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Unable to load Conductive Rubber records.</td></tr>';
         else if (requestedProcess === 'maintenance') document.getElementById('maintenanceTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Unable to load maintenance records.</td></tr>';
-        else document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the Google Apps Script deployment.</td></tr>`;
+        else document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the PostgreSQL server.</td></tr>`;
       } finally {
         if (activeLoadController === controller) activeLoadController = null;
         if (forceRefresh) {
@@ -3305,8 +4531,8 @@
       </svg>`;
     }
 
-    // Load data when the page opens
-    loadData();
+    // Initialize the default process and load its data.
+    switchProcess(currentProcess);
   </script>
 </body>
 </html>

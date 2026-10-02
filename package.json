@@ -1,17 +1,23 @@
 {
-  "name": "formation-inspection",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "build": "next build && node scripts/prepare-hosting.mjs"
-  },
-  "dependencies": {
-    "next": "^16.2.12",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
-  },
-  "overrides": {
-    "postcss": "8.5.25",
-    "sharp": "0.35.3"
-  }
+    "name":  "formation-inspection",
+    "version":  "1.0.0",
+    "private":  true,
+    "scripts":  {
+                    "build":  "next build \u0026\u0026 node scripts/prepare-hosting.mjs",
+                    "start:local":  "powershell.exe -NoProfile -File scripts/start-local-server.ps1",
+                    "package:vm":  "powershell.exe -NoProfile -File scripts/package-vm.ps1"
+                },
+    "dependencies":  {
+                         "next":  "^16.2.12",
+                         "pg":  "^8.23.1",
+                         "react":  "^19.2.8",
+                         "react-dom":  "^19.2.8"
+                     },
+    "overrides":  {
+                      "postcss":  "8.5.25",
+                      "sharp":  "0.35.3"
+                  },
+    "devDependencies":  {
+                            "@playwright/test":  "^1.62.1"
+                        }
 }

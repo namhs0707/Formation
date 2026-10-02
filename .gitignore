@@ -3,3 +3,8 @@ node_modules/
 dist/
 *.tar.gz
 .chrome-debug/
+
+/.vm-app-stage/
+/vm-app-stage/
+/.site-publish/
+/Formation-*.zip
