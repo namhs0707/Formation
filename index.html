@@ -1681,9 +1681,9 @@
 
         <div class="temperature-fields" id="temperatureFields">
           <fieldset class="unit-fieldset">
-            <legend>Areas <span aria-hidden="true">*</span></legend>
+            <legend>Area <span aria-hidden="true">*</span></legend>
             <div class="startup-line-grid" id="temperatureAreaOptions"></div>
-            <small class="input-help">Select every area you measured. Each selected area opens its own inputs below.</small>
+            <small class="input-help">Select the area you measured. Its inputs open below.</small>
           </fieldset>
           <div id="temperatureAreaForms"></div>
         </div>
@@ -3353,7 +3353,7 @@
           });
           closeForm();
           statusDiv.style.color = '#16a34a';
-          statusDiv.textContent = `✅ Saved ${result.areas.length} area reading${result.areas.length === 1 ? '' : 's'}.`;
+          statusDiv.textContent = '✅ Saved.';
           await loadData(true);
         } catch (error) {
           statusDiv.style.color = '#dc2626';
@@ -4580,7 +4580,7 @@
 
     function renderTemperatureForm() {
       document.getElementById('temperatureAreaOptions').innerHTML = TEMPERATURE_AREAS.map(area =>
-        '<label class="unit-option"><input type="checkbox" name="temperatureArea" value="' + area.process + '"><span>' + escapeText(area.label) + '</span></label>'
+        '<label class="unit-option"><input type="radio" name="temperatureArea" value="' + area.process + '"><span>' + escapeText(area.label) + '</span></label>'
       ).join('');
       document.getElementById('temperatureAreaForms').innerHTML = TEMPERATURE_AREAS.map(area => {
         const lineId = 'temperature-' + area.process + '-line';
@@ -4621,7 +4621,7 @@
 
     function collectTemperatureReadings() {
       const selected = Array.from(document.querySelectorAll('input[name="temperatureArea"]:checked')).map(input => TEMPERATURE_AREA_BY_PROCESS.get(input.value));
-      if (!selected.length) return { error: 'Select at least one area.' };
+      if (!selected.length) return { error: 'Select an area.' };
       const areas = [];
       for (const area of selected) {
         const section = document.querySelector('[data-temperature-area="' + area.process + '"]');
