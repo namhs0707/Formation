@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://drive.google.com https://drive.googleusercontent.com https://lh3.googleusercontent.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self';">
   <title>Formation Inspection Dashboard</title>
   <style>
     * { box-sizing: border-box; }
@@ -1987,8 +1987,8 @@
   </div>
 
   <script>
-    // Same-origin PostgreSQL API
-    const SCRIPT_URL = '/api/inspections';
+    // Google Apps Script deployment URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4_P_F818omnp_ytln0JQnF4OIwlvdPBElUwHOQLS-Lrr2wJhc_eDv7KR72nluYLWW/exec';
     const formCard = document.getElementById('formCard');
     const inspectionForm = document.getElementById('inspectionForm');
     const openFormBtn = document.getElementById('openFormBtn');
@@ -3193,14 +3193,15 @@
     });
 
     async function submitToDatabase(payload) {
+      // text/plain keeps this a simple CORS request, so Apps Script can answer without a preflight.
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
       const result = await response.json();
       if (!response.ok || result.result !== 'success') {
-        throw new Error(result.message || 'Database save failed.');
+        throw new Error(result.message || 'Google Sheets save failed.');
       }
       return result;
     }
@@ -3246,7 +3247,7 @@
           closeForm();
           await loadData(true);
           statusDiv.style.color = '#16a34a';
-          statusDiv.textContent = 'DSF Daily IP check saved in PostgreSQL.';
+          statusDiv.textContent = 'DSF Daily IP check saved.';
         } catch (error) {
           statusDiv.style.color = '#dc2626';
           statusDiv.textContent = 'Save failed: ' + error.message;
@@ -3281,7 +3282,7 @@
           closeForm();
           await loadData(true);
           statusDiv.style.color = '#16a34a';
-          statusDiv.textContent = 'Resealing check saved in PostgreSQL.';
+          statusDiv.textContent = 'Resealing check saved.';
         } catch (error) {
           statusDiv.style.color = '#dc2626';
           statusDiv.textContent = 'Save failed: ' + error.message;
@@ -3461,9 +3462,9 @@
         clearDashboardCache(currentProcess);
         if (isAppearance && addAnotherCell) {
           resetAppearanceCellFieldsForNextCell();
-          statusDiv.textContent = 'Saved in PostgreSQL. Enter the next Cell ID for the same Tray.';
+          statusDiv.textContent = '✅ Saved. Enter the next Cell ID for the same Tray.';
         } else {
-          statusDiv.textContent = 'Saved in PostgreSQL.';
+          statusDiv.textContent = '✅ Saved.';
           closeForm();
         }
         statusDiv.style.color = '#16a34a';
@@ -3478,9 +3479,13 @@
     });
 
     // 2. Load inspection data (GET)
-    function getDrivePhotoUrl(photoUrl) {
-      const path = String(photoUrl || '');
-      return /^\/api\/photos\/\d+$/.test(path) ? path : '';
+    function getDrivePhotoUrl(photoUrl, size) {
+      if (!photoUrl) return '';
+      const match = String(photoUrl).match(/\/d\/([a-zA-Z0-9_-]+)/)
+        || String(photoUrl).match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      return match
+        ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=${size}`
+        : '';
     }
 
     function createImageZoomController(stageId, imageId, zoomOutId, zoomInId, resetId, levelId) {
@@ -4358,7 +4363,7 @@
       if (isStartupCheckProcess(requestedProcess)) {
         systemStatus.textContent = 'Syncing Data';
         systemStatus.className = 'system-status syncing';
-        updateSyncLabels('Loading PostgreSQL records...', false);
+        updateSyncLabels('Loading records...', false);
         refreshButton.disabled = true;
         try {
           const response = await fetchJsonWithRetry(buildApiUrl({
@@ -4368,7 +4373,7 @@
           renderStartupRecords(response.data || []);
           systemStatus.textContent = 'System Online';
           systemStatus.className = 'system-status';
-          updateSyncLabels('Loaded from PostgreSQL', false);
+          updateSyncLabels('Loaded from Google Sheets', false);
         } catch (error) {
           systemStatus.textContent = 'Connection Error';
           systemStatus.className = 'system-status offline';
@@ -4442,10 +4447,10 @@
         systemStatus.textContent = 'Connection Error';
         systemStatus.className = 'system-status offline';
         updateSyncLabels('Sync failed', true);
-        if (requestedProcess === 'hta') document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the PostgreSQL server.</div>';
+        if (requestedProcess === 'hta') document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the Apps Script URL.</div>';
         else if (requestedProcess === 'conductive') document.getElementById('conductiveTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Unable to load Conductive Rubber records.</td></tr>';
         else if (requestedProcess === 'maintenance') document.getElementById('maintenanceTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Unable to load maintenance records.</td></tr>';
-        else document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the PostgreSQL server.</td></tr>`;
+        else document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the Apps Script URL.</td></tr>`;
       } finally {
         if (activeLoadController === controller) activeLoadController = null;
         if (forceRefresh) {
@@ -4461,7 +4466,9 @@
         try {
           const response = await fetch(url, { cache: 'no-store', signal: signal });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          return await response.json();
+          const result = await response.json();
+          if (result && result.result === 'error') throw new Error(result.message || 'Google Sheets load failed.');
+          return result;
         } catch (error) {
           if (error.name === 'AbortError') throw error;
           lastError = error;

@@ -12,8 +12,17 @@ const CONFIG = Object.freeze({
   HTA_SHEET_NAME: 'HTA temp',
   MAINTENANCE_SHEET_NAME: 'EOL Tape Knife',
   CONDUCTIVE_RUBBER_SHEET_NAME: 'Conductive Rubber',
-  STARTUP_HPCD_SHEET_NAME: 'Start-up HPCD Check',
-  STARTUP_JIG_SHEET_NAME: 'Start-up Jig Check',
+  STARTUP_SHEET_NAMES: Object.freeze({
+    startup_hpcd: 'Start-up HPCD Check',
+    startup_jig: 'Start-up Jig Check',
+    startup_degas: 'Start-up Degas Check',
+    startup_cdc: 'Start-up CDC Check',
+    startup_eol: 'Start-up EOL Check',
+    startup_selector: 'Start-up Selector Check'
+  }),
+  RESEALING_SHEET_NAME: 'Resealing Machine Check',
+  IP_DSF_SHEET_NAME: 'DSF Daily IP Check',
+  CHECK_SHEET_READ_ROWS: 3000,
   FORMATION_PHOTO_FOLDER_ID: '1sjdqljzpJOtAuudYBeotwXeUsxJjSdyM',
   DEGAS_PHOTO_FOLDER_ID: '10hybzCCycMsBLscf2qxIADiNgaBsQqbQ',
   MAKE_PHOTOS_PUBLIC: true,
@@ -100,38 +109,54 @@ const CONDUCTIVE_RUBBER_HEADERS = Object.freeze([
   'Comment'
 ]);
 
-const STARTUP_JIG_HEADERS = Object.freeze([
+// One row per check item; Submission ID groups the rows of one submitted sheet.
+const STARTUP_HEADERS = Object.freeze([
   'Date',
   'Team',
+  'Operator name',
+  'Selector',
   'Line',
+  'Floor',
   'Check completed',
   'Frequency',
   'Category',
   'Item',
   'Status',
+  'Comment',
+  'Submission ID'
+]);
+
+const RESEALING_HEADERS = Object.freeze([
+  'Date',
+  'Operator name',
+  'Shift',
+  'Work today',
+  'Inspection',
+  'Cleaning',
   'Comment'
 ]);
 
-const STARTUP_HPCD_HEADERS = STARTUP_JIG_HEADERS;
+// One row per measurement point; Submission ID groups the rows of one IP check.
+const IP_DSF_HEADERS = Object.freeze([
+  'Date',
+  'Check date',
+  'Line',
+  'Measure ID',
+  'Process',
+  'Point',
+  'Measurement',
+  'Target',
+  'Lane',
+  '(+)',
+  '(-)',
+  'In range',
+  'Submission ID'
+]);
 
-const STARTUP_CHECK_ITEMS = Object.freeze({
-  startup_hpcd: Object.freeze([
-    'Loader/Unloader P&P / Gripper',
-    'Cleaning / Paper',
-    'Cleaning / Conveyor',
-    'Cleaning / Plexi-Glass'
-  ]),
-  startup_jig: Object.freeze([
-    'Loader/Unloader P&P / Gripper',
-    'Loader/Unloader P&P / Rail',
-    'Loader/Unloader P&P / Shuttle',
-    'Loader/Unloader P&P / Dummy cell',
-    'Main P&P / Gripper',
-    'Main P&P / Rail',
-    'Cleaning / PP',
-    'Cleaning / Hot jig'
-  ])
-});
+const STARTUP_PROCESSES = Object.freeze(Object.keys(CONFIG.STARTUP_SHEET_NAMES));
+const SINGLE_LINE_STARTUP_PROCESSES = Object.freeze(['startup_degas', 'startup_eol', 'startup_selector']);
+const STARTUP_STATUSES = Object.freeze(['Pass', 'Flagged', 'Incomplete', 'Completed', 'N/A', 'No']);
+const SELECTOR_TYPES = Object.freeze(['Jig Selector', 'CDC Selector', 'OCV Selector']);
 
 const CONDUCTIVE_RUBBER_UNITS = Object.freeze([
   '1A', '1B', '1C', '1D',
@@ -172,8 +197,6 @@ function setup() {
   const htaSheet = getSheet_('hta');
   const maintenanceSheet = getSheet_('maintenance');
   const conductiveRubberSheet = getSheet_('conductive');
-  const startupHpcdSheet = getSheet_('startup_hpcd');
-  const startupJigSheet = getSheet_('startup_jig');
 
   ensureHeaders_(beforeHpcdSheet, BEFORE_HPCD_HEADERS);
   ensureHeaders_(formationSheet, FORMATION_HEADERS);
@@ -181,8 +204,9 @@ function setup() {
   ensureHeaders_(htaSheet, HTA_HEADERS);
   ensureHeaders_(maintenanceSheet, MAINTENANCE_HEADERS);
   ensureConductiveRubberHeaders_(conductiveRubberSheet);
-  ensureHeaders_(startupHpcdSheet, STARTUP_HPCD_HEADERS);
-  ensureHeaders_(startupJigSheet, STARTUP_JIG_HEADERS);
+  STARTUP_PROCESSES.concat(['startup_resealing', 'ip_dsf']).forEach(function(process) {
+    ensureHeaders_(getSheet_(process), getHeaders_(process));
+  });
   normalizeFormationJigLines_(formationSheet);
 
   DriveApp.getFolderById(CONFIG.FORMATION_PHOTO_FOLDER_ID).getName();
@@ -197,6 +221,9 @@ function doGet(e) {
     const headers = getHeaders_(process);
     const sheet = getSheet_(process);
 
+    if (isCheckSheetProcess_(process)) {
+      return json_({ result: 'success', process: process, data: readCheckSheetRecords_(sheet, process, headers) });
+    }
     if (action === 'bootstrap') {
       return json_(getCachedResponse_(sheet, process, action, parameters, function() {
         return getBootstrapResponse_(sheet, process, headers, parameters);
@@ -359,9 +386,49 @@ function readRecords_(sheet, process, headers, startRow, count) {
   });
 }
 
+/**
+ * Start-up, Resealing and IP sheets: the latest rows in ascending order,
+ * matching what the dashboard expects for these check-sheet processes.
+ */
+function readCheckSheetRecords_(sheet, process, headers) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  const count = Math.min(lastRow - 1, CONFIG.CHECK_SHEET_READ_ROWS);
+  const rows = sheet.getRange(lastRow - count + 1, 1, count, headers.length).getDisplayValues();
+  if (process !== 'ip_dsf') {
+    return rows.map(function(row) { return rowToRecord_(row, process); });
+  }
+
+  const checks = [];
+  const bySubmission = {};
+  rows.forEach(function(row) {
+    const submissionId = row[12] || row[0] + '|' + row[1] + '|' + row[2];
+    let check = bySubmission[submissionId];
+    if (!check) {
+      check = { date: row[0], checkDate: row[1], line: row[2], measurements: [] };
+      bySubmission[submissionId] = check;
+      checks.push(check);
+    }
+    check.measurements.push({
+      id: row[3], process: row[4], point: row[5], name: row[6], target: row[7], lane: row[8],
+      plus: row[9] === '' ? null : Number(row[9]),
+      minus: row[10] === '' ? null : Number(row[10]),
+      inRange: String(row[11]).toUpperCase() === 'TRUE'
+    });
+  });
+  return checks;
+}
+
 function rowToRecord_(row, process) {
-    if (process === 'startup_hpcd' || process === 'startup_jig') {
-      return { date: row[0], team: row[1], line: row[2], checkCompleted: row[3], frequency: row[4], item: row[5] + ' / ' + row[6], status: row[7], comment: row[8] };
+    if (isStartupProcess_(process)) {
+      return {
+        date: row[0], team: row[1], operatorName: row[2], selectorType: row[3],
+        line: row[4], floor: row[5], checkCompleted: row[6], frequency: row[7],
+        item: row[9] ? row[8] + ' / ' + row[9] : row[8], status: row[10], comment: row[11]
+      };
+    }
+    if (process === 'startup_resealing') {
+      return { date: row[0], operatorName: row[1], shift: row[2], work: row[3], inspectionStatus: row[4], cleaningStatus: row[5], comment: row[6] };
     }
     if (process === 'hta') {
       return { date: row[0], team: row[1], operatorName: row[2], hta11: row[3], hta12: row[4], hta21: row[5], hta22: row[6], hta31: row[7], hta32: row[8], hta41: row[9], hta42: row[10], tempInSpec: row[11] };
@@ -417,19 +484,54 @@ function doPost(e) {
 
       let row;
       let rows = null;
-      if (process === 'startup_hpcd' || process === 'startup_jig') {
+      const submittedAt = new Date();
+      const submissionId = Utilities.getUuid();
+      if (isStartupProcess_(process)) {
+        const isCdc = process === 'startup_cdc';
         rows = input.items.map(function(item) {
           const categoryItem = String(item.item || '').split(' / ');
           return [
-            new Date(),
+            submittedAt,
             cleanText_(input.team),
-            process === 'startup_hpcd' ? normalizeHpcdLines_(input.lines).join(', ') : normalizeStartupLines_(input.lines).join(', '),
+            cleanText_(input.operatorName),
+            process === 'startup_selector' ? cleanText_(input.selectorType) : '',
+            isCdc ? cleanText_(input.cdcLine) : normalizeLineList_(input.lines).join(', '),
+            isCdc ? cleanText_(input.floor) : '',
             cleanText_(input.checkCompleted),
             cleanText_(input.frequency),
             cleanText_(categoryItem[0]),
             cleanText_(categoryItem.slice(1).join(' / ')),
             cleanText_(item.status),
-            cleanText_(item.comment)
+            cleanText_(item.comment),
+            submissionId
+          ];
+        });
+      } else if (process === 'startup_resealing') {
+        row = [
+          submittedAt,
+          cleanText_(input.operatorName),
+          cleanText_(input.shift),
+          cleanText_(input.work),
+          cleanText_(input.inspectionStatus),
+          cleanText_(input.cleaningStatus),
+          cleanText_(input.comment)
+        ];
+      } else if (process === 'ip_dsf') {
+        rows = input.measurements.map(function(item) {
+          return [
+            submittedAt,
+            cleanText_(input.checkDate),
+            cleanText_(input.line),
+            cleanText_(item.id),
+            cleanText_(item.process),
+            cleanText_(item.point),
+            cleanText_(item.name),
+            cleanText_(item.target),
+            cleanText_(item.lane),
+            Number(item.plus),
+            Number(item.minus),
+            Boolean(item.inRange),
+            submissionId
           ];
         });
       } else if (process === 'hta') {
@@ -508,8 +610,13 @@ function doPost(e) {
       }
 
       const nextRow = sheet.getLastRow() + 1;
-      if (process === 'startup_hpcd' || process === 'startup_jig') {
-        sheet.getRange(nextRow, 3, rows.length, 7).setNumberFormat('@');
+      if (isStartupProcess_(process)) {
+        sheet.getRange(nextRow, 2, rows.length, 12).setNumberFormat('@');
+      } else if (process === 'startup_resealing') {
+        sheet.getRange(nextRow, 2, 1, 6).setNumberFormat('@');
+      } else if (process === 'ip_dsf') {
+        sheet.getRange(nextRow, 2, rows.length, 8).setNumberFormat('@');
+        sheet.getRange(nextRow, 13, rows.length, 1).setNumberFormat('@');
       } else if (isAppearanceProcess_(process)) {
         sheet.getRange(nextRow, 7).setNumberFormat('@');
       } else if (process === 'maintenance') {
@@ -539,10 +646,17 @@ function isAppearanceProcess_(process) {
   return process === 'before_hpcd' || process === 'formation' || process === 'degas';
 }
 
+function isStartupProcess_(process) {
+  return STARTUP_PROCESSES.indexOf(process) !== -1;
+}
+
+function isCheckSheetProcess_(process) {
+  return isStartupProcess_(process) || process === 'startup_resealing' || process === 'ip_dsf';
+}
+
 function getProcess_(value) {
   const process = String(value || 'formation').toLowerCase();
-  if (process === 'startup_hpcd') return 'startup_hpcd';
-  if (process === 'startup_jig') return 'startup_jig';
+  if (isCheckSheetProcess_(process)) return process;
   if (process === 'before_hpcd') return 'before_hpcd';
   if (process === 'degas') return 'degas';
   if (process === 'hta') return 'hta';
@@ -552,8 +666,9 @@ function getProcess_(value) {
 }
 
 function getHeaders_(process) {
-  if (process === 'startup_hpcd') return STARTUP_HPCD_HEADERS;
-  if (process === 'startup_jig') return STARTUP_JIG_HEADERS;
+  if (isStartupProcess_(process)) return STARTUP_HEADERS;
+  if (process === 'startup_resealing') return RESEALING_HEADERS;
+  if (process === 'ip_dsf') return IP_DSF_HEADERS;
   if (process === 'hta') return HTA_HEADERS;
   if (process === 'maintenance') return MAINTENANCE_HEADERS;
   if (process === 'conductive') return CONDUCTIVE_RUBBER_HEADERS;
@@ -563,16 +678,18 @@ function getHeaders_(process) {
 
 function getSheet_(process) {
   const spreadsheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-  const sheetName = process === 'hta'
+  const sheetName = isStartupProcess_(process)
+    ? CONFIG.STARTUP_SHEET_NAMES[process]
+    : process === 'startup_resealing'
+    ? CONFIG.RESEALING_SHEET_NAME
+    : process === 'ip_dsf'
+    ? CONFIG.IP_DSF_SHEET_NAME
+    : process === 'hta'
     ? CONFIG.HTA_SHEET_NAME
     : process === 'maintenance'
       ? CONFIG.MAINTENANCE_SHEET_NAME
       : process === 'conductive'
         ? CONFIG.CONDUCTIVE_RUBBER_SHEET_NAME
-        : process === 'startup_hpcd'
-          ? CONFIG.STARTUP_HPCD_SHEET_NAME
-        : process === 'startup_jig'
-          ? CONFIG.STARTUP_JIG_SHEET_NAME
         : process === 'before_hpcd'
           ? CONFIG.BEFORE_HPCD_SHEET_NAME
           : process === 'degas'
@@ -655,30 +772,74 @@ function normalizeFormationJigLines_(sheet) {
 }
 
 function validateInput_(input, process) {
-  if (process === 'startup_hpcd' || process === 'startup_jig') {
+  if (isStartupProcess_(process)) {
     validateTextField_(input.team, 'Team', 16);
     if (!TEAMS.includes(String(input.team))) throw new Error('Team must be 1A, 1B, 2A, or 2B.');
-    if (process === 'startup_hpcd') normalizeHpcdLines_(input.lines);
-    if (process === 'startup_jig') normalizeStartupLines_(input.lines);
+    validateTextField_(input.operatorName, 'Name', 120, false);
+    if (process === 'startup_cdc') {
+      validateTextField_(input.cdcLine, 'CDC line', 32);
+      validateTextField_(input.floor, 'Floor', 16);
+    } else {
+      const lines = normalizeLineList_(input.lines);
+      if (SINGLE_LINE_STARTUP_PROCESSES.includes(process) && lines.length !== 1) throw new Error('Select one line.');
+    }
+    if (process === 'startup_selector' && !SELECTOR_TYPES.includes(String(input.selectorType))) {
+      throw new Error('Select a valid Selector.');
+    }
     validateTextField_(input.checkCompleted, 'Check completed', 8);
     validateTextField_(input.frequency, 'Frequency', 16);
     if (!['Yes', 'No'].includes(String(input.checkCompleted))) throw new Error('Check completed must be Yes or No.');
     if (!['Shift', 'Weekly', 'Monthly'].includes(String(input.frequency))) throw new Error('Frequency must be Shift, Weekly, or Monthly.');
     if (!Array.isArray(input.items) || !input.items.length) throw new Error('At least one start-up check item is required.');
     if (input.items.length > 100) throw new Error('Too many start-up check items were submitted.');
+    if (String(input.checkCompleted) === 'No' && (input.items.length !== 1 || String(input.items[0].status) !== 'No')) {
+      throw new Error('An incomplete check needs one overall item.');
+    }
     input.items.forEach(function(item) {
       if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error('Every start-up item must be an object.');
-      validateTextField_(item.item, 'Start-up item', 160);
-      validateTextField_(item.status, 'Start-up status', 16);
+      validateTextField_(item.item, 'Start-up item', 500);
       validateTextField_(item.comment, 'Start-up comment', 2000, false);
-      const isOverallNotCompleted = item && item.item === 'Check completed / Overall' && String(input.checkCompleted) === 'No' && String(item.status) === 'No';
-      const allowedItems = STARTUP_CHECK_ITEMS[process] || [];
-      if ((!allowedItems.includes(String(item.item)) && !isOverallNotCompleted) || (!['Pass', 'Flagged', 'Incomplete'].includes(String(item.status)) && !isOverallNotCompleted)) {
-        throw new Error('Every start-up item needs a valid status.');
+      if (!STARTUP_STATUSES.includes(String(item.status))) throw new Error('Every start-up item needs a valid status.');
+      if (['Flagged', 'Incomplete', 'No'].includes(String(item.status)) && !String(item.comment || '').trim()) {
+        throw new Error('Add a comment for flagged or incomplete items.');
       }
-      if (String(item.status) !== 'Pass' && !String(item.comment || '').trim()) {
-        throw new Error('A comment is required for Flagged or incomplete.');
-      }
+    });
+    return;
+  }
+
+  if (process === 'startup_resealing') {
+    validateTextField_(input.operatorName, 'Name', 120);
+    validateTextField_(input.shift, 'Shift', 40);
+    validateTextField_(input.work, 'Work today', 160);
+    validateTextField_(input.comment, 'Comment', 2000, false);
+    if (!['Pass', 'Flagged', 'N/A'].includes(String(input.inspectionStatus))) throw new Error('Invalid inspection status.');
+    if (!['Completed', 'Incomplete', 'N/A'].includes(String(input.cleaningStatus))) throw new Error('Invalid cleaning status.');
+    if ((input.inspectionStatus === 'Flagged' || input.cleaningStatus === 'Incomplete') && !String(input.comment || '').trim()) {
+      throw new Error('Add a comment for unfinished work.');
+    }
+    return;
+  }
+
+  if (process === 'ip_dsf') {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(input.checkDate || ''))) throw new Error('Invalid date.');
+    validateTextField_(input.line, 'Line', 60);
+    if (!Array.isArray(input.measurements) || !input.measurements.length || input.measurements.length > 100) {
+      throw new Error('Invalid measurements.');
+    }
+    const ids = {};
+    input.measurements.forEach(function(item) {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error('Invalid measurements.');
+      validateTextField_(item.id, 'Measurement ID', 80);
+      if (ids[item.id]) throw new Error('Invalid measurements.');
+      ids[item.id] = true;
+      validateTextField_(item.process, 'Process', 80);
+      validateTextField_(item.point, 'Point', 8);
+      validateTextField_(item.name, 'Measurement', 500);
+      validateTextField_(item.target, 'Target', 100);
+      if (!['Common', 'A', 'B'].includes(String(item.lane))) throw new Error('Invalid lane.');
+      ['plus', 'minus'].forEach(function(key) {
+        if (item[key] === '' || item[key] === null || !Number.isFinite(Number(item[key]))) throw new Error('Invalid ' + key + '.');
+      });
     });
     return;
   }
@@ -802,17 +963,14 @@ function validateInput_(input, process) {
   }
 }
 
-function normalizeStartupLines_(value) {
-  const values = Array.isArray(value) ? value : String(value || '').split(',');
-  const lines = values.map(function(line) { return cleanText_(line); }).filter(Boolean);
+function normalizeLineList_(value) {
+  if (!Array.isArray(value) || value.length > 12) throw new Error('Invalid lines.');
   const uniqueLines = [];
-  lines.forEach(function(line) {
-    if (!['3-1', '3-2', '3-3', '4-1', '4-2', '4-3', '5-1', '5-2', '5-3', '6-1', '6-2', '6-3'].includes(line)) {
-      throw new Error('Invalid Jig line: ' + line);
-    }
-    if (!uniqueLines.includes(line)) uniqueLines.push(line);
+  value.forEach(function(line) {
+    const text = cleanText_(validateTextField_(line, 'Line', 16));
+    if (!uniqueLines.includes(text)) uniqueLines.push(text);
   });
-  if (!uniqueLines.length) throw new Error('At least one Jig line must be selected.');
+  if (!uniqueLines.length) throw new Error('Select a line.');
   return uniqueLines;
 }
 
@@ -831,20 +989,6 @@ function validateTextField_(value, fieldName, maxLength, required) {
     throw new Error(fieldName + ' contains invalid control characters.');
   }
   return text;
-}
-
-function normalizeHpcdLines_(value) {
-  const values = Array.isArray(value) ? value : String(value || '').split(',');
-  const lines = values.map(function(line) { return cleanText_(line); }).filter(Boolean);
-  const uniqueLines = [];
-  lines.forEach(function(line) {
-    if (!['3', '4', '5', '6'].includes(line)) {
-      throw new Error('Invalid HPCD line: ' + line);
-    }
-    if (!uniqueLines.includes(line)) uniqueLines.push(line);
-  });
-  if (!uniqueLines.length) throw new Error('At least one HPCD line must be selected.');
-  return uniqueLines;
 }
 
 function normalizeDefectTypes_(value) {
