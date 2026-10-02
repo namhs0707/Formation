@@ -187,6 +187,65 @@ const HTA_FIELDS = Object.freeze([
 
 const TEAMS = Object.freeze(['1A', '1B', '2A', '2B']);
 
+function temperatureFields_(prefix, labelPrefix, suffixes) {
+  return suffixes.map(function(suffix) {
+    return { key: prefix + suffix.replace(/[^0-9A-Za-z]/g, ''), label: labelPrefix + suffix };
+  });
+}
+
+/**
+ * Area temperature sheets. HTA keeps its own sheet and process ('hta').
+ * A field list marked optional only needs one value per submission (JIG).
+ */
+const TEMPERATURE_AREAS = Object.freeze({
+  temp_cdc: {
+    sheet: 'CDC temp', line: { label: 'CDC line', maxLength: 32 },
+    fields: temperatureFields_('floor', 'Floor ', ['1-1', '1-2', '2-1', '2-2', '3-1', '3-2']).concat([{ key: 'dcir', label: 'DCIR' }])
+  },
+  temp_plt: {
+    sheet: 'Cell PLT temp',
+    fields: [{ key: 'pltEast', label: 'PLT East' }, { key: 'pltWest', label: 'PLT West' }]
+  },
+  temp_dgs: {
+    sheet: 'DGS temp', line: { label: 'Degas line', options: ['4-1', '4-2', '5-1', '5-2'] },
+    fields: [{ key: 'dgs', label: 'DGS' }]
+  },
+  temp_eol: {
+    sheet: 'EOL temp', line: { label: 'EOL line', options: ['4-1', '4-2', '5-1', '5-2'] },
+    fields: [{ key: 'eol', label: 'EOL' }]
+  },
+  temp_jig: {
+    sheet: 'JIG temp', line: { label: 'Jig Formation line', options: ['3', '4', '5', '6'] }, optionalFields: true,
+    fields: temperatureFields_('floor', 'Floor ', ['1', '2', '3'])
+      .concat(temperatureFields_('jig', 'JIG ', ['4-1', '4-2', '4-3', '5-1', '5-2', '5-3']))
+  },
+  temp_pra: {
+    sheet: 'PRA temp', line: { label: 'PRA line', maxLength: 32 },
+    fields: [{ key: 'praEast', label: 'PRA East' }, { key: 'praWest', label: 'PRA West' }]
+  },
+  temp_rta: {
+    sheet: 'RTA temp',
+    fields: [{ key: 'rtaEast', label: 'RTA East Area' }, { key: 'rtaWest', label: 'RTA West Area' }]
+  },
+  temp_sha: {
+    sheet: 'SHA temp',
+    fields: temperatureFields_('shaEast', 'SHA East Aisle #', ['1', '2', '3', '4', '5'])
+      .concat(temperatureFields_('shaWest', 'SHA West Aisle #', ['1', '2', '3', '4', '5']))
+  }
+});
+
+function isTemperatureAreaProcess_(process) {
+  return Object.prototype.hasOwnProperty.call(TEMPERATURE_AREAS, process);
+}
+
+function getTemperatureHeaders_(process) {
+  const area = TEMPERATURE_AREAS[process];
+  return ['Date', 'Team', 'Operator name']
+    .concat(area.line ? [area.line.label] : [])
+    .concat(area.fields.map(function(field) { return field.label; }))
+    .concat(['Temp. In spec']);
+}
+
 /**
  * Run once to verify the existing Formation sheet and create the Degas sheet.
  */
@@ -204,7 +263,7 @@ function setup() {
   ensureHeaders_(htaSheet, HTA_HEADERS);
   ensureHeaders_(maintenanceSheet, MAINTENANCE_HEADERS);
   ensureConductiveRubberHeaders_(conductiveRubberSheet);
-  STARTUP_PROCESSES.concat(['startup_resealing', 'ip_dsf']).forEach(function(process) {
+  STARTUP_PROCESSES.concat(['startup_resealing', 'ip_dsf'], Object.keys(TEMPERATURE_AREAS)).forEach(function(process) {
     ensureHeaders_(getSheet_(process), getHeaders_(process));
   });
   normalizeFormationJigLines_(formationSheet);
@@ -334,7 +393,9 @@ function getRecordsResponse_(sheet, process, headers, parameters) {
 }
 
 function getDateRangeResponse_(sheet, process, headers, parameters, action) {
-  if (action === 'chart' && process !== 'hta') throw new Error('Chart data is only available for HTA.');
+  if (action === 'chart' && process !== 'hta' && !isTemperatureAreaProcess_(process)) {
+    throw new Error('Chart data is only available for temperature areas.');
+  }
   if (action === 'map' && !isAppearanceProcess_(process)) throw new Error('Map data is only available for Appearance processes.');
 
   const lastRow = sheet.getLastRow();
@@ -430,6 +491,15 @@ function rowToRecord_(row, process) {
     if (process === 'startup_resealing') {
       return { date: row[0], operatorName: row[1], shift: row[2], work: row[3], inspectionStatus: row[4], cleaningStatus: row[5], comment: row[6] };
     }
+    if (isTemperatureAreaProcess_(process)) {
+      const area = TEMPERATURE_AREAS[process];
+      const record = { date: row[0], team: row[1], operatorName: row[2] };
+      let column = 3;
+      if (area.line) record.line = row[column++];
+      area.fields.forEach(function(field) { record[field.key] = row[column++]; });
+      record.tempInSpec = row[column];
+      return record;
+    }
     if (process === 'hta') {
       return { date: row[0], team: row[1], operatorName: row[2], hta11: row[3], hta12: row[4], hta21: row[5], hta22: row[6], hta31: row[7], hta32: row[8], hta41: row[9], hta42: row[10], tempInSpec: row[11] };
     }
@@ -461,6 +531,11 @@ function doPost(e) {
 
     const input = JSON.parse(e.postData.contents);
     const process = getProcess_(input.process);
+    if (process === 'temperature') {
+      validateTemperatureInput_(input);
+      saveTemperatureReadings_(input);
+      return json_({ result: 'success', process: process, message: 'Temperature readings submitted successfully.' });
+    }
     validateInput_(input, process);
 
     let photoUrl = '';
@@ -656,7 +731,7 @@ function isCheckSheetProcess_(process) {
 
 function getProcess_(value) {
   const process = String(value || 'formation').toLowerCase();
-  if (isCheckSheetProcess_(process)) return process;
+  if (isCheckSheetProcess_(process) || isTemperatureAreaProcess_(process) || process === 'temperature') return process;
   if (process === 'before_hpcd') return 'before_hpcd';
   if (process === 'degas') return 'degas';
   if (process === 'hta') return 'hta';
@@ -667,6 +742,7 @@ function getProcess_(value) {
 
 function getHeaders_(process) {
   if (isStartupProcess_(process)) return STARTUP_HEADERS;
+  if (isTemperatureAreaProcess_(process)) return getTemperatureHeaders_(process);
   if (process === 'startup_resealing') return RESEALING_HEADERS;
   if (process === 'ip_dsf') return IP_DSF_HEADERS;
   if (process === 'hta') return HTA_HEADERS;
@@ -680,6 +756,8 @@ function getSheet_(process) {
   const spreadsheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
   const sheetName = isStartupProcess_(process)
     ? CONFIG.STARTUP_SHEET_NAMES[process]
+    : isTemperatureAreaProcess_(process)
+    ? TEMPERATURE_AREAS[process].sheet
     : process === 'startup_resealing'
     ? CONFIG.RESEALING_SHEET_NAME
     : process === 'ip_dsf'
@@ -1042,6 +1120,84 @@ function normalizeDefectMap_(value) {
     };
   });
   return JSON.stringify(normalized);
+}
+
+function isTemperatureValue_(value) {
+  return value !== '' && value !== null && value !== undefined && Number.isFinite(Number(value));
+}
+
+function validateTemperatureInput_(input) {
+  validateTextField_(input.team, 'Team', 16);
+  if (!TEAMS.includes(String(input.team))) throw new Error('Team must be 1A, 1B, 2A, or 2B.');
+  validateTextField_(input.operatorName, 'Name', 120);
+  if (!Array.isArray(input.areas) || !input.areas.length) throw new Error('Select at least one area.');
+  const seen = {};
+  input.areas.forEach(function(entry) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) throw new Error('Invalid area reading.');
+    const process = String(entry.process || '');
+    if (process !== 'hta' && !isTemperatureAreaProcess_(process)) throw new Error('Unknown area: ' + process);
+    if (seen[process]) throw new Error('Each area can be submitted once.');
+    seen[process] = true;
+    const values = entry.values && typeof entry.values === 'object' ? entry.values : {};
+
+    if (process === 'hta') {
+      HTA_FIELDS.forEach(function(field) {
+        if (!isTemperatureValue_(values[field.key])) throw new Error(field.label + ' must be a number.');
+      });
+      return;
+    }
+
+    const area = TEMPERATURE_AREAS[process];
+    if (area.line) {
+      const line = validateTextField_(entry.line, area.line.label, area.line.maxLength || 16);
+      if (area.line.options && !area.line.options.includes(line)) throw new Error('Invalid ' + area.line.label + '.');
+    }
+    let filled = 0;
+    area.fields.forEach(function(field) {
+      const value = values[field.key];
+      if (isTemperatureValue_(value)) {
+        filled += 1;
+      } else if (!area.optionalFields || (value !== '' && value !== null && value !== undefined)) {
+        throw new Error(field.label + ' must be a number.');
+      }
+    });
+    if (!filled) throw new Error('Enter at least one temperature for each selected area.');
+    if (!['Yes', 'No'].includes(String(entry.inSpec))) throw new Error('Answer whether the temperatures are in spec.');
+  });
+}
+
+function saveTemperatureReadings_(input) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const submittedAt = new Date();
+    input.areas.forEach(function(entry) {
+      const process = String(entry.process);
+      const values = entry.values;
+      const sheet = getSheet_(process);
+      const headers = getHeaders_(process);
+      ensureHeaders_(sheet, headers);
+      let row;
+      if (process === 'hta') {
+        row = [submittedAt, cleanText_(input.team), cleanText_(input.operatorName)]
+          .concat(HTA_FIELDS.map(function(field) { return Number(values[field.key]); }), [getTempSpecResult_(values)]);
+      } else {
+        const area = TEMPERATURE_AREAS[process];
+        row = [submittedAt, cleanText_(input.team), cleanText_(input.operatorName)]
+          .concat(area.line ? [cleanText_(entry.line)] : [])
+          .concat(area.fields.map(function(field) {
+            return isTemperatureValue_(values[field.key]) ? Number(values[field.key]) : '';
+          }), [String(entry.inSpec)]);
+      }
+      const nextRow = sheet.getLastRow() + 1;
+      sheet.getRange(nextRow, 2, 1, 2).setNumberFormat('@');
+      if (process !== 'hta' && TEMPERATURE_AREAS[process].line) sheet.getRange(nextRow, 4).setNumberFormat('@');
+      sheet.getRange(nextRow, 1, 1, row.length).setValues([row]);
+      sheet.getRange(nextRow, 1).setNumberFormat('yyyy-MM-dd HH:mm:ss');
+    });
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function getTempSpecResult_(input) {
