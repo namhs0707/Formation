@@ -89,13 +89,15 @@ async function saveMaintenance(client, input) {
   return { id: rows.rows[0].id };
 }
 async function saveConductive(client, input) {
+  const rubberProcess = choice(input.rubberProcess, ['Degas','EOL'], 'process');
+  const measurement = choice(input.measurement, rubberProcess === 'Degas' ? ['IR'] : ['IR','IV'], 'measurement');
   const units = list(input.units, 'units', 8);
-  const validUnits = ['1A','1B','1C','1D','2A','2B','2C','2D'];
+  const validUnits = { 'Degas IR': ['1A','1B','1C','1D','2A','2B','2C','2D'], 'EOL IR': ['1A','1B','1C','1D'], 'EOL IV': ['1A','1B','2A','2B'] }[`${rubberProcess} ${measurement}`];
   if (!units.length || new Set(units).size !== units.length || units.some(unit => !validUnits.includes(unit))) invalid('Invalid units.');
   const rows = await client.query(
     'INSERT INTO formation.conductive_maintenance (team, operator_name, rubber_process, line, measurement, units, action, comment) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-    [teamOf(input), required(input.operatorName, 'Name', 120), choice(input.rubberProcess, ['Degas','EOL'], 'process'),
-      choice(input.line, ['4-1','4-2','5-1','5-2'], 'line'), choice(input.measurement, ['IR','IV'], 'measurement'),
+    [teamOf(input), required(input.operatorName, 'Name', 120), rubberProcess,
+      choice(input.line, ['4-1','4-2','5-1','5-2'], 'line'), measurement,
       units, choice(input.action, ['Flip','Change','Other'], 'action'), optional(input.comment)]
   );
   return { id: rows.rows[0].id };
@@ -149,7 +151,7 @@ async function saveIp(client, input) {
   if (!measurements.length || new Set(measurements.map(item => item.id)).size !== measurements.length) invalid('Invalid measurements.');
   const rows = await client.query(
     'INSERT INTO formation.ip_checks (check_date, line) VALUES ($1,$2) RETURNING id',
-    [checkDate, required(input.line, 'Line', 60)]
+    [checkDate, choice(input.line, ['EOL #4-1','EOL #4-2','EOL #5-1','EOL #5-2'], 'line')]
   );
   const id = rows.rows[0].id;
   for (let index = 0; index < measurements.length; index++) {

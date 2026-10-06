@@ -163,6 +163,12 @@ const CONDUCTIVE_RUBBER_UNITS = Object.freeze([
   '2A', '2B', '2C', '2D'
 ]);
 
+const CONDUCTIVE_RUBBER_UNITS_BY_MODE = Object.freeze({
+  'Degas IR': ['1A', '1B', '1C', '1D', '2A', '2B', '2C', '2D'],
+  'EOL IR': ['1A', '1B', '1C', '1D'],
+  'EOL IV': ['1A', '1B', '2A', '2B']
+});
+
 const DEFECT_TYPES = Object.freeze([
   'All OK',
   'Dent',
@@ -901,6 +907,9 @@ function validateInput_(input, process) {
   if (process === 'ip_dsf') {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(input.checkDate || ''))) throw new Error('Invalid date.');
     validateTextField_(input.line, 'Line', 60);
+    if (!['EOL #4-1', 'EOL #4-2', 'EOL #5-1', 'EOL #5-2'].includes(cleanText_(input.line))) {
+      throw new Error('Line must be EOL #4-1, EOL #4-2, EOL #5-1, or EOL #5-2.');
+    }
     if (!Array.isArray(input.measurements) || !input.measurements.length || input.measurements.length > 100) {
       throw new Error('Invalid measurements.');
     }
@@ -936,7 +945,10 @@ function validateInput_(input, process) {
     }
     if (rubberProcess === 'Degas' && measurement !== 'IR') throw new Error('Degas measurement must be IR.');
     if (rubberProcess === 'EOL' && !['IR', 'IV'].includes(measurement)) throw new Error('EOL measurement must be IR or IV.');
-    normalizeConductiveUnits_(input.units);
+    const allowedUnits = CONDUCTIVE_RUBBER_UNITS_BY_MODE[rubberProcess + ' ' + measurement];
+    normalizeConductiveUnits_(input.units).forEach(function(unit) {
+      if (!allowedUnits.includes(unit)) throw new Error('Unit ' + unit + ' is not available for ' + rubberProcess + ' ' + measurement + '.');
+    });
     if (!['Flip', 'Change', 'Other'].includes(cleanText_(input.action))) {
       throw new Error('Action must be Flip, Change, or Other.');
     }

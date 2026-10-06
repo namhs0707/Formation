@@ -42,7 +42,7 @@ const cases = [
   })),
   { process: 'startup_resealing', operatorName: 'API Test', shift: '1A',
     work: 'Test work', inspectionStatus: 'Pass', cleaningStatus: 'Completed', comment: '' },
-  { process: 'ip_dsf', checkDate: '2026-10-01', line: 'EOL 4-1', measurements: [
+  { process: 'ip_dsf', checkDate: '2026-10-01', line: 'EOL #4-1', measurements: [
     { id: 'test-common-a', process: 'Test', point: 'a', name: 'Gap', target: '0.4 < X < 0.5',
       lane: 'Common', plus: 0.45, minus: 0.46, inRange: true }
   ] }
