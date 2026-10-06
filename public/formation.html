@@ -179,6 +179,12 @@
     .unit-fieldset { margin: 0 0 16px; padding: 0; border: 0; }
     .unit-fieldset legend { margin-bottom: 8px; color: var(--label); font-size: var(--text-sm); font-weight: 600; }
     .unit-checkbox-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .unit-checkbox-grid .unit-option[hidden] { display: none; }
+    .conductive-reference { margin: 0 0 10px; }
+    .conductive-reference[hidden] { display: none; }
+    .conductive-reference a { display: block; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; background: var(--surface); }
+    .conductive-reference img { display: block; width: 100%; height: auto; }
+    .conductive-reference figcaption { margin-top: 6px; color: var(--muted); font-size: 13px; font-weight: 500; }
     .defect-checkbox-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .jig-line-checkbox-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
     .unit-option {
@@ -1238,6 +1244,59 @@
     .ip-lane-card .ip-measure-row { grid-template-columns: 1fr; gap: 8px; }
     .ip-lane-card .ip-target-status { grid-column: 1; }
     .ip-lane-card .ip-measure-row:first-of-type { border-top: 0; }
+    .ip-dashboard { display: grid; gap: 14px; }
+    .ip-dash-images { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .ip-dash-image { margin: 0; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+    .ip-dash-image.has-out { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(220, 38, 38, .2); }
+    .ip-dash-image a { display: block; }
+    .ip-dash-image img { display: block; width: 100%; height: 150px; object-fit: contain; }
+    .ip-dash-image figcaption { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; color: var(--ink); font-size: 14px; font-weight: 700; }
+    .ip-dash-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .ip-dash-head small { color: var(--muted); font-size: 13px; }
+    .ip-dash-table-wrap { max-height: 70vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+    .ip-dash-table { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+    .ip-dash-table th, .ip-dash-table td { height: auto; min-height: 0; padding: 5px 8px; line-height: 1.3; border-bottom: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .ip-dash-table thead { position: sticky; top: 0; z-index: 3; }
+    .ip-dash-table thead th { background: #f0fdfa; color: #0f766e; text-align: center; }
+    .ip-dash-table thead tr.ip-head-group th { color: var(--ink); font-size: 13px; border-bottom-color: var(--border); }
+    .ip-dash-table thead tr.ip-head-spec th { color: var(--muted); font-size: 12px; font-weight: 600; }
+    .ip-dash-table th.ip-group-start, .ip-dash-table td.ip-group-start { border-left: 2px solid #94a3b8; }
+    .ip-dash-table .ip-col-date, .ip-dash-table .ip-col-line { position: sticky; z-index: 1; background: var(--surface); text-align: center; }
+    .ip-dash-table .ip-col-date { left: 0; min-width: 104px; width: 104px; }
+    .ip-dash-table .ip-col-line { left: 104px; min-width: 84px; width: 84px; box-shadow: 2px 0 0 var(--border); }
+    .ip-dash-table thead .ip-col-date, .ip-dash-table thead .ip-col-line { z-index: 4; background: #f0fdfa; color: #0f766e; vertical-align: middle; }
+    .ip-dash-table td.ip-cell { text-align: center; }
+    .ip-dash-table td.ip-cell.out { background: #fef2f2; box-shadow: inset 0 0 0 2px var(--danger); }
+    .ip-dash-table tr.ip-row-out td.ip-col-date, .ip-dash-table tr.ip-row-out td.ip-col-line { color: #fff; background: var(--danger); font-weight: 800; }
+    .ip-dash-table tr.ip-row-out td { background-color: #fff7f7; }
+    .ip-dash-table tr.ip-row-out td.ip-cell.out { background: #fee2e2; }
+    .ip-dash-table .ip-out-count { display: block; font-size: 11px; font-weight: 700; }
+    .ip-dash-values { display: inline-flex; gap: 4px; }
+    .ip-val { display: inline-block; min-width: 46px; padding: 1px 4px; border-radius: 4px; }
+    .ip-val.out { color: #fff; background: var(--danger); font-weight: 800; }
+    .ip-val.out::after { content: ' \26A0'; }
+    .ip-spec-badge { display: inline-flex; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .ip-spec-badge.ok { color: #166534; background: #dcfce7; }
+    .ip-spec-badge.none { color: #475569; background: #e2e8f0; }
+    .ip-spec-badge.out { color: #fff; background: var(--danger); animation: ip-spec-pulse 1.6s ease-in-out infinite; }
+    @keyframes ip-spec-pulse { 50% { box-shadow: 0 0 0 4px rgba(220, 38, 38, .25); } }
+    @media (prefers-reduced-motion: reduce) { .ip-spec-badge.out { animation: none; } }
+    .ip-dash-empty { color: var(--muted); text-align: center; }
+    @media (max-width: 900px) {
+      .ip-dash-images { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ip-dash-image img { height: 120px; }
+    }
+    @media (max-width: 767px) {
+      .ip-dash-head { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .ip-dash-table-wrap { max-height: 75vh; }
+      .ip-dash-table thead { display: table-header-group; }
+      .ip-dash-table tbody { display: table-row-group; }
+      .ip-dash-table tr, .ip-dash-table tbody tr { display: table-row; margin: 0; border: 0; border-radius: 0; }
+      .ip-dash-table th, .ip-dash-table td, .ip-dash-table tbody td { display: table-cell; width: auto; min-height: 0; padding: 6px 8px; }
+      .ip-dash-table tbody td::before { content: none; display: none; }
+      .ip-dash-table .ip-col-date { min-width: 92px; width: 92px; }
+      .ip-dash-table .ip-col-line { left: 92px; min-width: 76px; width: 76px; }
+    }
     .ip-measure-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .9fr); align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border-subtle); }
     .ip-measure-name { color: var(--label); font-weight: 700; }
     .ip-measure-meta { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 400; }
@@ -1296,6 +1355,45 @@
       .startup-comment { grid-column: 1; }
       .startup-status-options { width: auto; transform: none; }
     }
+
+    /* Area temperature monitoring */
+    .temperature-fields { display: none; }
+    .temperature-fields.open { display: block; }
+    .temperature-area-form { margin: 0 0 14px; padding: 14px; border: 1px solid var(--border, #e2e8f0); border-radius: 12px; }
+    .temperature-area-form[hidden] { display: none; }
+    .temperature-area-form h4 { margin: 0 0 10px; font-size: 15px; }
+    .temperature-input-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; margin-bottom: 12px; }
+    .temperature-input-grid .form-group { margin: 0; }
+    .temperature-input-group-title { grid-column: 1 / -1; margin-top: 4px; color: var(--muted, #64748b); font-size: 13px; font-weight: 700; }
+    .temperature-spec-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 14px; }
+    .temperature-spec-row label { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+    .temperature-spec-row input { width: 18px; height: 18px; min-height: 18px; margin: 0; }
+    .temperature-filter { flex-wrap: wrap; }
+    .temperature-view-areas { flex: 1 1 100%; min-width: 0; margin: 0; padding: 0; border: 0; order: 3; }
+    .temperature-view-areas legend { margin-bottom: 6px; color: var(--label, #334155); font-size: 13px; font-weight: 600; }
+    .temperature-view-options { display: flex; flex-wrap: wrap; gap: 6px; }
+    .temperature-view-options label { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 4px 10px; border: 1px solid var(--border, #e2e8f0); border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .temperature-view-options label:has(input:checked) { color: var(--primary, #1d4ed8); background: var(--primary-soft, #dbeafe); border-color: var(--primary, #1d4ed8); }
+    .temperature-view-options input { width: 16px; height: 16px; min-height: 16px; margin: 0; }
+    .temperature-panel { margin-bottom: 18px; }
+    .temperature-panel-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .temperature-panel-header h3 { margin: 0; }
+    .temperature-panel .chart-grid { margin-bottom: 14px; }
+    .temperature-panel { min-width: 0; overflow: hidden; }
+    @media (min-width: 768px) { .temperature-panel table { min-width: 720px; } }
+    .temperature-chart { position: relative; }
+    .temperature-tooltip { position: absolute; z-index: 2; pointer-events: none; min-width: 120px; padding: 8px 10px; color: #0b0b0b; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 14px rgba(15, 23, 42, .12); font-size: 12px; line-height: 1.5; white-space: nowrap; }
+    .temperature-tooltip[hidden] { display: none; }
+    .temperature-tooltip-swatch { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; }
+    .temperature-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; color: var(--muted, #52514e); font-size: 12px; }
+    .temperature-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .temperature-legend i { display: inline-block; width: 14px; height: 2px; border-radius: 1px; }
+    .temperature-legend i.spec { height: 0; border-top: 2px dashed #d03b3b; }
+    .process-category-direct.active { color: #c2410c; background: #ffedd5; }
+    @media (max-width: 767px) {
+      .temperature-input-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .temperature-view-areas { grid-column: 1 / -1; }
+    }
   </style>
 </head>
 <body>
@@ -1328,12 +1426,9 @@
         </div>
       </div>
       <div class="process-group temperature-group">
-        <button type="button" class="process-category process-category-toggle" data-category="temperature" aria-expanded="false">
-          <span class="process-category-icon">°</span><span>Temperature</span><span class="process-category-chevron">⌄</span>
+        <button type="button" class="process-category process-category-toggle process-category-direct" data-category="temperature" data-process="temperature" aria-expanded="false">
+          <span class="process-category-icon">°</span><span>Temperature</span>
         </button>
-        <div class="process-options">
-          <button type="button" class="process-button" data-process="hta">HTA</button>
-        </div>
       </div>
       <div class="process-group maintenance-group">
         <button type="button" class="process-category process-category-toggle" data-category="maintenance" aria-expanded="false">
@@ -1636,22 +1731,26 @@
             </div>
             <div class="form-group">
               <label for="ipLine">Line <span aria-hidden="true">*</span></label>
-              <input type="text" id="ipLine" maxlength="60" placeholder="e.g., ESHD #5-1">
+              <select id="ipLine">
+                <option value="" disabled selected>Select a line</option>
+                <option value="EOL #4-1">EOL #4-1</option>
+                <option value="EOL #4-2">EOL #4-2</option>
+                <option value="EOL #5-1">EOL #5-1</option>
+                <option value="EOL #5-2">EOL #5-2</option>
+              </select>
             </div>
           </div>
           <small class="input-help">Enter the measurements at the (+) and (-) points. Values outside the target range can still be saved.</small>
           <div class="ip-checklist" id="ipChecklist"></div>
         </div>
 
-        <div class="hta-fields" id="htaFields">
-          <div class="form-group"><label for="hta11">HTA 1-1</label><input type="number" id="hta11" step="0.01" placeholder="°C"></div>
-          <div class="form-group"><label for="hta12">HTA 1-2</label><input type="number" id="hta12" step="0.01" placeholder="°C"></div>
-          <div class="form-group"><label for="hta21">HTA 2-1</label><input type="number" id="hta21" step="0.01" placeholder="°C"></div>
-          <div class="form-group"><label for="hta22">HTA 2-2</label><input type="number" id="hta22" step="0.01" placeholder="°C"></div>
-          <div class="form-group"><label for="hta31">HTA 3-1</label><input type="number" id="hta31" step="0.01" placeholder="°C"></div>
-          <div class="form-group"><label for="hta32">HTA 3-2</label><input type="number" id="hta32" step="0.01" placeholder="°C"></div>
-          <div class="form-group"><label for="hta41">HTA 4-1</label><input type="number" id="hta41" step="0.01" placeholder="°C"></div>
-          <div class="form-group"><label for="hta42">HTA 4-2</label><input type="number" id="hta42" step="0.01" placeholder="°C"></div>
+        <div class="temperature-fields" id="temperatureFields">
+          <fieldset class="unit-fieldset">
+            <legend>Area <span aria-hidden="true">*</span></legend>
+            <div class="startup-line-grid" id="temperatureAreaOptions"></div>
+            <small class="input-help">Select the area you measured. Its inputs open below.</small>
+          </fieldset>
+          <div id="temperatureAreaForms"></div>
         </div>
 
         <div class="maintenance-fields" id="maintenanceFields">
@@ -1722,6 +1821,12 @@
           </div>
           <fieldset class="unit-fieldset">
             <legend>Unit <span aria-hidden="true">*</span></legend>
+            <figure class="conductive-reference" id="conductiveReference" hidden>
+              <a id="conductiveReferenceLink" href="" target="_blank" rel="noopener">
+                <img id="conductiveReferenceImage" src="" alt="">
+              </a>
+              <figcaption id="conductiveReferenceCaption"></figcaption>
+            </figure>
             <div class="unit-checkbox-grid" id="conductiveUnits">
               <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="1A"><span>1A</span></label>
               <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="1B"><span>1B</span></label>
@@ -1732,7 +1837,7 @@
               <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="2C"><span>2C</span></label>
               <label class="unit-option"><input type="checkbox" name="conductiveUnit" value="2D"><span>2D</span></label>
             </div>
-            <small class="input-help">Select one or more units.</small>
+            <small class="input-help" id="conductiveUnitsHelp">Select a process and measurement first.</small>
           </fieldset>
           <div class="form-group">
             <label for="conductiveAction">Action</label>
@@ -1911,23 +2016,24 @@
           <thead><tr><th>Date</th><th>Team</th><th class="startup-operator-column" style="display:none;">First and Last Name</th><th class="startup-selector-column" style="display:none;">Selector</th><th id="startupScopeHeader">Line</th><th class="startup-cdc-column" style="display:none;">Floor #</th><th>Check completed</th><th>Frequency</th><th>Category</th><th>Item</th><th>Status</th><th>Comment</th></tr></thead>
           <tbody id="startupTableBody"><tr><td colspan="9" style="text-align:center;">No start-up check sheets yet.</td></tr></tbody>
         </table>
-        <table class="startup-history-table" id="ipHistoryTable" style="display:none;">
-          <thead><tr><th>Date</th><th>Line</th><th>Process</th><th>Measurement point</th><th>Lane</th><th>Target</th><th>(+)</th><th>(-)</th><th>Range check</th></tr></thead>
-          <tbody id="ipTableBody"><tr><td colspan="9" style="text-align:center;">No DSF Daily IP checks yet.</td></tr></tbody>
-        </table>
         <table class="startup-history-table" id="resealingHistoryTable" style="display:none;">
           <thead><tr><th>Date</th><th>Name</th><th>Shift</th><th>What is being performed today?</th><th>Inspect Resealing tool</th><th>Clean Resealing tool</th><th>Comments</th></tr></thead>
           <tbody id="resealingTableBody"><tr><td colspan="7" style="text-align:center;">No Resealing Machine records yet.</td></tr></tbody>
         </table>
       </div>
+      <div class="ip-dashboard" id="ipDashboard" style="display:none;"></div>
     </div>
     <section class="chart-dashboard" id="chartDashboard">
-      <div class="hta-chart-filter" aria-label="HTA chart date filters">
-        <div class="form-group"><label for="htaStartDate">Start Date</label><input type="date" id="htaStartDate" required></div>
-        <div class="form-group"><label for="htaEndDate">End Date</label><input type="date" id="htaEndDate" required></div>
-        <small class="input-help" id="htaDateRangeSummary">Showing the most recent 7 days.</small>
+      <div class="hta-chart-filter temperature-filter" aria-label="Temperature filters">
+        <div class="form-group"><label for="temperatureStartDate">Start Date</label><input type="date" id="temperatureStartDate" required></div>
+        <div class="form-group"><label for="temperatureEndDate">End Date</label><input type="date" id="temperatureEndDate" required></div>
+        <fieldset class="temperature-view-areas">
+          <legend>Areas</legend>
+          <div class="temperature-view-options" id="temperatureViewOptions"></div>
+        </fieldset>
+        <small class="input-help" id="temperatureRangeSummary">Showing the most recent 7 days.</small>
       </div>
-      <div class="chart-grid" id="chartGrid"></div>
+      <div id="temperaturePanels"></div>
     </section>
   </div>
     </main>
@@ -1999,13 +2105,12 @@
     const photoPreview = document.getElementById('photoPreview');
     const photoProcessingStatus = document.getElementById('photoProcessingStatus');
     const hotJigInput = document.getElementById('hotJig');
-    const htaInputIds = ['hta11', 'hta12', 'hta21', 'hta22', 'hta31', 'hta32', 'hta41', 'hta42'];
     let currentProcess = 'formation';
     let loadRequestId = 0;
     let defectMapPoints = [];
     let pendingMapPoints = [];
     let mapReadOnly = false;
-    let htaChartRecords = [];
+    let temperatureRecords = {};
     let recordsOffset = 0;
     let recordsHasMore = false;
     let recordsLoading = false;
@@ -2502,40 +2607,70 @@
     }
 
     function renderIpRecords(records) {
-      const tbody = document.getElementById('ipTableBody');
       const measurements = records.flatMap(record => record.measurements || []);
       const inRangeCount = measurements.filter(measure => measure.inRange).length;
       document.getElementById('kpiRecords').textContent = String(records.length);
       document.getElementById('kpiQuality').textContent = measurements.length
         ? Math.round(inRangeCount / measurements.length * 100) + '%'
         : '\u2014';
+      document.getElementById('kpiQualityCard').dataset.tone = measurements.length ? (inRangeCount === measurements.length ? 'success' : 'danger') : '';
       document.getElementById('kpiLatest').textContent = records.length ? records[records.length - 1].checkDate : 'No records';
-      tbody.innerHTML = '';
-      if (!records.length) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No DSF Daily IP checks yet.</td></tr>';
-        return;
-      }
-      records.slice().reverse().forEach(record => {
-        const rowOrder = new Map(IP_CHECK_ROWS.map((row, index) => [row.id, index]));
-        (record.measurements || []).slice().sort((a, b) =>
-          (rowOrder.get(a.id) ?? Infinity) - (rowOrder.get(b.id) ?? Infinity)
-        ).forEach(measure => {
-          const tr = document.createElement('tr');
-          const cell = (label, value) => '<td data-label="' + label + '">' + escapeText(value ?? '-') + '</td>';
-          tr.innerHTML =
-            cell('Date', record.checkDate) +
-            cell('Line', record.line) +
-            cell('Process', measure.process) +
-            cell('Measurement point', '(' + measure.point + ') ' + measure.name) +
-            cell('Lane', measure.lane) +
-            cell('Target', measure.target) +
-            cell('(+)', measure.plus) +
-            cell('(-)', measure.minus) +
-            '<td data-label="Range check"><span class="startup-status-badge ' + (measure.inRange ? 'done' : 'issue') + '">' +
-              (measure.inRange ? 'Within range' : 'Outside range') + '</span></td>';
-          tbody.appendChild(tr);
-        });
+      renderIpDashboard(records);
+    }
+
+    const IP_DASHBOARD_COLUMNS = IP_CHECK_GROUPS.flatMap(group => group.lanes.map(lane => ({
+      group,
+      label: group.label + (lane === 'Common' ? '' : ' (' + lane + ')'),
+      specs: IP_CHECK_ROWS.filter(spec => spec.id.startsWith(group.id + '-') && spec.lane === lane)
+    })));
+
+    function renderIpDashboard(records) {
+      const dashboard = document.getElementById('ipDashboard');
+      const rows = records.slice().reverse().map(record => {
+        const byId = new Map((record.measurements || []).map(measure => [measure.id, measure]));
+        const cells = new Map(IP_CHECK_ROWS.map(spec => {
+          const measure = byId.get(spec.id);
+          if (!measure) return [spec.id, { out: false, html: '<span class="ip-dash-empty">-</span>' }];
+          const values = [['+', measure.plus], ['−', measure.minus]].map(([sign, raw]) => {
+            const out = raw === '' || raw === null || raw === undefined ? !measure.inRange : !ipValueInRange(Number(raw), spec);
+            return { out, html: '<span class="ip-val' + (out ? ' out' : '') + '" title="' + (out ? 'Spec out (' + escapeText(spec.target) + ')' : 'Within spec') + '">' + sign + escapeText(raw ?? '-') + '</span>' };
+          });
+          return [spec.id, { out: values.some(value => value.out), html: '<span class="ip-dash-values">' + values.map(value => value.html).join('') + '</span>' }];
+        }));
+        return { record, cells, outCount: Array.from(cells.values()).filter(cell => cell.out).length };
       });
+      const groupOut = new Map(IP_CHECK_GROUPS.map(group => [group.id, rows.reduce((sum, row) =>
+        sum + IP_CHECK_ROWS.filter(spec => spec.id.startsWith(group.id + '-') && row.cells.get(spec.id).out).length, 0)]));
+
+      const images = '<div class="ip-dash-images">' + IP_CHECK_GROUPS.map(group => {
+        const out = groupOut.get(group.id);
+        return '<figure class="ip-dash-image' + (out ? ' has-out' : '') + '">' +
+          '<a href="' + escapeText(group.image) + '" target="_blank" rel="noopener"><img src="' + escapeText(group.image) + '" alt="' + escapeText(group.label) + ' measurement diagram" loading="lazy"></a>' +
+          '<figcaption>' + escapeText(group.label) + '<span class="ip-spec-badge ' + (out ? 'out' : rows.length ? 'ok' : 'none') + '">' +
+            (out ? out + ' out' : rows.length ? 'OK' : 'No data') + '</span></figcaption></figure>';
+      }).join('') + '</div>';
+
+      const eachSpec = render => IP_DASHBOARD_COLUMNS.map(column =>
+        column.specs.map((spec, index) => render(spec, index === 0 ? ' ip-group-start' : '')).join('')
+      ).join('');
+      const head = '<thead>' +
+        '<tr class="ip-head-group"><th class="ip-col-date" rowspan="3">Date</th><th class="ip-col-line" rowspan="3">Line</th>' +
+          IP_DASHBOARD_COLUMNS.map(column => '<th class="ip-group-start" colspan="' + column.specs.length + '">' + escapeText(column.label) + '</th>').join('') + '</tr>' +
+        '<tr class="ip-head-point">' + eachSpec((spec, start) => '<th class="' + start + '" title="' + escapeText(spec.name) + '">' + escapeText(spec.point.toUpperCase()) + '</th>') + '</tr>' +
+        '<tr class="ip-head-spec">' + eachSpec((spec, start) => '<th class="' + start + '">' + escapeText(spec.target) + '</th>') + '</tr>' +
+      '</thead>';
+      const body = rows.length
+        ? rows.map(row => '<tr class="' + (row.outCount ? 'ip-row-out' : '') + '">' +
+            '<td class="ip-col-date">' + escapeText(row.record.checkDate) + (row.outCount ? '<span class="ip-out-count">⚠ ' + row.outCount + ' spec out</span>' : '') + '</td>' +
+            '<td class="ip-col-line">' + escapeText(row.record.line) + '</td>' +
+            eachSpec((spec, start) => { const cell = row.cells.get(spec.id); return '<td class="ip-cell' + start + (cell.out ? ' out' : '') + '">' + cell.html + '</td>'; }) +
+          '</tr>').join('')
+        : '<tr><td class="ip-col-date ip-dash-empty">No data yet</td><td class="ip-col-line ip-dash-empty">-</td>' +
+            eachSpec((spec, start) => '<td class="ip-cell ip-dash-empty' + start + '">-</td>') + '</tr>';
+
+      dashboard.innerHTML = images +
+        '<div class="ip-dash-head"><strong>Measurement results</strong><small>Newest on top. Values are (+) / (−). Hover a point letter for its name.</small></div>' +
+        '<div class="ip-dash-table-wrap"><table class="ip-dash-table">' + head + '<tbody>' + body + '</tbody></table></div>';
     }
 
     document.getElementById('ipChecklist').addEventListener('input', event => {
@@ -2668,16 +2803,46 @@
       document.getElementById('conductiveMeasurementHelp').textContent = isDegasProcess
         ? 'IR is automatically selected for Degas.'
         : 'EOL allows IR or IV.';
+      updateConductiveUnitOptions();
+    }
+
+    const CONDUCTIVE_REFERENCES = {
+      'Degas IR': { image: 'conductive-degas-ir.jpg', units: ['1A', '1B', '1C', '1D', '2A', '2B', '2C', '2D'] },
+      'EOL IR': { image: 'conductive-eol-ir.jpg', units: ['1A', '1B', '1C', '1D'] },
+      'EOL IV': { image: 'conductive-eol-iv.jpg', units: ['1A', '1B', '2A', '2B'] }
+    };
+
+    function updateConductiveUnitOptions() {
+      const key = `${document.getElementById('conductiveProcess').value} ${document.getElementById('conductiveMeasurement').value}`;
+      const reference = CONDUCTIVE_REFERENCES[key];
+      const units = reference ? reference.units : [];
+      document.querySelectorAll('input[name="conductiveUnit"]').forEach(input => {
+        const available = units.includes(input.value);
+        input.closest('.unit-option').hidden = !available;
+        if (!available) input.checked = false;
+      });
+      const figure = document.getElementById('conductiveReference');
+      figure.hidden = !reference;
+      if (reference) {
+        document.getElementById('conductiveReferenceImage').src = reference.image;
+        document.getElementById('conductiveReferenceImage').alt = `${key} conductive rubber unit locations`;
+        document.getElementById('conductiveReferenceLink').href = reference.image;
+        document.getElementById('conductiveReferenceCaption').textContent = `${key} reference. Tap to enlarge.`;
+      }
+      document.getElementById('conductiveUnitsHelp').textContent = reference
+        ? 'Select one or more units.'
+        : 'Select a process and measurement first.';
     }
 
     document.getElementById('conductiveProcess').addEventListener('change', updateConductiveMeasurementMode);
+    document.getElementById('conductiveMeasurement').addEventListener('change', updateConductiveUnitOptions);
     updateConductiveMeasurementMode();
 
     function switchProcess(process) {
-      currentProcess = ['before_hpcd', 'formation', 'degas', 'hta', 'maintenance', 'conductive', 'startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector', 'startup_resealing', 'ip_dsf'].includes(process) ? process : 'formation';
+      currentProcess = ['before_hpcd', 'formation', 'degas', 'temperature', 'maintenance', 'conductive', 'startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector', 'startup_resealing', 'ip_dsf'].includes(process) ? process : 'formation';
       const isBeforeHpcd = currentProcess === 'before_hpcd';
       const isDegas = currentProcess === 'degas';
-      const isHta = currentProcess === 'hta';
+      const isTemperature = currentProcess === 'temperature';
       const isMaintenance = currentProcess === 'maintenance';
       const isConductive = currentProcess === 'conductive';
       const isStartupCheck = isStartupCheckProcess();
@@ -2685,20 +2850,21 @@
       const isAppearance = isAppearanceProcess(currentProcess);
       const appearanceLabel = getAppearanceProcessLabel(currentProcess);
 
-      document.querySelectorAll('.process-button').forEach(button => {
+      document.querySelectorAll('.process-button, .process-category-direct').forEach(button => {
         button.classList.toggle('active', button.dataset.process === currentProcess);
       });
       document.getElementById('pageTitle').textContent =
-        isStartupCheck ? startupConfig.title : isConductive ? 'Conductive Rubber Maintenance' : isMaintenance ? 'EOL Tape/Knife Maintenance' : isHta ? 'HTA Temperature Monitoring' : `${appearanceLabel} Inspection`;
+        isStartupCheck ? startupConfig.title : isConductive ? 'Conductive Rubber Maintenance' : isMaintenance ? 'EOL Tape/Knife Maintenance' : isTemperature ? 'Area Temperature Monitoring' : `${appearanceLabel} Inspection`;
       document.getElementById('pageEyebrow').textContent =
-        isStartupCheck ? startupConfig.eyebrow : isConductive || isMaintenance ? 'Operations / Maintenance' : isHta ? 'Operations / Temperature' : 'Operations / Appearance';
+        isStartupCheck ? startupConfig.eyebrow : isConductive || isMaintenance ? 'Operations / Maintenance' : isTemperature ? 'Operations / Temperature' : 'Operations / Appearance';
       document.getElementById('kpiProcess').textContent =
-        isStartupCheck ? startupConfig.kpi : isConductive ? 'Conductive Rubber' : isMaintenance ? 'EOL Tape/Knife' : isHta ? 'HTA' : appearanceLabel;
+        isStartupCheck ? startupConfig.kpi : isConductive ? 'Conductive Rubber' : isMaintenance ? 'EOL Tape/Knife' : isTemperature ? 'Temperature' : appearanceLabel;
       document.getElementById('kpiRecords').textContent = '—';
       document.getElementById('kpiQuality').textContent = '—';
+      document.getElementById('kpiQualityCard').dataset.tone = '';
       document.getElementById('kpiLatest').textContent = '—';
       document.getElementById('formTitle').textContent =
-        isStartupCheck ? startupConfig.formTitle : isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isHta ? 'New HTA Temperature Reading' : `New ${appearanceLabel} Inspection`;
+        isStartupCheck ? startupConfig.formTitle : isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isTemperature ? 'New Temperature Reading' : `New ${appearanceLabel} Inspection`;
       document.getElementById('lineLabel').textContent =
         isDegas ? 'Degas line' : 'Jig line';
       document.getElementById('lineLabel').htmlFor = isDegas ? 'degasProcessLine' : 'processLine';
@@ -2711,7 +2877,7 @@
       });
       renderStartupLineOptions(currentProcess);
       renderStartupChecklist(currentProcess);
-      if (currentProcess === 'ip_dsf') renderIpChecklist();
+      if (currentProcess === 'ip_dsf') { renderIpChecklist(); renderIpDashboard([]); }
       document.getElementById('startupFields').classList.toggle('open', isStartupCheck);
       const isDegasStartup = currentProcess === 'startup_degas';
       const isCdcStartup = currentProcess === 'startup_cdc';
@@ -2719,7 +2885,7 @@
       const isSelectorStartup = currentProcess === 'startup_selector';
       const isResealingStartup = currentProcess === 'startup_resealing';
       const isIpCheck = currentProcess === 'ip_dsf';
-      document.getElementById('kpiQualityLabel').textContent = isIpCheck ? 'Measurements in range' : isStartupCheck ? 'Check status' : 'Defect Rate';
+      document.getElementById('kpiQualityLabel').textContent = isIpCheck ? 'Measurements in range' : isStartupCheck ? 'Check status' : isTemperature ? 'Out of Spec' : 'Defect Rate';
       formCard.classList.toggle('ip-check-form', isIpCheck);
       const needsStartupOperator = isDegasStartup || isCdcStartup || isEolStartup || isSelectorStartup || isResealingStartup;
       document.getElementById('team').required = !isResealingStartup && !isIpCheck;
@@ -2739,14 +2905,14 @@
       document.getElementById('startupCdcFloor').required = isCdcStartup;
       document.getElementById('startupCompletedLegend').innerHTML = (needsStartupOperator ? 'Can the Start-up Check be completed?' : 'Check completed') + ' <span aria-hidden="true">*</span>';
       document.getElementById('startupEscalationHelp').classList.toggle('open', needsStartupOperator);
-      document.getElementById('htaFields').style.display = isHta ? 'grid' : 'none';
+      document.getElementById('temperatureFields').classList.toggle('open', isTemperature);
       document.getElementById('maintenanceFields').style.display = isMaintenance ? 'block' : 'none';
       document.getElementById('conductiveFields').style.display = isConductive ? 'block' : 'none';
       document.getElementById('startupLineFieldset').style.display = isStartupCheck && startupConfig.usesLine ? '' : 'none';
       document.getElementById('startupFields').style.display = isStartupCheck && !isResealingStartup && !isIpCheck ? 'block' : 'none';
       document.querySelectorAll('input[name="startupCompleted"], input[name="startupFrequency"], #startupChecklist .startup-status-select').forEach(input => { input.required = isStartupCheck && !isResealingStartup && !isIpCheck; });
       updateStartupCompletionMode();
-      htaInputIds.forEach(id => { document.getElementById(id).required = isHta; });
+      updateTemperatureFormState();
       ['maintenanceLine', 'maintenanceEquipment', 'maintenanceAction', 'tapingLine'].forEach(id => {
         document.getElementById(id).required = isMaintenance;
       });
@@ -2765,7 +2931,7 @@
       const defectHeader = document.getElementById('defectHeader');
       if (isBeforeHpcd) document.getElementById('cellIdHeader').before(defectHeader);
       else document.getElementById('hotJigHeader').after(defectHeader);
-      document.getElementById('mapHeader').style.display = isHta ? 'none' : '';
+      document.getElementById('mapHeader').style.display = isTemperature ? 'none' : '';
       hotJigInput.required = currentProcess === 'formation';
       document.getElementById('historyCard').style.display = isAppearance ? '' : 'none';
       document.getElementById('maintenanceHistoryCard').style.display = isMaintenance ? '' : 'none';
@@ -2773,7 +2939,8 @@
       document.getElementById('startupHistoryCard').style.display = isStartupCheck ? '' : 'none';
       document.getElementById('startupHistoryTitle').textContent = isStartupCheck ? startupConfig.historyTitle : 'Start-up Check Sheets';
       document.getElementById('startupHistoryTable').style.display = isResealingStartup || isIpCheck ? 'none' : '';
-      document.getElementById('ipHistoryTable').style.display = isIpCheck ? '' : 'none';
+      document.getElementById('ipDashboard').style.display = isIpCheck ? '' : 'none';
+      document.getElementById('startupHistoryTable').closest('.table-container').style.display = isIpCheck ? 'none' : '';
       document.getElementById('resealingHistoryTable').style.display = isResealingStartup ? '' : 'none';
       document.getElementById('startupScopeHeader').textContent = isEolStartup ? 'EOL Line' : isCdcStartup ? 'CDC Line' : isDegasStartup ? 'Degas Line' : isSelectorStartup ? 'Line #' : isStartupCheck && !startupConfig.usesLine ? 'Area' : 'Line';
       document.querySelectorAll('.startup-operator-column').forEach(column => { column.style.display = needsStartupOperator ? '' : 'none'; });
@@ -2795,11 +2962,11 @@
       document.getElementById('weeklyMapLegend').innerHTML = '';
       document.getElementById('weeklyMapCount').textContent = '0 points';
       setWeeklyMapOpen(true);
-      document.getElementById('chartDashboard').style.display = isHta ? 'block' : 'none';
-      openFormBtn.textContent = isStartupCheck ? `＋ New ${startupConfig.title.replace(' Start-up Check Sheet', ' Check Sheet')}` : isConductive ? '＋ New Record' : isMaintenance ? '＋ New Maintenance' : isHta ? 'New Reading' : 'New Inspection';
-      document.getElementById('submitBtn').textContent = isStartupCheck ? startupConfig.submitLabel : isConductive ? 'Submit Record' : isMaintenance ? 'Submit Maintenance' : isHta ? 'Submit Reading' : 'Submit Inspection';
+      document.getElementById('chartDashboard').style.display = isTemperature ? 'block' : 'none';
+      openFormBtn.textContent = isStartupCheck ? `＋ New ${startupConfig.title.replace(' Start-up Check Sheet', ' Check Sheet')}` : isConductive ? '＋ New Record' : isMaintenance ? '＋ New Maintenance' : isTemperature ? '＋ New Reading' : 'New Inspection';
+      document.getElementById('submitBtn').textContent = isStartupCheck ? startupConfig.submitLabel : isConductive ? 'Submit Record' : isMaintenance ? 'Submit Maintenance' : isTemperature ? 'Submit Readings' : 'Submit Inspection';
       document.getElementById('submitAndAddCellBtn').style.display = isAppearance ? '' : 'none';
-      const activeButton = document.querySelector(`.process-button[data-process="${currentProcess}"]`);
+      const activeButton = document.querySelector(`.process-button[data-process="${currentProcess}"], .process-category-direct[data-process="${currentProcess}"]`);
       if (activeButton) {
         document.querySelectorAll('.process-group').forEach(group => {
           const isActiveGroup = group === activeButton.closest('.process-group');
@@ -2813,6 +2980,10 @@
 
     document.querySelectorAll('.process-category-toggle').forEach(toggle => {
       toggle.addEventListener('click', () => {
+        if (toggle.dataset.process) {
+          switchProcess(toggle.dataset.process);
+          return;
+        }
         const group = toggle.closest('.process-group');
         const willOpen = !group.classList.contains('open');
         document.querySelectorAll('.process-group').forEach(item => {
@@ -2850,8 +3021,8 @@
       openFormBtn.style.display = 'none';
       document.body.style.overflow = 'hidden';
       if (currentProcess === 'ip_dsf' && !document.getElementById('ipDate').value) document.getElementById('ipDate').value = toDateInputValue(new Date());
-      const focusId = currentProcess === 'ip_dsf' ? 'ipDate' : currentProcess === 'startup_resealing' ? 'operatorName' : currentProcess === 'startup_cdc' ? 'startupCdcLine' : currentProcess === 'startup_selector' ? 'startupSelectorFieldset' : isStartupCheckProcess() ? (getStartupConfig().usesLine ? 'startupLines' : 'startupCompletedYes') : currentProcess === 'hta' ? 'hta11' : currentProcess === 'maintenance' ? 'maintenanceLine' : currentProcess === 'conductive' ? 'conductiveProcess' : 'trayId';
-      const focusTarget = currentProcess === 'startup_selector' ? document.querySelector('input[name="startupSelector"]') : isStartupCheckProcess() && getStartupConfig().usesLine
+      const focusId = currentProcess === 'ip_dsf' ? 'ipDate' : currentProcess === 'startup_resealing' ? 'operatorName' : currentProcess === 'startup_cdc' ? 'startupCdcLine' : currentProcess === 'startup_selector' ? 'startupSelectorFieldset' : isStartupCheckProcess() ? (getStartupConfig().usesLine ? 'startupLines' : 'startupCompletedYes') : currentProcess === 'temperature' ? 'temperatureAreaOptions' : currentProcess === 'maintenance' ? 'maintenanceLine' : currentProcess === 'conductive' ? 'conductiveProcess' : 'trayId';
+      const focusTarget = currentProcess === 'temperature' ? document.getElementById('team') : currentProcess === 'startup_selector' ? document.querySelector('input[name="startupSelector"]') : isStartupCheckProcess() && getStartupConfig().usesLine
         ? document.querySelector('#startupLines input')
         : document.getElementById(focusId);
       setTimeout(() => focusTarget?.focus(), 300);
@@ -2860,6 +3031,7 @@
     function closeForm() {
       inspectionForm.reset();
       updateConductiveMeasurementMode();
+      updateTemperatureFormState();
       defectMapPoints = [];
       renderDefectMapPreview();
       clearPreparedPhoto(false);
@@ -3292,7 +3464,36 @@
         return;
       }
 
-      const isHta = currentProcess === 'hta';
+      if (currentProcess === 'temperature') {
+        const result = collectTemperatureReadings();
+        if (result.error) {
+          statusDiv.style.color = '#c93434';
+          statusDiv.textContent = '❌ ' + result.error;
+          submitBtn.disabled = false;
+          submitAndAddCellBtn.disabled = false;
+          return;
+        }
+        try {
+          await submitToDatabase({
+            process: 'temperature',
+            team: document.getElementById('team').value,
+            operatorName: document.getElementById('operatorName').value.trim(),
+            areas: result.areas
+          });
+          closeForm();
+          statusDiv.style.color = '#16a34a';
+          statusDiv.textContent = '✅ Saved.';
+          await loadData(true);
+        } catch (error) {
+          statusDiv.style.color = '#dc2626';
+          statusDiv.textContent = 'Save failed: ' + error.message;
+        } finally {
+          submitBtn.disabled = false;
+          submitAndAddCellBtn.disabled = false;
+        }
+        return;
+      }
+
       const isMaintenance = currentProcess === 'maintenance';
       const isConductive = currentProcess === 'conductive';
       const isStartupCheck = isStartupCheckProcess();
@@ -3405,18 +3606,6 @@
         checkCompleted: startupCheckCompleted,
         frequency: document.querySelector('input[name="startupFrequency"]:checked').value,
         items: startupItems
-      } : isHta ? {
-        process: 'hta',
-        team: document.getElementById('team').value,
-        operatorName: document.getElementById('operatorName').value,
-        hta11: Number(document.getElementById('hta11').value),
-        hta12: Number(document.getElementById('hta12').value),
-        hta21: Number(document.getElementById('hta21').value),
-        hta22: Number(document.getElementById('hta22').value),
-        hta31: Number(document.getElementById('hta31').value),
-        hta32: Number(document.getElementById('hta32').value),
-        hta41: Number(document.getElementById('hta41').value),
-        hta42: Number(document.getElementById('hta42').value)
       } : isConductive ? {
         process: 'conductive',
         team: document.getElementById('team').value,
@@ -3994,21 +4183,21 @@
     document.getElementById('weeklyLineFilter').addEventListener('change', applyWeeklyMapFilters);
     document.getElementById('weeklyHotJigFilter').addEventListener('change', applyWeeklyMapFilters);
 
-    function initializeHtaDateRange() {
+    function initializeTemperatureDateRange() {
       const end = new Date();
       const start = new Date(end);
       start.setDate(start.getDate() - 6);
-      const startInput = document.getElementById('htaStartDate');
-      const endInput = document.getElementById('htaEndDate');
+      const startInput = document.getElementById('temperatureStartDate');
+      const endInput = document.getElementById('temperatureEndDate');
       startInput.value = toDateInputValue(start);
       endInput.value = toDateInputValue(end);
       startInput.max = endInput.value;
       endInput.min = startInput.value;
     }
 
-    function getHtaDateRange() {
-      const startValue = document.getElementById('htaStartDate').value;
-      const endValue = document.getElementById('htaEndDate').value;
+    function getTemperatureDateRange() {
+      const startValue = document.getElementById('temperatureStartDate').value;
+      const endValue = document.getElementById('temperatureEndDate').value;
       return {
         start: new Date(`${startValue}T00:00:00`),
         end: new Date(`${endValue}T23:59:59.999`),
@@ -4017,36 +4206,21 @@
       };
     }
 
-    function renderFilteredHtaCharts() {
-      const range = getHtaDateRange();
-      const filtered = htaChartRecords.filter(record => {
-        const date = parseRecordDate(record.date);
-        return date && date >= range.start && date <= range.end;
-      });
-      document.getElementById('htaDateRangeSummary').textContent =
-        `${range.startLabel} to ${range.endLabel} · ${filtered.length} record${filtered.length === 1 ? '' : 's'}`;
-      renderHtaCharts(filtered);
-    }
-
-    function handleHtaDateChange(changedInput) {
-      const startInput = document.getElementById('htaStartDate');
-      const endInput = document.getElementById('htaEndDate');
+    function handleTemperatureDateChange(changedInput) {
+      const startInput = document.getElementById('temperatureStartDate');
+      const endInput = document.getElementById('temperatureEndDate');
       if (startInput.value > endInput.value) {
         if (changedInput === startInput) endInput.value = startInput.value;
         else startInput.value = endInput.value;
       }
       startInput.max = endInput.value;
       endInput.min = startInput.value;
-      if (currentProcess === 'hta') {
-        loadHtaChartData(loadRequestId).catch(() => {
-          document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load the selected date range.</div>';
-        });
-      }
+      if (currentProcess === 'temperature') loadData(true);
     }
 
-    initializeHtaDateRange();
-    document.getElementById('htaStartDate').addEventListener('change', event => handleHtaDateChange(event.currentTarget));
-    document.getElementById('htaEndDate').addEventListener('change', event => handleHtaDateChange(event.currentTarget));
+    initializeTemperatureDateRange();
+    document.getElementById('temperatureStartDate').addEventListener('change', event => handleTemperatureDateChange(event.currentTarget));
+    document.getElementById('temperatureEndDate').addEventListener('change', event => handleTemperatureDateChange(event.currentTarget));
 
     function updateSummary(records, process) {
       const qualityCard = document.getElementById('kpiQualityCard');
@@ -4061,13 +4235,6 @@
       if (process === 'conductive') {
         qualityLabel.textContent = 'Latest Action';
         qualityValue.textContent = latest ? (latest.action || '—') : 'No records';
-        return;
-      }
-
-      if (process === 'hta') {
-        qualityLabel.textContent = 'Latest Spec Status';
-        qualityValue.textContent = latest ? (latest.tempInSpec || '—') : 'No records';
-        if (latest) qualityCard.dataset.tone = latest.tempInSpec === 'Spec in' ? 'success' : 'danger';
         return;
       }
 
@@ -4090,7 +4257,6 @@
 
     function getDashboardRange(process) {
       if (isAppearanceProcess(process)) return getWeeklyDateRange();
-      if (process === 'hta') return getHtaDateRange();
       return { startLabel: '', endLabel: '' };
     }
 
@@ -4108,7 +4274,7 @@
     function renderBootstrapResponse(response, process) {
       updateSummaryFromApi(response.summary || {}, process);
       const records = response.records || [];
-      if (process !== 'hta') renderInspectionRecords(records, process, false);
+      renderInspectionRecords(records, process, false);
       const pagination = response.pagination || {};
       recordsOffset = Number(pagination.nextOffset) || records.length;
       recordsHasMore = Boolean(pagination.hasMore);
@@ -4116,9 +4282,6 @@
 
       if (isAppearanceProcess(process)) {
         renderWeeklyDefectMap(response.rangeData || []);
-      } else if (process === 'hta') {
-        htaChartRecords = response.rangeData || [];
-        renderFilteredHtaCharts();
       }
     }
 
@@ -4139,12 +4302,6 @@
         document.getElementById('kpiQualityLabel').textContent = 'Latest Maintenance';
         document.getElementById('kpiQuality').textContent = latest ? (latest.maintenance || '—') : 'No records';
         if (latest) qualityCard.dataset.tone = 'success';
-        return;
-      }
-      if (process === 'hta') {
-        document.getElementById('kpiQualityLabel').textContent = 'Latest Spec Status';
-        document.getElementById('kpiQuality').textContent = latest ? (latest.tempInSpec || '—') : 'No records';
-        if (latest) qualityCard.dataset.tone = latest.tempInSpec === 'Spec in' ? 'success' : 'danger';
         return;
       }
       document.getElementById('kpiQualityLabel').textContent = 'Defect Rate';
@@ -4320,17 +4477,8 @@
       renderWeeklyDefectMap(response.data || []);
     }
 
-    async function loadHtaChartData(requestId) {
-      const range = getHtaDateRange();
-      document.getElementById('chartGrid').innerHTML = '<div class="chart-empty">Loading temperature data...</div>';
-      const response = await fetchJsonWithRetry(buildApiUrl({ process: 'hta', action: 'chart', startDate: range.startLabel, endDate: range.endLabel }));
-      if (requestId !== loadRequestId || currentProcess !== 'hta') return;
-      htaChartRecords = response.data || [];
-      renderFilteredHtaCharts();
-    }
-
     async function loadMoreRecords() {
-      if (recordsLoading || !recordsHasMore || currentProcess === 'hta') return;
+      if (recordsLoading || !recordsHasMore || currentProcess === 'temperature') return;
       const process = currentProcess;
       recordsLoading = true;
       updateLoadMoreButton();
@@ -4379,6 +4527,29 @@
         }
         return;
       }
+      if (requestedProcess === 'temperature') {
+        systemStatus.textContent = 'Syncing Data';
+        systemStatus.className = 'system-status syncing';
+        updateSyncLabels('Loading records...', false);
+        refreshButton.disabled = true;
+        try {
+          await loadTemperatureData(requestId, forceRefresh);
+          if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
+          systemStatus.textContent = 'System Online';
+          systemStatus.className = 'system-status';
+          updateSyncLabels('Loaded from PostgreSQL', false);
+        } catch (error) {
+          if (requestId !== loadRequestId) return;
+          systemStatus.textContent = 'Connection Error';
+          systemStatus.className = 'system-status offline';
+          updateSyncLabels('Sync failed: ' + error.message, true);
+          document.getElementById('temperaturePanels').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the PostgreSQL server.</div>';
+        } finally {
+          refreshButton.disabled = false;
+          refreshButton.textContent = '↻ Refresh';
+        }
+        return;
+      }
       if (forceRefresh) {
         refreshButton.disabled = true;
         refreshButton.textContent = '↻ Refreshing…';
@@ -4412,10 +4583,8 @@
         document.getElementById('conductiveTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading Conductive Rubber records...</td></tr>';
       } else if (requestedProcess === 'maintenance') {
         document.getElementById('maintenanceTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading maintenance records...</td></tr>';
-      } else if (requestedProcess !== 'hta') {
-        document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">Loading inspection data...</td></tr>`;
       } else {
-        document.getElementById('chartGrid').innerHTML = '<div class="chart-empty">Loading temperature data...</div>';
+        document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center;">Loading inspection data...</td></tr>`;
       }
       try {
         const range = getDashboardRange(requestedProcess);
@@ -4442,8 +4611,7 @@
         systemStatus.textContent = 'Connection Error';
         systemStatus.className = 'system-status offline';
         updateSyncLabels('Sync failed', true);
-        if (requestedProcess === 'hta') document.getElementById('chartGrid').innerHTML = '<div class="chart-empty" style="color:#dc2626">Unable to load temperature data. Check the PostgreSQL server.</div>';
-        else if (requestedProcess === 'conductive') document.getElementById('conductiveTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Unable to load Conductive Rubber records.</td></tr>';
+        if (requestedProcess === 'conductive') document.getElementById('conductiveTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Unable to load Conductive Rubber records.</td></tr>';
         else if (requestedProcess === 'maintenance') document.getElementById('maintenanceTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Unable to load maintenance records.</td></tr>';
         else document.getElementById('dataTableBody').innerHTML = `<tr><td colspan="${columnCount}" style="text-align:center; color:red;">Unable to load data. Check the PostgreSQL server.</td></tr>`;
       } finally {
@@ -4479,57 +4647,328 @@
 
     document.getElementById('refreshDataBtn').addEventListener('click', () => loadData(true));
 
-    function renderHtaCharts(records) {
-      const grid = document.getElementById('chartGrid');
-      if (!records.length) {
-        grid.innerHTML = '<div class="chart-empty">No temperature records found.</div>';
-        return;
-      }
-      const groups = [
-        ['HTA 1', 'hta11', 'HTA 1-1', 'hta12', 'HTA 1-2'],
-        ['HTA 2', 'hta21', 'HTA 2-1', 'hta22', 'HTA 2-2'],
-        ['HTA 3', 'hta31', 'HTA 3-1', 'hta32', 'HTA 3-2'],
-        ['HTA 4', 'hta41', 'HTA 4-1', 'hta42', 'HTA 4-2']
-      ];
-      grid.innerHTML = groups.map(group => `<article class="chart-card"><h3>${group[0]}</h3>${buildTempChart(records, group)}</article>`).join('');
+    // Area temperature monitoring. Keys and labels mirror TEMPERATURE_AREAS in Code.gs.
+    function temperatureFieldList(prefix, labelPrefix, suffixes) {
+      return suffixes.map(suffix => ({ key: prefix + suffix.replace(/[^0-9A-Za-z]/g, ''), label: labelPrefix + suffix }));
     }
 
-    function buildTempChart(records, group) {
-      const width = 520, height = 260, left = 46, right = 16, top = 18, bottom = 48;
-      const plotWidth = width - left - right, plotHeight = height - top - bottom;
-      const series = records.map(record => ({ date: record.date, a: Number(record[group[1]]), b: Number(record[group[3]]) }))
-        .filter(point => Number.isFinite(point.a) && Number.isFinite(point.b));
-      if (!series.length) return '<div class="chart-empty">No numeric temperature data.</div>';
-      const minValue = 56;
-      const maxValue = 64;
-      const x = index => left + (series.length === 1 ? plotWidth / 2 : index * plotWidth / (series.length - 1));
-      const y = value => top + (maxValue - value) * plotHeight / (maxValue - minValue);
-      const polyline = key => series.map((point, index) => `${x(index).toFixed(1)},${y(point[key]).toFixed(1)}`).join(' ');
-      const yTicks = [minValue, 57, 60, 63, maxValue].filter((value, index, array) => array.indexOf(value) === index).sort((a, b) => a - b);
-      const ticks = yTicks.map(value => `<line x1="${left}" y1="${y(value)}" x2="${width-right}" y2="${y(value)}" stroke="#e2e8f0"/><text x="${left-7}" y="${y(value)+4}" text-anchor="end" font-size="11" fill="#64748b">${value}</text>`).join('');
-      const markers = key => series.map((point, index) =>
-        `<circle cx="${x(index).toFixed(1)}" cy="${y(point[key]).toFixed(1)}" r="3.5" fill="white" stroke="${key === 'a' ? '#2563eb' : '#f97316'}" stroke-width="2"/>`
-      ).join('');
-      const firstDate = escapeText(formatRecordDate(series[0].date));
-      const lastDate = escapeText(formatRecordDate(series[series.length - 1].date));
-      return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${group[0]} temperature trend">
-        ${ticks}
-        <line x1="${left}" y1="${y(57)}" x2="${width-right}" y2="${y(57)}" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
-        <line x1="${left}" y1="${y(63)}" x2="${width-right}" y2="${y(63)}" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="7 5"/>
-        <line x1="${left}" y1="${top}" x2="${left}" y2="${height-bottom}" stroke="#94a3b8"/>
-        <line x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}" stroke="#94a3b8"/>
-        <polyline points="${polyline('a')}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>
-        <polyline points="${polyline('b')}" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linejoin="round"/>
-        ${markers('a')}
-        ${markers('b')}
-        <text x="${left}" y="${height-24}" font-size="10" fill="#64748b">${firstDate}</text>
-        <text x="${width-right}" y="${height-24}" text-anchor="end" font-size="10" fill="#64748b">${lastDate}</text>
-        <circle cx="${left+3}" cy="${height-8}" r="3" fill="#2563eb"/><text x="${left+10}" y="${height-5}" font-size="9">${group[2]}</text>
-        <circle cx="${left+82}" cy="${height-8}" r="3" fill="#f97316"/><text x="${left+89}" y="${height-5}" font-size="9">${group[4]}</text>
-        <line x1="${width-right-80}" y1="${height-8}" x2="${width-right-60}" y2="${height-8}" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="6 4"/>
-        <text x="${width-right}" y="${height-5}" text-anchor="end" font-size="8" fill="#dc2626">Spec: 57–63°C</text>
-      </svg>`;
+    const TEMPERATURE_EOL_LINES = Object.freeze(['4-1', '4-2', '5-1', '5-2']);
+    const TEMPERATURE_SERIES_COLORS = Object.freeze(['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4']);
+    const TEMPERATURE_SPEC_COLOR = '#d03b3b';
+    const TEMPERATURE_AREAS = Object.freeze([
+      { process: 'temp_cdc', label: 'CDC', line: { label: 'CDC Line', type: 'text' }, groups: [
+        { title: 'Floor 1', fields: temperatureFieldList('floor', 'Floor ', ['1-1', '1-2']) },
+        { title: 'Floor 2', fields: temperatureFieldList('floor', 'Floor ', ['2-1', '2-2']) },
+        { title: 'Floor 3', fields: temperatureFieldList('floor', 'Floor ', ['3-1', '3-2']) },
+        { title: 'DCIR', fields: [{ key: 'dcir', label: 'DCIR' }] }
+      ] },
+      { process: 'temp_plt', label: 'Cell PLT', groups: [
+        { title: 'Cell PLT', fields: [{ key: 'pltEast', label: 'PLT East' }, { key: 'pltWest', label: 'PLT West' }] }
+      ] },
+      { process: 'temp_dgs', label: 'DGS', line: { label: 'Degas Line #', options: TEMPERATURE_EOL_LINES }, seriesByLine: true, groups: [
+        { title: 'DGS by line', fields: [{ key: 'dgs', label: 'DGS' }] }
+      ] },
+      { process: 'temp_eol', label: 'EOL', line: { label: 'EOL Line #', options: TEMPERATURE_EOL_LINES }, seriesByLine: true, groups: [
+        { title: 'EOL by line', fields: [{ key: 'eol', label: 'EOL' }] }
+      ] },
+      { process: 'hta', label: 'HTA', autoSpec: true, groups: [
+        { title: 'HTA 1', fields: temperatureFieldList('hta', 'HTA ', ['1-1', '1-2']) },
+        { title: 'HTA 2', fields: temperatureFieldList('hta', 'HTA ', ['2-1', '2-2']) },
+        { title: 'HTA 3', fields: temperatureFieldList('hta', 'HTA ', ['3-1', '3-2']) },
+        { title: 'HTA 4', fields: temperatureFieldList('hta', 'HTA ', ['4-1', '4-2']) }
+      ] },
+      { process: 'temp_jig', label: 'JIG', line: { label: 'Jig Formation Line #', options: ['3', '4', '5', '6'] }, optionalFields: true, groups: [
+        { title: 'Floor', fields: temperatureFieldList('floor', 'Floor ', ['1', '2', '3']) },
+        { title: 'JIG Line 4', fields: temperatureFieldList('jig', 'JIG ', ['4-1', '4-2', '4-3']) },
+        { title: 'JIG Line 5', fields: temperatureFieldList('jig', 'JIG ', ['5-1', '5-2', '5-3']) }
+      ] },
+      { process: 'temp_pra', label: 'PRA', line: { label: 'PRA Line #', type: 'text' }, groups: [
+        { title: 'PRA', fields: [{ key: 'praEast', label: 'PRA East' }, { key: 'praWest', label: 'PRA West' }] }
+      ] },
+      { process: 'temp_rta', label: 'RTA', groups: [
+        { title: 'RTA', fields: [{ key: 'rtaEast', label: 'RTA East Area' }, { key: 'rtaWest', label: 'RTA West Area' }] }
+      ] },
+      { process: 'temp_sha', label: 'SHA', groups: [
+        { title: 'East Aisle (#1 closest to Spine)', fields: temperatureFieldList('shaEast', 'SHA East Aisle #', ['1', '2', '3', '4', '5']) },
+        { title: 'West Aisle (#1 closest to Spine)', fields: temperatureFieldList('shaWest', 'SHA West Aisle #', ['1', '2', '3', '4', '5']) }
+      ] }
+    ]);
+    // Spec = target ± 3 °C: CDC 29, HTA 60, every other area 23.
+    const TEMPERATURE_SPEC_TOLERANCE = 3;
+    const TEMPERATURE_SPEC_TARGETS = Object.freeze({ temp_cdc: 29, hta: 60 });
+    TEMPERATURE_AREAS.forEach(area => {
+      const target = TEMPERATURE_SPEC_TARGETS[area.process] ?? 23;
+      area.spec = Object.freeze({
+        target, min: target - TEMPERATURE_SPEC_TOLERANCE, max: target + TEMPERATURE_SPEC_TOLERANCE,
+        label: target + ' ± ' + TEMPERATURE_SPEC_TOLERANCE + ' °C'
+      });
+    });
+    const TEMPERATURE_AREA_BY_PROCESS = new Map(TEMPERATURE_AREAS.map(area => [area.process, area]));
+    const temperatureCharts = new Map();
+    let temperatureCacheRange = '';
+
+    function getTemperatureAreaFields(area) {
+      return area.groups.flatMap(group => group.fields);
     }
+
+    function renderTemperatureForm() {
+      document.getElementById('temperatureAreaOptions').innerHTML = TEMPERATURE_AREAS.map(area =>
+        '<label class="unit-option"><input type="radio" name="temperatureArea" value="' + area.process + '"><span>' + escapeText(area.label) + '</span></label>'
+      ).join('');
+      document.getElementById('temperatureAreaForms').innerHTML = TEMPERATURE_AREAS.map(area => {
+        const lineId = 'temperature-' + area.process + '-line';
+        const line = !area.line ? '' : '<div class="form-group"><label for="' + lineId + '">' + escapeText(area.line.label) + '</label>' + (area.line.options
+          ? '<select id="' + lineId + '" data-temperature-line><option value="" selected disabled>Select a line</option>' +
+            area.line.options.map(option => '<option value="' + escapeText(option) + '">' + escapeText(option) + '</option>').join('') + '</select>'
+          : '<input type="text" id="' + lineId + '" data-temperature-line maxlength="32" placeholder="e.g., 3">') + '</div>';
+        const inputs = area.groups.map(group =>
+          (area.groups.length > 1 ? '<div class="temperature-input-group-title">' + escapeText(group.title) + '</div>' : '') +
+          group.fields.map(field => {
+            const inputId = 'temperature-' + area.process + '-' + field.key;
+            return '<div class="form-group"><label for="' + inputId + '">' + escapeText(field.label) + '</label>' +
+              '<input type="number" id="' + inputId + '" data-temperature-field="' + field.key + '" step="0.01" inputmode="decimal" placeholder="°C"></div>';
+          }).join('')
+        ).join('');
+        const spec = area.autoSpec
+          ? '<small class="input-help">In-spec status is checked automatically against ' + escapeText(area.spec.label) + '.</small>'
+          : '<div class="temperature-spec-row" role="radiogroup" aria-label="' + escapeText(area.label) + ' temperatures in spec"><span>Temperature(s) in spec?</span>' +
+            ['Yes', 'No'].map(value => '<label><input type="radio" name="temperature-' + area.process + '-spec" value="' + value + '">' + value + '</label>').join('') + '</div>';
+        const help = area.optionalFields ? '<small class="input-help">Fill in only the temperatures that apply to the selected line.</small>' : '';
+        return '<section class="temperature-area-form" data-temperature-area="' + area.process + '" hidden><h4>' + escapeText(area.label + ' (' + area.spec.label + ')') + '</h4>' +
+          line + help + '<div class="temperature-input-grid">' + inputs + '</div>' + spec + '</section>';
+      }).join('');
+    }
+
+    function updateTemperatureFormState() {
+      const isTemperature = currentProcess === 'temperature';
+      document.querySelectorAll('input[name="temperatureArea"]').forEach(checkbox => {
+        const area = TEMPERATURE_AREA_BY_PROCESS.get(checkbox.value);
+        const section = document.querySelector('[data-temperature-area="' + area.process + '"]');
+        const active = isTemperature && checkbox.checked;
+        section.hidden = !active;
+        section.querySelectorAll('[data-temperature-line]').forEach(input => { input.required = active; });
+        section.querySelectorAll('[data-temperature-field]').forEach(input => { input.required = active && !area.optionalFields; });
+        section.querySelectorAll('input[type="radio"]').forEach(input => { input.required = active; });
+      });
+    }
+
+    function collectTemperatureReadings() {
+      const selected = Array.from(document.querySelectorAll('input[name="temperatureArea"]:checked')).map(input => TEMPERATURE_AREA_BY_PROCESS.get(input.value));
+      if (!selected.length) return { error: 'Select an area.' };
+      const areas = [];
+      for (const area of selected) {
+        const section = document.querySelector('[data-temperature-area="' + area.process + '"]');
+        const values = {};
+        section.querySelectorAll('[data-temperature-field]').forEach(input => {
+          values[input.dataset.temperatureField] = input.value === '' ? '' : Number(input.value);
+        });
+        if (!Object.values(values).some(value => value !== '' && Number.isFinite(value))) {
+          return { error: 'Enter at least one temperature for ' + area.label + '.' };
+        }
+        const entry = { process: area.process, values };
+        const lineInput = section.querySelector('[data-temperature-line]');
+        if (lineInput) entry.line = lineInput.value.trim();
+        if (!area.autoSpec) entry.inSpec = section.querySelector('input[type="radio"]:checked')?.value || '';
+        areas.push(entry);
+      }
+      return { areas };
+    }
+
+    function renderTemperatureViewOptions() {
+      document.getElementById('temperatureViewOptions').innerHTML = TEMPERATURE_AREAS.map(area =>
+        '<label><input type="checkbox" name="temperatureView" value="' + area.process + '" checked>' + escapeText(area.label) + '</label>'
+      ).join('');
+    }
+
+    function getSelectedTemperatureViewAreas() {
+      const selected = new Set(Array.from(document.querySelectorAll('input[name="temperatureView"]:checked')).map(input => input.value));
+      return TEMPERATURE_AREAS.filter(area => selected.has(area.process));
+    }
+
+    async function loadTemperatureData(requestId, forceRefresh = false) {
+      const range = getTemperatureDateRange();
+      const rangeKey = range.startLabel + '|' + range.endLabel;
+      if (forceRefresh || rangeKey !== temperatureCacheRange) {
+        temperatureRecords = {};
+        temperatureCacheRange = rangeKey;
+      }
+      const missing = getSelectedTemperatureViewAreas().filter(area => !temperatureRecords[area.process]);
+      if (missing.length) {
+        document.getElementById('temperaturePanels').innerHTML = '<div class="chart-empty">Loading temperature data...</div>';
+        const responses = await Promise.all(missing.map(area => fetchJsonWithRetry(buildApiUrl({
+          process: area.process, action: 'chart', startDate: range.startLabel, endDate: range.endLabel,
+          refresh: forceRefresh ? 1 : ''
+        }))));
+        if (requestId !== loadRequestId || rangeKey !== temperatureCacheRange) return;
+        missing.forEach((area, index) => { temperatureRecords[area.process] = responses[index].data || []; });
+      }
+      if (requestId !== loadRequestId || currentProcess !== 'temperature') return;
+      renderTemperatureDashboard();
+    }
+
+    function isTemperatureOutOfSpec(area, record) {
+      return area.autoSpec ? Boolean(record.tempInSpec) && record.tempInSpec !== 'Spec in' : record.tempInSpec === 'No';
+    }
+
+    function renderTemperatureDashboard() {
+      const range = getTemperatureDateRange();
+      const areas = getSelectedTemperatureViewAreas();
+      let total = 0;
+      let outOfSpec = 0;
+      let latest = null;
+      temperatureCharts.clear();
+      const panels = areas.map(area => {
+        const records = (temperatureRecords[area.process] || []).slice().sort((a, b) =>
+          (parseRecordDate(a.date)?.getTime() || 0) - (parseRecordDate(b.date)?.getTime() || 0));
+        total += records.length;
+        records.forEach(record => {
+          if (isTemperatureOutOfSpec(area, record)) outOfSpec += 1;
+          const date = parseRecordDate(record.date);
+          if (date && (!latest || date > latest.date)) latest = { date, label: record.date };
+        });
+        const header = '<div class="temperature-panel-header"><h3>' + escapeText(area.label + ' (' + area.spec.label + ')') + '</h3><span class="input-help">' +
+          records.length + ' reading' + (records.length === 1 ? '' : 's') + '</span></div>';
+        if (!records.length) {
+          return '<article class="card temperature-panel">' + header + '<p class="input-help">No readings in this date range.</p></article>';
+        }
+        const charts = area.groups.map((group, index) => {
+          const chartId = area.process + '-' + index;
+          return '<article class="chart-card"><h3>' + escapeText(group.title) + '</h3>' + buildTemperatureChart(chartId, records, area, group) + '</article>';
+        }).join('');
+        return '<article class="card temperature-panel">' + header + '<div class="chart-grid">' + charts + '</div>' +
+          buildTemperatureTable(area, records) + '</article>';
+      });
+      document.getElementById('temperaturePanels').innerHTML = panels.join('') ||
+        '<div class="chart-empty">Select at least one area to show its charts.</div>';
+      document.getElementById('temperatureRangeSummary').textContent =
+        range.startLabel + ' to ' + range.endLabel + ' · ' + total + ' reading' + (total === 1 ? '' : 's');
+      document.getElementById('kpiRecords').textContent = total.toLocaleString();
+      document.getElementById('kpiQuality').textContent = String(outOfSpec);
+      document.getElementById('kpiQualityCard').dataset.tone = total ? (outOfSpec ? 'danger' : 'success') : '';
+      document.getElementById('kpiLatest').textContent = latest ? formatRecordDate(latest.label) : 'No records';
+    }
+
+    function buildTemperatureTable(area, records) {
+      const fields = getTemperatureAreaFields(area);
+      const headers = ['Date', 'Team', 'First and Last Name'].concat(area.line ? [area.line.label] : [], fields.map(field => field.label), ['In spec?']);
+      const rows = records.slice().reverse().map(record => {
+        const cell = (label, value) => '<td data-label="' + escapeText(label) + '">' + escapeText(value === '' || value == null ? '-' : value) + '</td>';
+        const specBadge = '<td data-label="In spec?"><span class="startup-status-badge ' + (isTemperatureOutOfSpec(area, record) ? 'issue' : 'done') + '">' +
+          escapeText(record.tempInSpec || '-') + '</span></td>';
+        return '<tr>' + cell('Date', formatRecordDate(record.date)) + cell('Team', record.team) + cell('First and Last Name', record.operatorName) +
+          (area.line ? cell(area.line.label, record.line) : '') + fields.map(field => cell(field.label, record[field.key])).join('') + specBadge + '</tr>';
+      }).join('');
+      return '<div class="table-container"><table class="temperature-table"><thead><tr>' +
+        headers.map(header => '<th>' + escapeText(header) + '</th>').join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+    }
+
+    function buildTemperatureChart(chartId, records, area, group) {
+      const series = area.seriesByLine
+        ? Array.from(new Set(records.map(record => String(record.line || '-'))))
+            .sort((a, b) => (area.line.options || []).indexOf(a) - (area.line.options || []).indexOf(b))
+            .map(line => ({ label: 'Line ' + line, key: group.fields[0].key, records: records.filter(record => String(record.line || '-') === line) }))
+        : group.fields.map(field => ({ label: field.label, key: field.key, records }));
+      series.forEach((item, index) => {
+        item.color = TEMPERATURE_SERIES_COLORS[index % TEMPERATURE_SERIES_COLORS.length];
+        item.points = item.records.map(record => ({ time: parseRecordDate(record.date)?.getTime(), value: Number(record[item.key]), record }))
+          .filter(point => Number.isFinite(point.time) && hasTemperatureValue(point.record[item.key]) && Number.isFinite(point.value));
+      });
+      const points = series.flatMap(item => item.points);
+      if (!points.length) return '<div class="chart-empty">No readings for this group.</div>';
+
+      const width = 520, height = 230, left = 44, right = 14, top = 14, bottom = 30;
+      const plotWidth = width - left - right, plotHeight = height - top - bottom;
+      const times = points.map(point => point.time);
+      const minTime = Math.min(...times), maxTime = Math.max(...times);
+      const values = points.map(point => point.value).concat(area.spec ? [area.spec.min, area.spec.max] : []);
+      let minValue = Math.min(...values), maxValue = Math.max(...values);
+      const pad = Math.max(0.5, (maxValue - minValue) * 0.12);
+      minValue = Math.floor((minValue - pad) * 2) / 2;
+      maxValue = Math.ceil((maxValue + pad) * 2) / 2;
+      const x = time => left + (maxTime === minTime ? plotWidth / 2 : (time - minTime) * plotWidth / (maxTime - minTime));
+      const y = value => top + (maxValue - value) * plotHeight / (maxValue - minValue);
+      const ticks = Array.from({ length: 5 }, (_, index) => minValue + (maxValue - minValue) * index / 4);
+      const grid = ticks.map(value =>
+        '<line x1="' + left + '" y1="' + y(value).toFixed(1) + '" x2="' + (width - right) + '" y2="' + y(value).toFixed(1) + '" stroke="#e2e8f0"/>' +
+        '<text x="' + (left - 6) + '" y="' + (y(value) + 4).toFixed(1) + '" text-anchor="end" font-size="11" fill="#898781">' + (Math.round(value * 10) / 10) + '</text>'
+      ).join('');
+      const spec = area.spec ? [area.spec.min, area.spec.max].map(value =>
+        '<line x1="' + left + '" y1="' + y(value).toFixed(1) + '" x2="' + (width - right) + '" y2="' + y(value).toFixed(1) + '" stroke="' + TEMPERATURE_SPEC_COLOR + '" stroke-width="1.5" stroke-dasharray="6 4"/>'
+      ).join('') : '';
+      const lines = series.map(item => {
+        const path = item.points.map(point => x(point.time).toFixed(1) + ',' + y(point.value).toFixed(1)).join(' ');
+        const markers = item.points.map(point =>
+          '<circle cx="' + x(point.time).toFixed(1) + '" cy="' + y(point.value).toFixed(1) + '" r="4" fill="' + item.color + '" stroke="#ffffff" stroke-width="2"/>'
+        ).join('');
+        return (item.points.length > 1 ? '<polyline points="' + path + '" fill="none" stroke="' + item.color + '" stroke-width="2" stroke-linejoin="round"/>' : '') + markers;
+      }).join('');
+      const firstLabel = escapeText(formatRecordDate(points.find(point => point.time === minTime).record.date));
+      const lastLabel = escapeText(formatRecordDate(points.find(point => point.time === maxTime).record.date));
+      temperatureCharts.set(chartId, { series, x, y, top, bottom: height - bottom, width, height });
+      const legend = series.map(item => '<span><i style="background:' + item.color + '"></i>' + escapeText(item.label) + '</span>').join('') +
+        (area.spec ? '<span><i class="spec"></i>Spec ' + escapeText(area.spec.label) + '</span>' : '');
+      return '<div class="temperature-chart">' +
+        '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="' + escapeText(area.label + ' ' + group.title) + ' temperature trend" data-temperature-chart="' + chartId + '">' +
+          grid + spec +
+          '<line x1="' + left + '" y1="' + (height - bottom) + '" x2="' + (width - right) + '" y2="' + (height - bottom) + '" stroke="#94a3b8"/>' +
+          lines +
+          '<line class="temperature-crosshair" x1="0" y1="' + top + '" x2="0" y2="' + (height - bottom) + '" stroke="#64748b" stroke-dasharray="3 3" visibility="hidden"/>' +
+          '<text x="' + left + '" y="' + (height - 10) + '" font-size="10" fill="#898781">' + firstLabel + '</text>' +
+          '<text x="' + (width - right) + '" y="' + (height - 10) + '" text-anchor="end" font-size="10" fill="#898781">' + lastLabel + '</text>' +
+          '<rect x="' + left + '" y="' + top + '" width="' + plotWidth + '" height="' + plotHeight + '" fill="transparent"/>' +
+        '</svg><div class="temperature-tooltip" hidden></div>' +
+        '<div class="temperature-legend">' + legend + '</div></div>';
+    }
+
+    function hasTemperatureValue(value) {
+      return value !== '' && value !== null && value !== undefined;
+    }
+
+    function showTemperatureTooltip(event) {
+      const svg = event.target.closest('svg[data-temperature-chart]');
+      if (!svg) return;
+      const chart = temperatureCharts.get(svg.dataset.temperatureChart);
+      if (!chart) return;
+      const box = svg.getBoundingClientRect();
+      const pointerX = (event.clientX - box.left) * chart.width / box.width;
+      let nearest = null;
+      chart.series.forEach(item => item.points.forEach(point => {
+        const distance = Math.abs(chart.x(point.time) - pointerX);
+        if (!nearest || distance < nearest.distance) nearest = { distance, time: point.time, record: point.record };
+      }));
+      if (!nearest) return;
+      const rows = chart.series.map(item => {
+        const point = item.points.find(candidate => candidate.time === nearest.time);
+        return point ? '<div><span class="temperature-tooltip-swatch" style="background:' + item.color + '"></span>' +
+          escapeText(item.label) + ': <b>' + escapeText(Math.round(point.value * 100) / 100) + ' °C</b></div>' : '';
+      }).join('');
+      const crosshair = svg.querySelector('.temperature-crosshair');
+      crosshair.setAttribute('x1', chart.x(nearest.time));
+      crosshair.setAttribute('x2', chart.x(nearest.time));
+      crosshair.setAttribute('visibility', 'visible');
+      const tooltip = svg.parentElement.querySelector('.temperature-tooltip');
+      tooltip.innerHTML = '<div><b>' + escapeText(formatRecordDate(nearest.record.date)) + '</b></div>' + rows;
+      tooltip.hidden = false;
+      const left = chart.x(nearest.time) * box.width / chart.width;
+      tooltip.style.left = Math.max(0, Math.min(left + 12, box.width - tooltip.offsetWidth)) + 'px';
+      tooltip.style.top = '8px';
+    }
+
+    function hideTemperatureTooltip(event) {
+      const svg = event.target.closest('svg[data-temperature-chart]');
+      if (!svg || (event.relatedTarget && svg.contains(event.relatedTarget))) return;
+      svg.querySelector('.temperature-crosshair').setAttribute('visibility', 'hidden');
+      svg.parentElement.querySelector('.temperature-tooltip').hidden = true;
+    }
+
+    renderTemperatureForm();
+    renderTemperatureViewOptions();
+    document.getElementById('temperatureAreaOptions').addEventListener('change', updateTemperatureFormState);
+    document.getElementById('temperatureViewOptions').addEventListener('change', () => {
+      if (currentProcess === 'temperature') loadData();
+    });
+    document.getElementById('temperaturePanels').addEventListener('pointermove', showTemperatureTooltip);
+    document.getElementById('temperaturePanels').addEventListener('pointerout', hideTemperatureTooltip);
 
     // Initialize the default process and load its data.
     switchProcess(currentProcess);

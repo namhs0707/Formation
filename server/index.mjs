@@ -67,7 +67,10 @@ const publicFiles = new Set([
   '/jig-formation-defect-map.jpg',
   '/ip-check-image1.png',
   '/ip-check-image2.png',
-  '/ip-check-image3.png'
+  '/ip-check-image3.png',
+  '/conductive-degas-ir.jpg',
+  '/conductive-eol-ir.jpg',
+  '/conductive-eol-iv.jpg'
 ]);
 
 const server = http.createServer(async (request, response) => {

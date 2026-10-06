@@ -22,6 +22,9 @@ INSERT INTO formation.conductive_maintenance
   (team, operator_name, rubber_process, line, measurement, units, action)
 VALUES ('1A', 'Schema Test', 'Degas', '4-1', 'IR', ARRAY['1A']::text[], 'Flip');
 
+INSERT INTO formation.temperature_readings (area, team, operator_name, line, readings, in_spec)
+VALUES ('temp_eol', '1A', 'Schema Test', '4-1', '{"eol": 23.5}'::jsonb, 'Yes');
+
 WITH startup AS (
   INSERT INTO formation.startup_checks
     (process, team, operator_name, line_values, check_completed, frequency)
@@ -37,7 +40,7 @@ VALUES ('Schema Test', 'Day', 'Inspect tool', 'Pass', 'Completed');
 
 WITH ip AS (
   INSERT INTO formation.ip_checks (check_date, line)
-  VALUES (current_date, 'ESHD #5-1') RETURNING id
+  VALUES (current_date, 'EOL #5-1') RETURNING id
 )
 INSERT INTO formation.ip_measurements
   (check_id, position, measure_id, process_label, point, measure_name, target,
@@ -48,6 +51,7 @@ SELECT id, 1, 'third-wing-a-a', '3rd Wing Press', 'a',
 
 SELECT 'appearance' AS category, count(*) AS test_rows FROM formation.appearance_inspections
 UNION ALL SELECT 'hta', count(*) FROM formation.hta_readings
+UNION ALL SELECT 'temperature', count(*) FROM formation.temperature_readings
 UNION ALL SELECT 'maintenance', count(*) FROM formation.eol_maintenance
 UNION ALL SELECT 'conductive', count(*) FROM formation.conductive_maintenance
 UNION ALL SELECT 'startup', count(*) FROM formation.startup_checks

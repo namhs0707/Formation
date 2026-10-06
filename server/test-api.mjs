@@ -42,7 +42,7 @@ const cases = [
   })),
   { process: 'startup_resealing', operatorName: 'API Test', shift: '1A',
     work: 'Test work', inspectionStatus: 'Pass', cleaningStatus: 'Completed', comment: '' },
-  { process: 'ip_dsf', checkDate: '2026-10-01', line: 'EOL 4-1', measurements: [
+  { process: 'ip_dsf', checkDate: '2026-10-01', line: 'EOL #4-1', measurements: [
     { id: 'test-common-a', process: 'Test', point: 'a', name: 'Gap', target: '0.4 < X < 0.5',
       lane: 'Common', plus: 0.45, minus: 0.46, inRange: true }
   ] }
@@ -62,6 +62,22 @@ assert.equal(photo.status, 200);
 assert.equal(photo.headers.get('content-type'), 'image/png');
 assert.ok((await photo.arrayBuffer()).byteLength > 0);
 console.log('PASS photo reloaded');
+await post({ process: 'temperature', ...teams, areas: [
+  { process: 'hta', values: { hta11: 60, hta12: 60, hta21: 60, hta22: 60, hta31: 60, hta32: 60, hta41: 60, hta42: 64 } },
+  { process: 'temp_eol', line: '4-1', values: { eol: 23.5 }, inSpec: 'Yes' },
+  { process: 'temp_jig', line: '4', values: { floor1: 22, floor2: '', floor3: '', jig41: 24, jig42: '', jig43: '', jig51: '', jig52: '', jig53: '' }, inSpec: 'Yes' }
+] });
+for (const area of ['hta', 'temp_eol', 'temp_jig']) {
+  const chart = await get(area, 'chart');
+  assert.ok(chart.data.length > 0, area + ' chart did not reload');
+}
+assert.equal((await get('temp_jig', 'chart')).data.at(-1).jig41, 24);
+await post({ process: 'temperature', ...teams, areas: [{ process: 'temp_eol', line: '9-9', values: { eol: 23 }, inSpec: 'Yes' }] }, 400);
+console.log('PASS temperature areas saved and charted');
+await post({ process: 'conductive', ...teams, rubberProcess: 'EOL', line: '4-1', measurement: 'IV', units: ['2A'], action: 'Flip' });
+await post({ process: 'conductive', ...teams, rubberProcess: 'EOL', line: '4-1', measurement: 'IV', units: ['1C'], action: 'Flip' }, 400);
+await post({ process: 'ip_dsf', checkDate: '2026-10-01', line: 'ESHD #5-1', measurements: cases.at(-1).measurements }, 400);
+console.log('PASS conductive units and IP line validation');
 await post({ process: 'before_hpcd', ...teams, team: 'bad', trayId: 'TEST', defect: ['All OK'] }, 400);
 const before = await get('startup_jig', 'records');
 await post({ process: 'startup_jig', ...teams, lines: ['3-1'], checkCompleted: 'No', frequency: 'Shift',

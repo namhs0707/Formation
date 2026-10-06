@@ -38,6 +38,7 @@ VM에서 PowerShell을 열고 압축을 푼 위치로 이동한 후 실행합니
 | --- | --- |
 | Appearance: Before HPCD, Jig Formation, Degas | appearance_inspections, appearance_photos |
 | HTA Temperature | hta_readings |
+| Area Temperature (CDC, PLT, DGS, EOL, JIG, PRA, RTA, SHA) | temperature_readings |
 | EOL Tape/Knife Maintenance | eol_maintenance |
 | Conductive Rubber | conductive_maintenance |
 | Start-up: HPCD, Jig, Degas, CDC, EOL, Selector | startup_checks, startup_check_items |

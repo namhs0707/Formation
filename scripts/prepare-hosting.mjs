@@ -13,11 +13,16 @@ const ipImageBase64 = Object.fromEntries(await Promise.all([1, 2, 3].map(async n
   "/ip-check-image" + number + ".png",
   (await readFile("public/ip-check-image" + number + ".png")).toString("base64")
 ])));
+const conductiveImageBase64 = Object.fromEntries(await Promise.all(["degas-ir", "eol-ir", "eol-iv"].map(async name => [
+  "/conductive-" + name + ".jpg",
+  (await readFile("public/conductive-" + name + ".jpg")).toString("base64")
+])));
 const worker = `
 const html = ${JSON.stringify(html)};
 const defectMapBase64 = ${JSON.stringify(defectMapBase64)};
 const degasMapBase64 = ${JSON.stringify(degasMapBase64)};
 const ipImageBase64 = ${JSON.stringify(ipImageBase64)};
+const conductiveImageBase64 = ${JSON.stringify(conductiveImageBase64)};
 const securityHeaders = {
   "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://drive.google.com https://drive.googleusercontent.com https://lh3.googleusercontent.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
   "X-Content-Type-Options": "nosniff",
@@ -64,6 +69,17 @@ export default {
       return new Response(bytes, {
         headers: {
           "content-type": "image/png",
+          "cache-control": "public, max-age=86400",
+          ...securityHeaders
+        }
+      });
+    }
+    if (conductiveImageBase64[url.pathname]) {
+      const binary = atob(conductiveImageBase64[url.pathname]);
+      const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+      return new Response(bytes, {
+        headers: {
+          "content-type": "image/jpeg",
           "cache-control": "public, max-age=86400",
           ...securityHeaders
         }

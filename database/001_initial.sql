@@ -159,6 +159,23 @@ CREATE TABLE IF NOT EXISTS formation.ip_measurements (
     UNIQUE (check_id, position)
 );
 
+-- Area temperatures (CDC, PLT, DGS, EOL, JIG, PRA, RTA, SHA); HTA stays in hta_readings.
+-- Each area has its own set of probes, so the readings are stored as {"fieldKey": value}.
+CREATE TABLE IF NOT EXISTS formation.temperature_readings (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recorded_at timestamptz NOT NULL DEFAULT now(),
+    area text NOT NULL CHECK (area IN (
+        'temp_cdc', 'temp_plt', 'temp_dgs', 'temp_eol',
+        'temp_jig', 'temp_pra', 'temp_rta', 'temp_sha'
+    )),
+    team text NOT NULL CHECK (team IN ('1A', '1B', '2A', '2B')),
+    operator_name varchar(120) NOT NULL,
+    line varchar(32),
+    readings jsonb NOT NULL CHECK (jsonb_typeof(readings) = 'object' AND readings <> '{}'::jsonb),
+    in_spec text NOT NULL CHECK (in_spec IN ('Yes', 'No')),
+    source_key text UNIQUE
+);
+
 CREATE INDEX IF NOT EXISTS appearance_process_time_idx ON formation.appearance_inspections (process, recorded_at DESC);
 CREATE INDEX IF NOT EXISTS appearance_tray_idx ON formation.appearance_inspections (tray_id);
 CREATE INDEX IF NOT EXISTS appearance_cell_idx ON formation.appearance_inspections (cell_id);
@@ -169,6 +186,7 @@ CREATE INDEX IF NOT EXISTS conductive_time_idx ON formation.conductive_maintenan
 CREATE INDEX IF NOT EXISTS startup_process_time_idx ON formation.startup_checks (process, recorded_at DESC);
 CREATE INDEX IF NOT EXISTS ip_date_line_idx ON formation.ip_checks (check_date DESC, line);
 CREATE INDEX IF NOT EXISTS resealing_time_idx ON formation.resealing_checks (recorded_at DESC);
+CREATE INDEX IF NOT EXISTS temperature_area_time_idx ON formation.temperature_readings (area, recorded_at DESC);
 
 -- The application role may read and add data. Schema changes and deletion remain admin operations.
 GRANT CONNECT ON DATABASE formation_inspection TO formation_app;

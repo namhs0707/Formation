@@ -1,6 +1,20 @@
 const APPEARANCE = new Set(['before_hpcd', 'formation', 'degas']);
 const STARTUP = new Set(['startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector']);
-const PROCESSES = new Set([...APPEARANCE, ...STARTUP, 'hta', 'maintenance', 'conductive', 'startup_resealing', 'ip_dsf']);
+const PROCESSES = new Set([...APPEARANCE, ...STARTUP, 'hta', 'temperature', 'maintenance', 'conductive', 'startup_resealing', 'ip_dsf']);
+const HTA_KEYS = ['hta11','hta12','hta21','hta22','hta31','hta32','hta41','hta42'];
+const fieldKeys = (prefix, suffixes) => suffixes.map(suffix => prefix + suffix.replace(/[^0-9A-Za-z]/g, ''));
+// Area temperature readings other than HTA, which keeps its own table. Mirrors TEMPERATURE_AREAS in Code.gs.
+export const TEMPERATURE_AREAS = {
+  temp_cdc: { line: { maxLength: 32 }, fields: [...fieldKeys('floor', ['1-1','1-2','2-1','2-2','3-1','3-2']), 'dcir'] },
+  temp_plt: { fields: ['pltEast', 'pltWest'] },
+  temp_dgs: { line: { options: ['4-1','4-2','5-1','5-2'] }, fields: ['dgs'] },
+  temp_eol: { line: { options: ['4-1','4-2','5-1','5-2'] }, fields: ['eol'] },
+  temp_jig: { line: { options: ['3','4','5','6'] }, optionalFields: true,
+    fields: [...fieldKeys('floor', ['1','2','3']), ...fieldKeys('jig', ['4-1','4-2','4-3','5-1','5-2','5-3'])] },
+  temp_pra: { line: { maxLength: 32 }, fields: ['praEast', 'praWest'] },
+  temp_rta: { fields: ['rtaEast', 'rtaWest'] },
+  temp_sha: { fields: [...fieldKeys('shaEast', ['1','2','3','4','5']), ...fieldKeys('shaWest', ['1','2','3','4','5'])] }
+};
 const TEAMS = ['1A', '1B', '2A', '2B'];
 const DEFECTS = ['All OK', 'Dent', 'Contamination', 'Scratch', 'Lead bending', 'Wrinkles', 'Unsealing pouch', 'Others'];
 function invalid(message) { const error = new Error(message); error.status = 400; throw error; }
@@ -68,16 +82,53 @@ async function saveAppearance(client, input) {
   }
   return { id };
 }
-async function saveHta(client, input) {
-  const keys = ['hta11','hta12','hta21','hta22','hta31','hta32','hta41','hta42'];
-  const values = keys.map(key => numeric(input[key], key));
-  const result = values.every(value => value >= 57 && value <= 63)
-    ? 'Spec in' : keys.filter((key, index) => values[index] < 57 || values[index] > 63).join(', ');
+async function saveHta(client, input, readings = input) {
+  const values = HTA_KEYS.map(key => numeric(readings[key], key));
+  const outOfSpec = HTA_KEYS.filter((key, index) => values[index] < 57 || values[index] > 63)
+    .map(key => 'HTA ' + key.slice(3, 4) + '-' + key.slice(4));
   const rows = await client.query(
     'INSERT INTO formation.hta_readings (team, operator_name, hta11, hta12, hta21, hta22, hta31, hta32, hta41, hta42, spec_result) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id',
-    [teamOf(input), required(input.operatorName, 'Name', 120), ...values, result]
+    [teamOf(input), required(input.operatorName, 'Name', 120), ...values, outOfSpec.length ? outOfSpec.join(', ') : 'Spec in']
   );
   return { id: rows.rows[0].id };
+}
+function isTemperatureValue(value) {
+  return value !== '' && value != null && Number.isFinite(Number(value));
+}
+async function saveTemperature(client, input) {
+  const areas = list(input.areas, 'areas', 20);
+  if (!areas.length) invalid('Select at least one area.');
+  if (new Set(areas.map(entry => entry && entry.process)).size !== areas.length) invalid('Each area can be submitted once.');
+  const ids = [];
+  for (const entry of areas) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) invalid('Invalid area reading.');
+    const values = entry.values && typeof entry.values === 'object' ? entry.values : {};
+    if (entry.process === 'hta') {
+      ids.push((await saveHta(client, input, values)).id);
+      continue;
+    }
+    const area = TEMPERATURE_AREAS[entry.process];
+    if (!area) invalid('Unknown area.');
+    let line = null;
+    if (area.line) {
+      line = required(entry.line, 'Line', area.line.maxLength || 16);
+      if (area.line.options) choice(line, area.line.options, 'line');
+    }
+    const readings = {};
+    for (const key of area.fields) {
+      const value = values[key];
+      if (isTemperatureValue(value)) readings[key] = Number(value);
+      else if (!area.optionalFields || (value !== '' && value != null)) invalid('Invalid ' + key + ' temperature.');
+    }
+    if (!Object.keys(readings).length) invalid('Enter at least one temperature for each selected area.');
+    const rows = await client.query(
+      'INSERT INTO formation.temperature_readings (area, team, operator_name, line, readings, in_spec) VALUES ($1,$2,$3,$4,$5::jsonb,$6) RETURNING id',
+      [entry.process, teamOf(input), required(input.operatorName, 'Name', 120), line, JSON.stringify(readings),
+        choice(entry.inSpec, ['Yes','No'], 'in-spec answer')]
+    );
+    ids.push(rows.rows[0].id);
+  }
+  return { id: ids[0], ids };
 }
 async function saveMaintenance(client, input) {
   const rows = await client.query(
@@ -89,13 +140,15 @@ async function saveMaintenance(client, input) {
   return { id: rows.rows[0].id };
 }
 async function saveConductive(client, input) {
+  const rubberProcess = choice(input.rubberProcess, ['Degas','EOL'], 'process');
+  const measurement = choice(input.measurement, rubberProcess === 'Degas' ? ['IR'] : ['IR','IV'], 'measurement');
   const units = list(input.units, 'units', 8);
-  const validUnits = ['1A','1B','1C','1D','2A','2B','2C','2D'];
+  const validUnits = { 'Degas IR': ['1A','1B','1C','1D','2A','2B','2C','2D'], 'EOL IR': ['1A','1B','1C','1D'], 'EOL IV': ['1A','1B','2A','2B'] }[`${rubberProcess} ${measurement}`];
   if (!units.length || new Set(units).size !== units.length || units.some(unit => !validUnits.includes(unit))) invalid('Invalid units.');
   const rows = await client.query(
     'INSERT INTO formation.conductive_maintenance (team, operator_name, rubber_process, line, measurement, units, action, comment) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-    [teamOf(input), required(input.operatorName, 'Name', 120), choice(input.rubberProcess, ['Degas','EOL'], 'process'),
-      choice(input.line, ['4-1','4-2','5-1','5-2'], 'line'), choice(input.measurement, ['IR','IV'], 'measurement'),
+    [teamOf(input), required(input.operatorName, 'Name', 120), rubberProcess,
+      choice(input.line, ['4-1','4-2','5-1','5-2'], 'line'), measurement,
       units, choice(input.action, ['Flip','Change','Other'], 'action'), optional(input.comment)]
   );
   return { id: rows.rows[0].id };
@@ -149,7 +202,7 @@ async function saveIp(client, input) {
   if (!measurements.length || new Set(measurements.map(item => item.id)).size !== measurements.length) invalid('Invalid measurements.');
   const rows = await client.query(
     'INSERT INTO formation.ip_checks (check_date, line) VALUES ($1,$2) RETURNING id',
-    [checkDate, required(input.line, 'Line', 60)]
+    [checkDate, choice(input.line, ['EOL #4-1','EOL #4-2','EOL #5-1','EOL #5-2'], 'line')]
   );
   const id = rows.rows[0].id;
   for (let index = 0; index < measurements.length; index++) {
@@ -172,6 +225,7 @@ export async function saveInspection(pool, input) {
     let result;
     if (APPEARANCE.has(process)) result = await saveAppearance(client, input);
     else if (process === 'hta') result = await saveHta(client, input);
+    else if (process === 'temperature') result = await saveTemperature(client, input);
     else if (process === 'maintenance') result = await saveMaintenance(client, input);
     else if (process === 'conductive') result = await saveConductive(client, input);
     else if (STARTUP.has(process)) result = await saveStartup(client, input);

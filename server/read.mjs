@@ -1,3 +1,5 @@
+import { TEMPERATURE_AREAS } from './records.mjs';
+
 const APPEARANCE = new Set(['before_hpcd', 'formation', 'degas']);
 const STARTUP = new Set(['startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector']);
 const GENERAL = {
@@ -85,6 +87,18 @@ async function rangeRecords(pool, process, params) {
     );
     return rows.rows.map(appearanceRecord);
   }
+  if (TEMPERATURE_AREAS[process]) {
+    const area = TEMPERATURE_AREAS[process];
+    const rows = await pool.query(
+      'SELECT id, recorded_at AS date, team, operator_name AS "operatorName", line, readings, in_spec AS "tempInSpec" FROM formation.temperature_readings WHERE area = $1 AND (recorded_at AT TIME ZONE $4)::date BETWEEN $2::date AND $3::date ORDER BY recorded_at ASC, id ASC',
+      [process, start, end, zone]
+    );
+    return rows.rows.map(({ readings, line, ...row }) => ({
+      ...row,
+      ...(area.line ? { line } : {}),
+      ...Object.fromEntries(area.fields.map(key => [key, readings[key] ?? '']))
+    }));
+  }
   const rows = await pool.query(
     'SELECT ' + GENERAL.hta.columns + ' FROM formation.hta_readings WHERE (recorded_at AT TIME ZONE $3)::date BETWEEN $1::date AND $2::date ORDER BY recorded_at ASC, id ASC',
     [start, end, zone]
@@ -121,6 +135,10 @@ async function ipRecords(pool) {
 export async function readInspection(pool, params) {
   const process = params.get('process');
   const action = params.get('action') || 'bootstrap';
+  if (TEMPERATURE_AREAS[process]) {
+    if (action !== 'chart') invalid('Unsupported action.');
+    return { result: 'success', process, data: await rangeRecords(pool, process, params) };
+  }
   if (!APPEARANCE.has(process) && !STARTUP.has(process) && !GENERAL[process] && process !== 'startup_resealing' && process !== 'ip_dsf') invalid('Unknown process.');
   if (STARTUP.has(process) || process === 'startup_resealing' || process === 'ip_dsf') {
     if (!['bootstrap','records'].includes(action)) invalid('Unknown action.');

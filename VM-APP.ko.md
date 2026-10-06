@@ -47,6 +47,7 @@ VM으로 옮길 파일은 Formation-VM-App.zip, PostgreSQL Windows x64 설치 �
 | --- | --- |
 | Appearance: Before HPCD / Jig Formation / Degas | appearance_inspections, appearance_photos |
 | HTA | hta_readings |
+| Area Temperature (CDC, PLT, DGS, EOL, JIG, PRA, RTA, SHA) | temperature_readings |
 | EOL Tape/Knife | eol_maintenance |
 | Conductive Rubber | conductive_maintenance |
 | Start-up: HPCD / Jig / Degas / CDC / EOL / Selector | startup_checks, startup_check_items |

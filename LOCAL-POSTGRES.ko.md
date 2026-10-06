@@ -52,6 +52,7 @@ formation_app 계정은 기록 조회와 추가만 할 수 있습니다. 스키�
 | Appearance: Before HPCD / Jig Formation / Degas | appearance_inspections |
 | Appearance 사진 | appearance_photos |
 | HTA 온도 | hta_readings |
+| 영역별 온도 (CDC, PLT, DGS, EOL, JIG, PRA, RTA, SHA) | temperature_readings |
 | EOL Tape/Knife Maintenance | eol_maintenance |
 | Conductive Rubber Maintenance | conductive_maintenance |
 | Start-up: HPCD / Jig / Degas / CDC / EOL / Selector | startup_checks와 startup_check_items |
