@@ -1394,6 +1394,98 @@
       .temperature-input-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
       .temperature-view-areas { grid-column: 1 / -1; }
     }
+    /* Reviewer sign-in and record review */
+    .account-area { display: flex; align-items: center; gap: 8px; }
+    .account-area button, .app-dialog button, .users-table button {
+      width: auto; min-height: 40px; padding: 8px 14px; font-size: 14px; letter-spacing: 0;
+    }
+    .account-name { color: var(--ink); font-size: 14px; font-weight: 700; white-space: nowrap; }
+    .account-name small { display: block; color: var(--muted); font-size: 12px; font-weight: 600; }
+    .account-note { color: var(--muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .short-label { display: none; }
+    .account-menu { position: relative; }
+    .account-menu summary { display: flex; align-items: center; gap: 8px; padding: 5px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); cursor: pointer; list-style: none; }
+    .account-menu summary::-webkit-details-marker { display: none; }
+    .account-chip { font-size: 18px; line-height: 1; }
+    .account-menu-panel { position: absolute; top: calc(100% + 6px); right: 0; z-index: 300; display: grid; gap: 6px; min-width: 200px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: #fff; box-shadow: 0 12px 30px rgba(15, 23, 42, .18); }
+    .account-menu-panel button { width: 100%; }
+    .account-menu-who { padding: 2px 2px 6px; border-bottom: 1px solid var(--border-subtle); font-size: 14px; font-weight: 700; }
+    .account-menu-who small { display: block; color: var(--muted); font-size: 12px; font-weight: 600; }
+    .secondary-button { background: #e2e8f0; color: var(--ink); }
+    .secondary-button:hover { background: #cbd5e1; }
+    .danger-button { background: #b91c1c; }
+    .danger-button:hover { background: #991b1b; }
+    .link-button { min-height: 0 !important; padding: 0 !important; background: none; color: var(--primary); font-weight: 600; text-decoration: underline; }
+    .link-button:hover { background: none; box-shadow: none; color: #1e40af; }
+    .app-dialog { width: min(620px, 94vw); max-height: 90vh; padding: 0; border: 0; border-radius: 12px; color: var(--ink); box-shadow: 0 24px 60px rgba(15, 23, 42, .35); }
+    .app-dialog.wide { width: min(980px, 96vw); }
+    .app-dialog::backdrop { background: rgba(15, 23, 42, .55); }
+    .dialog-body { max-height: 90vh; padding: 20px 22px; overflow: auto; }
+    .dialog-body h3 { margin: 0; font-size: 20px; }
+    .dialog-sub { margin: 4px 0 14px; color: var(--muted); font-size: 14px; }
+    .dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .dialog-message { margin-top: 12px; padding: 9px 12px; border-radius: 8px; font-size: 14px; line-height: 1.45; }
+    .dialog-message:empty { display: none; }
+    .dialog-message.error { background: #fef2f2; color: #991b1b; }
+    .dialog-message.info { background: #eff6ff; color: #1e3a8a; }
+    .dialog-message.success { background: #f0fdf4; color: #166534; }
+    .dialog-form .form-group { margin-bottom: 12px; }
+    .review-badge {
+      display: inline-flex; width: auto; min-height: 0; padding: 2px 8px; border-radius: 999px;
+      font-size: 11.5px; font-weight: 700; line-height: 1.5; letter-spacing: 0; white-space: nowrap; box-shadow: none;
+    }
+    .review-badge:hover { box-shadow: none; filter: brightness(.95); }
+    .review-badge.pending { background: #fef3c7; color: #92400e; }
+    .review-badge.pending:hover { background: #fef3c7; }
+    .review-badge.edited { background: #ffedd5; color: #9a3412; }
+    .review-badge.edited:hover { background: #ffedd5; }
+    .review-badge.confirmed { background: #dcfce7; color: #166534; }
+    .review-badge.confirmed:hover { background: #dcfce7; }
+    .date-review { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+    .ip-col-date .date-review { align-items: center; }
+    .review-status-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 14px; }
+    .review-fields { display: grid; grid-template-columns: minmax(150px, 38%) minmax(0, 1fr); gap: 8px 12px; align-items: center; }
+    .review-fields > label { color: var(--label); font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+    .review-fields input, .review-fields select, .review-fields textarea { margin: 0; }
+    .review-fields textarea { min-height: 60px; }
+    .review-fields .changed { border-color: #ea580c; box-shadow: 0 0 0 2px rgba(234, 88, 12, .18); }
+    .review-list-options { display: flex; flex-wrap: wrap; gap: 6px; }
+    .review-list-options label { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid var(--border); border-radius: 7px; font-size: 13px; }
+    .review-list-options input { width: 16px; height: 16px; min-height: 0; margin: 0; }
+    .review-reason { margin-top: 14px; }
+    .review-confirm-step { margin-top: 14px; padding: 12px 14px; border: 2px solid #f59e0b; border-radius: 10px; background: #fffbeb; }
+    .review-confirm-step h4 { margin: 0 0 8px; font-size: 15px; }
+    .change-list { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55; }
+    .change-list del { color: #991b1b; }
+    .change-list ins { color: #166534; text-decoration: none; font-weight: 700; }
+    .review-history { margin: 18px 0 0; padding: 14px 0 0; border-top: 1px solid var(--border); }
+    .review-history h4 { margin: 0 0 8px; font-size: 15px; }
+    .review-history ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .review-history li { padding: 8px 10px; border-radius: 8px; background: #f8fafc; font-size: 13.5px; line-height: 1.45; }
+    .review-history .meta { color: var(--muted); font-size: 12.5px; }
+    .users-table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+    .users-table { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 13.5px; }
+    .users-table th, .users-table td { height: auto; padding: 8px 10px; border-bottom: 1px solid var(--border-subtle); text-align: left; vertical-align: middle; white-space: nowrap; }
+    .users-table select { width: auto; min-height: 36px; margin: 0; padding: 4px 8px; font-size: 13px; }
+    .users-table .user-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .users-table button { min-height: 34px; padding: 5px 10px; font-size: 13px; }
+    .user-status { display: inline-flex; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .user-status.pending { background: #fef3c7; color: #92400e; }
+    .user-status.active { background: #dcfce7; color: #166534; }
+    .user-status.disabled { background: #e2e8f0; color: #475569; }
+    .temp-password { margin-top: 12px; padding: 12px 14px; border: 2px solid var(--primary); border-radius: 10px; background: #eff6ff; font-size: 14px; }
+    .temp-password code { display: inline-block; margin: 4px 0; padding: 4px 10px; border-radius: 6px; background: #fff; font-size: 18px; font-weight: 800; letter-spacing: .05em; }
+    @media (max-width: 767px) {
+      .account-name, .account-note, .long-label { display: none; }
+      .short-label { display: inline; }
+      .account-area button#openSignInButton { padding: 8px 10px; }
+      .review-fields { grid-template-columns: 1fr; gap: 4px; }
+      .review-fields > label { margin-top: 8px; }
+      .users-table th, .users-table td { display: table-cell; }
+      .users-table thead { display: table-header-group; }
+      .users-table tr { display: table-row; }
+      .users-table td::before { content: none; }
+    }
   </style>
 </head>
 <body>
@@ -1409,6 +1501,7 @@
     <div class="header-meta">
       <time class="header-clock" id="headerClock" aria-label="Current local time">--/-- --:--</time>
       <div class="system-status" id="systemStatus" role="status" aria-live="polite">System Online</div>
+      <div class="account-area" id="accountArea"></div>
     </div>
   </header>
 
@@ -2092,6 +2185,71 @@
     </div>
   </div>
 
+  <dialog class="app-dialog" id="accountDialog" aria-labelledby="accountDialogTitle">
+    <div class="dialog-body">
+      <form class="dialog-form" id="signInForm" data-account-view="signin">
+        <h3 id="accountDialogTitle">Reviewer sign-in</h3>
+        <p class="dialog-sub">For part leaders, engineers and supervisors. Operators submit without signing in.</p>
+        <div class="form-group"><label for="signInId">ID</label><input id="signInId" autocomplete="username" required maxlength="40" spellcheck="false" autocapitalize="none"></div>
+        <div class="form-group"><label for="signInPassword">Password</label><input id="signInPassword" type="password" autocomplete="current-password" required maxlength="128"></div>
+        <button type="button" class="link-button" data-account-switch="signup">Request an account</button>
+        <div class="dialog-message" role="alert"></div>
+        <div class="dialog-actions"><button type="button" class="secondary-button" data-dialog-close>Cancel</button><button type="submit">Sign in</button></div>
+      </form>
+      <form class="dialog-form" id="signUpForm" data-account-view="signup" hidden>
+        <h3>Request a reviewer account</h3>
+        <p class="dialog-sub">The administrator approves the request and sets your role. Accounts unused for 90 days are disabled.</p>
+        <div class="form-group"><label for="signUpId">ID</label><input id="signUpId" autocomplete="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._\-]{3,40}" spellcheck="false" autocapitalize="none"><small class="input-help">3-40 letters, numbers, dot, dash or underscore.</small></div>
+        <div class="form-group"><label for="signUpName">First and last name</label><input id="signUpName" autocomplete="name" required maxlength="120"></div>
+        <div class="form-group"><label for="signUpPassword">Password</label><input id="signUpPassword" type="password" autocomplete="new-password" required minlength="10" maxlength="128"><small class="input-help">At least 10 characters with letters and numbers, not containing the ID.</small></div>
+        <div class="form-group"><label for="signUpPassword2">Password again</label><input id="signUpPassword2" type="password" autocomplete="new-password" required minlength="10" maxlength="128"></div>
+        <button type="button" class="link-button" data-account-switch="signin">Back to sign-in</button>
+        <div class="dialog-message" role="alert"></div>
+        <div class="dialog-actions"><button type="button" class="secondary-button" data-dialog-close>Cancel</button><button type="submit">Send request</button></div>
+      </form>
+      <form class="dialog-form" id="passwordForm" data-account-view="password" hidden>
+        <h3>Change password</h3>
+        <p class="dialog-sub" id="passwordFormNote">Choose a new password.</p>
+        <div class="form-group"><label for="currentPassword">Current password</label><input id="currentPassword" type="password" autocomplete="current-password" required maxlength="128"></div>
+        <div class="form-group"><label for="newPassword">New password</label><input id="newPassword" type="password" autocomplete="new-password" required minlength="10" maxlength="128"><small class="input-help">At least 10 characters with letters and numbers, not containing the ID.</small></div>
+        <div class="form-group"><label for="newPassword2">New password again</label><input id="newPassword2" type="password" autocomplete="new-password" required minlength="10" maxlength="128"></div>
+        <div class="dialog-message" role="alert"></div>
+        <div class="dialog-actions"><button type="button" class="secondary-button" data-dialog-close id="passwordCancel">Cancel</button><button type="submit">Change password</button></div>
+      </form>
+    </div>
+  </dialog>
+
+  <dialog class="app-dialog" id="reviewDialog" aria-labelledby="reviewDialogTitle">
+    <div class="dialog-body">
+      <h3 id="reviewDialogTitle">Record review</h3>
+      <p class="dialog-sub" id="reviewDialogSub"></p>
+      <div id="reviewDialogContent"></div>
+      <div class="dialog-message" id="reviewMessage" role="alert"></div>
+      <div class="review-confirm-step" id="reviewConfirmStep" hidden>
+        <h4 id="reviewConfirmTitle"></h4>
+        <div id="reviewConfirmBody"></div>
+        <div class="dialog-actions"><button type="button" class="secondary-button" id="reviewConfirmBack">Back</button><button type="button" id="reviewConfirmApply">Apply</button></div>
+      </div>
+      <div class="dialog-actions" id="reviewActions">
+        <button type="button" class="secondary-button" data-dialog-close>Close</button>
+        <button type="button" class="secondary-button" id="reviewSaveButton">Save corrections</button>
+        <button type="button" id="reviewConfirmButton">Confirm record</button>
+      </div>
+      <section class="review-history"><h4>History</h4><ol id="reviewHistory"></ol></section>
+    </div>
+  </dialog>
+
+  <dialog class="app-dialog wide" id="usersDialog" aria-labelledby="usersDialogTitle">
+    <div class="dialog-body">
+      <h3 id="usersDialogTitle">Reviewer accounts</h3>
+      <p class="dialog-sub">Approve requests with a role, change roles, reset passwords or disable accounts. Accounts unused for 90 days are disabled automatically and their password removed.</p>
+      <div class="users-table-wrap"><table class="users-table"><thead><tr><th>Name</th><th>ID</th><th>Status</th><th>Role</th><th>Last sign-in</th><th>Requested</th><th>Actions</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+      <div id="usersTempPassword"></div>
+      <div class="dialog-message" id="usersMessage" role="alert"></div>
+      <div class="dialog-actions"><button type="button" class="secondary-button" data-dialog-close>Close</button></div>
+    </div>
+  </dialog>
+
   <script>
     // Same-origin PostgreSQL API
     const SCRIPT_URL = '/api/inspections';
@@ -2661,7 +2819,7 @@
       '</thead>';
       const body = rows.length
         ? rows.map(row => '<tr class="' + (row.outCount ? 'ip-row-out' : '') + '">' +
-            '<td class="ip-col-date">' + escapeText(row.record.checkDate) + (row.outCount ? '<span class="ip-out-count">⚠ ' + row.outCount + ' spec out</span>' : '') + '</td>' +
+            '<td class="ip-col-date"><span class="date-review">' + escapeText(row.record.checkDate) + (row.outCount ? '<span class="ip-out-count">⚠ ' + row.outCount + ' spec out</span>' : '') + reviewBadge(row.record.review) + '</span></td>' +
             '<td class="ip-col-line">' + escapeText(row.record.line) + '</td>' +
             eachSpec((spec, start) => { const cell = row.cells.get(spec.id); return '<td class="ip-cell' + start + (cell.out ? ' out' : '') + '">' + cell.html + '</td>'; }) +
           '</tr>').join('')
@@ -2694,7 +2852,7 @@
           const tr = document.createElement('tr');
           const cell = (label, value) => '<td data-label="' + label + '">' + escapeText(value || '-') + '</td>';
           tr.innerHTML =
-            cell('Date', formatRecordDate(record.date)) +
+            dateCellHtml('Date', formatRecordDate(record.date), record.review) +
             cell('Name', record.operatorName) +
             cell('Shift', record.shift) +
             cell('Work today', record.work) +
@@ -2723,7 +2881,7 @@
         const tr = document.createElement('tr');
         const cell = (label, value) => '<td data-label="' + label + '">' + escapeText(value || '-') + '</td>';
         tr.innerHTML =
-          cell('Date', formatRecordDate(record.date)) +
+          dateCellHtml('Date', formatRecordDate(record.date), record.review) +
           cell('Team', record.team) +
           (needsOperator ? cell('First and Last Name', record.operatorName) : '') +
           (isSelectorStartup ? cell('Selector', record.selectorType) : '') +
@@ -4392,7 +4550,7 @@
         }
         records.forEach(item => {
           const row = document.createElement('tr');
-          appendRecordCell(row, 'Date / Time', formatRecordDate(item.date));
+          addReviewBadge(appendRecordCell(row, 'Date / Time', formatRecordDate(item.date)), item.review);
           appendRecordCell(row, 'Team', item.team);
           appendRecordCell(row, 'Operator', item.operatorName);
           appendRecordCell(row, 'Process', item.rubberProcess);
@@ -4412,7 +4570,7 @@
         }
         records.forEach(item => {
           const row = document.createElement('tr');
-          appendRecordCell(row, 'Date / Time', formatRecordDate(item.date));
+          addReviewBadge(appendRecordCell(row, 'Date / Time', formatRecordDate(item.date)), item.review);
           appendRecordCell(row, 'Team', item.team);
           appendRecordCell(row, 'Operator', item.operatorName);
           appendRecordCell(row, 'Line', item.line);
@@ -4432,7 +4590,7 @@
       records.forEach(item => {
         const row = document.createElement('tr');
         const lineValue = process === 'degas' ? item.degasLine : item.jigLine;
-        appendRecordCell(row, 'Date / Time', formatRecordDate(item.date));
+        addReviewBadge(appendRecordCell(row, 'Date / Time', formatRecordDate(item.date)), item.review);
         appendRecordCell(row, 'Team', item.team, 'col-team');
         appendRecordCell(row, 'Operator', item.operatorName, 'col-operator');
         const trayCell = appendRecordCell(row, 'Tray ID', item.trayId);
@@ -4855,7 +5013,7 @@
         const cell = (label, value) => '<td data-label="' + escapeText(label) + '">' + escapeText(value === '' || value == null ? '-' : value) + '</td>';
         const specBadge = '<td data-label="In spec?"><span class="startup-status-badge ' + (isTemperatureOutOfSpec(area, record) ? 'issue' : 'done') + '">' +
           escapeText(record.tempInSpec || '-') + '</span></td>';
-        return '<tr>' + cell('Date', formatRecordDate(record.date)) + cell('Team', record.team) + cell('First and Last Name', record.operatorName) +
+        return '<tr>' + dateCellHtml('Date', formatRecordDate(record.date), record.review) + cell('Team', record.team) + cell('First and Last Name', record.operatorName) +
           (area.line ? cell(area.line.label, record.line) : '') + fields.map(field => cell(field.label, record[field.key])).join('') + specBadge + '</tr>';
       }).join('');
       return '<div class="table-container"><table class="temperature-table"><thead><tr>' +
@@ -4972,6 +5130,473 @@
 
     // Initialize the default process and load its data.
     switchProcess(currentProcess);
+    // ---- Reviewer sign-in and record review ----
+    // Part leaders, engineers and supervisors sign in to confirm or correct records; operators never sign in.
+    const ROLE_LABELS = Object.freeze({ part_leader: 'Part leader', engineer: 'Engineer', supervisor: 'Supervisor', admin: 'Administrator' });
+    const REVIEW_TYPE_LABELS = Object.freeze({
+      appearance_inspections: 'Appearance inspection', hta_readings: 'HTA temperature', temperature_readings: 'Area temperature',
+      eol_maintenance: 'EOL Tape/Knife maintenance', conductive_maintenance: 'Conductive Rubber', startup_checks: 'Start-up check sheet',
+      resealing_checks: 'Resealing Machine check', ip_checks: 'DSF Daily IP check'
+    });
+    const authState = { user: null, loginAvailable: false };
+    const reviewState = { type: null, id: null, detail: null, pending: null, changed: false };
+
+    async function apiJson(method, path, body) {
+      const response = await fetch(path, {
+        method,
+        headers: body !== undefined ? { 'Content-Type': 'application/json' } : {},
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        credentials: 'same-origin'
+      });
+      let data = {};
+      try { data = await response.json(); } catch (error) { data = {}; }
+      if (!response.ok || data.result === 'error') {
+        if (response.status === 401 && authState.user) {
+          authState.user = null;
+          renderAccountArea();
+        }
+        const error = new Error(data.message || 'Request failed.');
+        error.status = response.status;
+        throw error;
+      }
+      return data;
+    }
+
+    function roleLabel(role) { return ROLE_LABELS[role] || role || '-'; }
+
+    function reviewBadge(review) {
+      if (!review) return '';
+      const confirmed = review.status === 'confirmed';
+      const state = confirmed ? 'confirmed' : review.edited ? 'edited' : 'pending';
+      const text = confirmed ? '✓ ' + review.confirmedBy : review.edited ? 'Corrected · to confirm' : 'Review pending';
+      const title = confirmed
+        ? 'Confirmed by ' + review.confirmedBy + ' (' + roleLabel(review.confirmedRole) + ') ' + formatRecordDate(review.confirmedAt)
+        : review.edited ? 'Corrected; waiting for confirmation' : 'Not confirmed yet';
+      return '<button type="button" class="review-badge ' + state + '" data-review-type="' + escapeText(review.type) +
+        '" data-review-id="' + escapeText(review.id) + '" title="' + escapeText(title) + '">' + escapeText(text) + '</button>';
+    }
+
+    function dateCellHtml(label, text, review) {
+      return '<td data-label="' + escapeText(label) + '"><span class="date-review">' + escapeText(text || '-') + reviewBadge(review) + '</span></td>';
+    }
+
+    function addReviewBadge(cell, review) {
+      if (!review) return;
+      const wrap = document.createElement('span');
+      wrap.className = 'date-review';
+      wrap.textContent = cell.textContent;
+      wrap.insertAdjacentHTML('beforeend', reviewBadge(review));
+      cell.replaceChildren(wrap);
+    }
+
+    function renderAccountArea() {
+      const area = document.getElementById('accountArea');
+      const user = authState.user;
+      if (user) {
+        area.innerHTML = '<details class="account-menu"><summary aria-label="Account menu"><span class="account-chip" aria-hidden="true">👤</span>' +
+          '<span class="account-name">' + escapeText(user.displayName) + '<small>' + escapeText(roleLabel(user.role)) + '</small></span><span aria-hidden="true">▾</span></summary>' +
+          '<div class="account-menu-panel"><div class="account-menu-who">' + escapeText(user.displayName) + '<small>' + escapeText(roleLabel(user.role)) + '</small></div>' +
+          (user.role === 'admin' ? '<button type="button" class="secondary-button" id="openUsersButton">Reviewer accounts</button>' : '') +
+          '<button type="button" class="secondary-button" id="openPasswordButton">Change password</button>' +
+          '<button type="button" id="signOutButton">Sign out</button></div></details>';
+      } else if (authState.loginAvailable) {
+        area.innerHTML = '<button type="button" id="openSignInButton"><span class="long-label">Reviewer sign-in</span><span class="short-label">Sign in</span></button>';
+      } else {
+        area.innerHTML = '<span class="account-note" title="Reviewer sign-in is available when the site is opened over HTTPS.">Reviewer sign-in: HTTPS only</span>';
+      }
+    }
+
+    async function refreshAccount() {
+      try {
+        const data = await apiJson('GET', '/api/auth/me');
+        authState.loginAvailable = Boolean(data.loginAvailable);
+        authState.user = data.user || null;
+      } catch (error) {
+        authState.user = null;
+      }
+      renderAccountArea();
+      if (authState.user && authState.user.mustChangePassword) openAccountDialog('password', true);
+    }
+
+    function setDialogMessage(element, text, tone = 'error') {
+      element.className = 'dialog-message ' + tone;
+      element.textContent = text || '';
+    }
+
+    function openAccountDialog(view, forced = false) {
+      const dialog = document.getElementById('accountDialog');
+      dialog.querySelectorAll('[data-account-view]').forEach(form => {
+        form.hidden = form.dataset.accountView !== view;
+        form.reset();
+        setDialogMessage(form.querySelector('.dialog-message'), '');
+      });
+      dialog.dataset.forced = forced ? 'true' : '';
+      document.getElementById('passwordCancel').hidden = forced;
+      document.getElementById('passwordFormNote').textContent = forced
+        ? 'Your password was reset by the administrator. Choose a new password to continue.'
+        : 'Choose a new password.';
+      if (!dialog.open) dialog.showModal();
+      const first = dialog.querySelector('[data-account-view="' + view + '"] input');
+      if (first) first.focus();
+    }
+
+    document.getElementById('accountDialog').addEventListener('cancel', event => {
+      if (event.currentTarget.dataset.forced) event.preventDefault();
+    });
+
+    document.getElementById('accountArea').addEventListener('click', async event => {
+      const id = event.target.closest('button')?.id;
+      if (id) event.currentTarget.querySelector('details')?.removeAttribute('open');
+      if (id === 'openSignInButton') openAccountDialog('signin');
+      if (id === 'openPasswordButton') openAccountDialog('password');
+      if (id === 'openUsersButton') openUsersDialog();
+      if (id === 'signOutButton') {
+        try { await apiJson('POST', '/api/auth/logout', {}); } catch (error) { /* already signed out */ }
+        authState.user = null;
+        renderAccountArea();
+      }
+    });
+
+    document.querySelectorAll('[data-account-switch]').forEach(button => {
+      button.addEventListener('click', () => openAccountDialog(button.dataset.accountSwitch));
+    });
+
+    document.querySelectorAll('.app-dialog [data-dialog-close]').forEach(button => {
+      button.addEventListener('click', () => button.closest('dialog').close());
+    });
+
+    document.getElementById('signInForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const message = event.currentTarget.querySelector('.dialog-message');
+      try {
+        const data = await apiJson('POST', '/api/auth/login', {
+          loginId: document.getElementById('signInId').value.trim(),
+          password: document.getElementById('signInPassword').value
+        });
+        authState.user = data.user;
+        renderAccountArea();
+        if (data.user.mustChangePassword) {
+          openAccountDialog('password', true);
+          return;
+        }
+        document.getElementById('accountDialog').close();
+      } catch (error) {
+        setDialogMessage(message, error.message);
+      }
+    });
+
+    document.getElementById('signUpForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const message = form.querySelector('.dialog-message');
+      if (document.getElementById('signUpPassword').value !== document.getElementById('signUpPassword2').value) {
+        setDialogMessage(message, 'The passwords do not match.');
+        return;
+      }
+      try {
+        const data = await apiJson('POST', '/api/auth/signup', {
+          loginId: document.getElementById('signUpId').value.trim(),
+          displayName: document.getElementById('signUpName').value.trim(),
+          password: document.getElementById('signUpPassword').value
+        });
+        form.reset();
+        setDialogMessage(message, data.message, 'success');
+      } catch (error) {
+        setDialogMessage(message, error.message);
+      }
+    });
+
+    document.getElementById('passwordForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const message = event.currentTarget.querySelector('.dialog-message');
+      if (document.getElementById('newPassword').value !== document.getElementById('newPassword2').value) {
+        setDialogMessage(message, 'The new passwords do not match.');
+        return;
+      }
+      try {
+        await apiJson('POST', '/api/auth/password', {
+          currentPassword: document.getElementById('currentPassword').value,
+          newPassword: document.getElementById('newPassword').value
+        });
+        if (authState.user) authState.user.mustChangePassword = false;
+        const dialog = document.getElementById('accountDialog');
+        dialog.dataset.forced = '';
+        dialog.close();
+      } catch (error) {
+        setDialogMessage(message, error.message);
+      }
+    });
+
+    // ---- Record review dialog ----
+    function formatReviewValue(value) {
+      if (Array.isArray(value)) return value.length ? value.join(', ') : '(none)';
+      return value === '' || value == null ? '(blank)' : String(value);
+    }
+
+    function reviewFieldInput(field, index) {
+      const id = 'reviewField' + index;
+      const attrs = ' id="' + id + '" data-review-field="' + escapeText(field.key) + '"';
+      if (field.kind === 'choice') {
+        return '<select' + attrs + '>' + field.options.map(option =>
+          '<option value="' + escapeText(option) + '"' + (option === field.value ? ' selected' : '') + '>' + escapeText(option) + '</option>').join('') + '</select>';
+      }
+      if (field.kind === 'list') {
+        const values = Array.isArray(field.value) ? field.value : [];
+        return '<div class="review-list-options"' + attrs + ' role="group">' + field.options.map(option =>
+          '<label><input type="checkbox" value="' + escapeText(option) + '"' + (values.includes(option) ? ' checked' : '') + '>' + escapeText(option) + '</label>').join('') + '</div>';
+      }
+      if (field.kind === 'number') {
+        return '<input type="number" inputmode="decimal" step="' + (field.integer ? '1' : 'any') + '"' + attrs + ' value="' + escapeText(field.value) + '"' + (field.optional ? ' placeholder="(blank)"' : '') + '>';
+      }
+      if (field.kind === 'date') return '<input type="date"' + attrs + ' value="' + escapeText(field.value) + '">';
+      if (field.max > 200) return '<textarea' + attrs + ' maxlength="' + field.max + '">' + escapeText(field.value) + '</textarea>';
+      return '<input type="text"' + attrs + ' maxlength="' + (field.max || 200) + '" value="' + escapeText(field.value) + '">';
+    }
+
+    function readReviewField(field, element) {
+      if (field.kind === 'list') {
+        const checked = new Set(Array.from(element.querySelectorAll('input:checked')).map(input => input.value));
+        return field.options.filter(option => checked.has(option));
+      }
+      if (field.kind === 'number') return element.value === '' ? '' : Number(element.value);
+      return element.value.trim();
+    }
+
+    function collectReviewChanges() {
+      const changes = [];
+      (reviewState.detail?.fields || []).forEach(field => {
+        const element = document.querySelector('#reviewDialogContent [data-review-field="' + CSS.escape(field.key) + '"]');
+        if (!element) return;
+        const value = readReviewField(field, element);
+        const changed = JSON.stringify(value) !== JSON.stringify(field.value);
+        element.classList.toggle('changed', changed);
+        if (changed) changes.push({ field, value });
+      });
+      return changes;
+    }
+
+    function renderReviewDetail(detail) {
+      reviewState.detail = detail;
+      const user = authState.user;
+      const confirmed = detail.status === 'confirmed';
+      document.getElementById('reviewDialogTitle').textContent = (REVIEW_TYPE_LABELS[detail.type] || 'Record') + ' review';
+      document.getElementById('reviewDialogSub').textContent = 'Record #' + detail.id + ' · Signed in as ' + user.displayName + ' (' + roleLabel(user.role) + ')';
+      const status = '<div class="review-status-line">' + reviewBadge(detail).replace('<button', '<span').replace('</button>', '</span>') +
+        '<span>' + escapeText(confirmed
+          ? 'Confirmed by ' + detail.confirmedBy + ' (' + roleLabel(detail.confirmedRole) + '), ' + formatRecordDate(detail.confirmedAt)
+          : detail.edited ? 'Corrected after submission; needs a confirmation.' : 'Not confirmed yet.') + '</span></div>';
+      const fields = '<div class="review-fields">' + detail.fields.map((field, index) =>
+        '<label for="reviewField' + index + '">' + escapeText(field.label) + '</label>' + reviewFieldInput(field, index)).join('') + '</div>';
+      document.getElementById('reviewDialogContent').innerHTML = status + fields +
+        '<div class="form-group review-reason"><label for="reviewReason">Reason for correction (required to save corrections)</label>' +
+        '<textarea id="reviewReason" maxlength="500" placeholder="e.g., Wrong unit entered; re-measured on site"></textarea></div>';
+      document.getElementById('reviewConfirmButton').hidden = confirmed;
+      document.getElementById('reviewHistory').innerHTML = detail.history.length ? detail.history.map(event =>
+        '<li><strong>' + escapeText(event.action === 'confirm' ? 'Confirmed' : 'Corrected') + '</strong> by ' + escapeText(event.user) +
+        ' (' + escapeText(roleLabel(event.role)) + ')<div class="meta">' + escapeText(formatRecordDate(event.at)) + (event.ip ? ' · device ' + escapeText(event.ip) : '') + '</div>' +
+        (event.reason ? '<div>Reason: ' + escapeText(event.reason) + '</div>' : '') +
+        (event.changes.length ? '<ul class="change-list">' + event.changes.map(change =>
+          '<li>' + escapeText(change.label) + ': <del>' + escapeText(formatReviewValue(change.old)) + '</del> → <ins>' + escapeText(formatReviewValue(change.new)) + '</ins></li>').join('') + '</ul>' : '') +
+        '</li>').join('') : '<li>No confirmations or corrections yet.</li>';
+      hideReviewConfirmStep();
+    }
+
+    function hideReviewConfirmStep() {
+      reviewState.pending = null;
+      document.getElementById('reviewConfirmStep').hidden = true;
+      document.getElementById('reviewActions').hidden = false;
+    }
+
+    function showReviewConfirmStep(title, bodyHtml, applyLabel, pending) {
+      reviewState.pending = pending;
+      document.getElementById('reviewConfirmTitle').textContent = title;
+      document.getElementById('reviewConfirmBody').innerHTML = bodyHtml;
+      document.getElementById('reviewConfirmApply').textContent = applyLabel;
+      document.getElementById('reviewConfirmStep').hidden = false;
+      document.getElementById('reviewActions').hidden = true;
+      document.getElementById('reviewConfirmApply').focus();
+    }
+
+    async function openReviewDialog(type, id) {
+      if (!authState.user) {
+        if (authState.loginAvailable) {
+          openAccountDialog('signin');
+          setDialogMessage(document.querySelector('#signInForm .dialog-message'), 'Sign in as a part leader, engineer or supervisor to confirm or correct records.', 'info');
+        } else {
+          alert('Reviewer sign-in is available when the site is opened over HTTPS.');
+        }
+        return;
+      }
+      if (authState.user.mustChangePassword) {
+        openAccountDialog('password', true);
+        return;
+      }
+      Object.assign(reviewState, { type, id, detail: null, changed: false });
+      const dialog = document.getElementById('reviewDialog');
+      document.getElementById('reviewDialogContent').innerHTML = '<p>Loading…</p>';
+      document.getElementById('reviewHistory').innerHTML = '';
+      setDialogMessage(document.getElementById('reviewMessage'), '');
+      hideReviewConfirmStep();
+      if (!dialog.open) dialog.showModal();
+      try {
+        renderReviewDetail(await apiJson('GET', '/api/reviews?type=' + encodeURIComponent(type) + '&id=' + encodeURIComponent(id)));
+      } catch (error) {
+        document.getElementById('reviewDialogContent').innerHTML = '';
+        setDialogMessage(document.getElementById('reviewMessage'), error.message);
+      }
+    }
+
+    document.addEventListener('click', event => {
+      const badge = event.target.closest('button.review-badge[data-review-type]');
+      if (!badge) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openReviewDialog(badge.dataset.reviewType, badge.dataset.reviewId);
+    }, true);
+
+    document.getElementById('reviewDialogContent').addEventListener('input', () => collectReviewChanges());
+
+    document.getElementById('reviewSaveButton').addEventListener('click', () => {
+      const message = document.getElementById('reviewMessage');
+      const changes = collectReviewChanges();
+      if (!changes.length) {
+        setDialogMessage(message, 'Nothing has been changed. Edit a value first.', 'info');
+        return;
+      }
+      const reason = document.getElementById('reviewReason').value.trim();
+      if (!reason) {
+        setDialogMessage(message, 'Enter the reason for the correction.');
+        document.getElementById('reviewReason').focus();
+        return;
+      }
+      setDialogMessage(message, '');
+      showReviewConfirmStep(
+        'Apply these corrections?',
+        '<ul class="change-list">' + changes.map(change => '<li>' + escapeText(change.field.label) + ': <del>' + escapeText(formatReviewValue(change.field.value)) +
+          '</del> → <ins>' + escapeText(formatReviewValue(change.value)) + '</ins></li>').join('') + '</ul><p class="dialog-sub">Reason: ' + escapeText(reason) +
+          '<br>The original record is kept; this correction is recorded with your name, role and device.</p>',
+        'Apply corrections',
+        { action: 'edit', reason, changes: Object.fromEntries(changes.map(change => [change.field.key, change.value])) }
+      );
+    });
+
+    document.getElementById('reviewConfirmButton').addEventListener('click', () => {
+      if (collectReviewChanges().length) {
+        setDialogMessage(document.getElementById('reviewMessage'), 'Save or undo the corrections before confirming.', 'info');
+        return;
+      }
+      setDialogMessage(document.getElementById('reviewMessage'), '');
+      showReviewConfirmStep(
+        'Confirm this record?',
+        '<p class="dialog-sub">This records that you, ' + escapeText(authState.user.displayName) + ' (' + escapeText(roleLabel(authState.user.role)) +
+          '), checked this record. One confirmation completes the review.</p>',
+        'Confirm record',
+        { action: 'confirm' }
+      );
+    });
+
+    document.getElementById('reviewConfirmBack').addEventListener('click', hideReviewConfirmStep);
+
+    document.getElementById('reviewConfirmApply').addEventListener('click', async event => {
+      const pending = reviewState.pending;
+      if (!pending) return;
+      const button = event.currentTarget;
+      button.disabled = true;
+      try {
+        const detail = await apiJson('POST', '/api/reviews', { type: reviewState.type, id: reviewState.id, ...pending });
+        reviewState.changed = true;
+        renderReviewDetail(detail);
+        setDialogMessage(document.getElementById('reviewMessage'), pending.action === 'confirm' ? 'Record confirmed.' : 'Corrections saved. The record now needs a confirmation.', 'success');
+      } catch (error) {
+        hideReviewConfirmStep();
+        setDialogMessage(document.getElementById('reviewMessage'), error.message);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    document.getElementById('reviewDialog').addEventListener('close', () => {
+      if (reviewState.changed) loadData(true);
+      reviewState.changed = false;
+    });
+
+    // ---- Administrator: reviewer accounts ----
+    function roleSelect(user) {
+      return '<select data-user-role aria-label="Role for ' + escapeText(user.displayName) + '">' +
+        (user.role ? '' : '<option value="" selected disabled>Choose role</option>') +
+        Object.entries(ROLE_LABELS).map(([value, label]) => '<option value="' + value + '"' + (value === user.role ? ' selected' : '') + '>' + escapeText(label) + '</option>').join('') +
+        '</select>';
+    }
+
+    async function loadUsers() {
+      const body = document.getElementById('usersTableBody');
+      try {
+        const { users } = await apiJson('GET', '/api/admin/users');
+        body.innerHTML = users.map(user => {
+          const self = authState.user && user.id === authState.user.id;
+          const actions = user.status === 'pending'
+            ? '<button type="button" data-user-action="approve">Approve</button><button type="button" class="secondary-button" data-user-action="disable">Reject</button>'
+            : user.status === 'active'
+              ? (self ? '<span class="dialog-sub">This is you</span>' :
+                '<button type="button" class="secondary-button" data-user-action="role">Save role</button>' +
+                '<button type="button" class="secondary-button" data-user-action="reset-password">Reset password</button>' +
+                '<button type="button" class="danger-button" data-user-action="disable">Disable</button>')
+              : user.role ? '<button type="button" class="secondary-button" data-user-action="enable">Enable</button>' : '<span class="dialog-sub">Request rejected</span>';
+          return '<tr data-user-id="' + user.id + '" data-user-name="' + escapeText(user.displayName) + '" data-user-login="' + escapeText(user.loginId) + '">' +
+            '<td>' + escapeText(user.displayName) + (user.locked ? ' 🔒' : '') + '</td><td>' + escapeText(user.loginId) + '</td>' +
+            '<td><span class="user-status ' + user.status + '" title="' + escapeText(user.disabledReason || '') + '">' + escapeText(user.status) + '</span></td>' +
+            '<td>' + (self || user.status === 'disabled' ? escapeText(roleLabel(user.role)) : roleSelect(user)) + '</td>' +
+            '<td>' + escapeText(user.lastLoginAt ? formatRecordDate(user.lastLoginAt) : '-') + '</td>' +
+            '<td>' + escapeText(formatRecordDate(user.createdAt)) + (user.createdIp ? '<br><span class="dialog-sub">' + escapeText(user.createdIp) + '</span>' : '') + '</td>' +
+            '<td><div class="user-actions">' + actions + '</div></td></tr>';
+        }).join('') || '<tr><td colspan="7">No accounts yet.</td></tr>';
+      } catch (error) {
+        body.innerHTML = '';
+        setDialogMessage(document.getElementById('usersMessage'), error.message);
+      }
+    }
+
+    function openUsersDialog() {
+      document.getElementById('usersTempPassword').innerHTML = '';
+      setDialogMessage(document.getElementById('usersMessage'), '');
+      document.getElementById('usersDialog').showModal();
+      loadUsers();
+    }
+
+    document.getElementById('usersTableBody').addEventListener('click', async event => {
+      const button = event.target.closest('button[data-user-action]');
+      if (!button) return;
+      const row = button.closest('tr');
+      const action = button.dataset.userAction;
+      const name = row.dataset.userName;
+      const role = row.querySelector('[data-user-role]')?.value || '';
+      const message = document.getElementById('usersMessage');
+      if (['approve', 'role'].includes(action) && !role) {
+        setDialogMessage(message, 'Choose a role for ' + name + ' first.');
+        return;
+      }
+      const prompts = {
+        approve: 'Approve ' + name + ' as ' + roleLabel(role) + '?',
+        role: 'Change the role of ' + name + ' to ' + roleLabel(role) + '?',
+        'reset-password': 'Issue a temporary password for ' + name + '? Their current password stops working.',
+        disable: 'Disable ' + name + '? They are signed out and cannot sign in until enabled.',
+        enable: 'Enable ' + name + ' with a new temporary password?'
+      };
+      if (!window.confirm(prompts[action])) return;
+      try {
+        const data = await apiJson('POST', '/api/admin/users/' + row.dataset.userId, { action, role });
+        setDialogMessage(message, 'Done: ' + name + '.', 'success');
+        document.getElementById('usersTempPassword').innerHTML = data.temporaryPassword
+          ? '<div class="temp-password">Temporary password for <strong>' + escapeText(name) + '</strong> (' + escapeText(row.dataset.userLogin) + '):<br><code>' +
+            escapeText(data.temporaryPassword) + '</code><br>Give it to the user in person. It is shown only once, and they must change it at the next sign-in.</div>'
+          : '';
+        loadUsers();
+      } catch (error) {
+        setDialogMessage(message, error.message);
+      }
+    });
+
+    refreshAccount();
   </script>
 </body>
 </html>
