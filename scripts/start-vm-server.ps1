@@ -1,6 +1,8 @@
 param(
     [string]$BindAddress = '0.0.0.0',
-    [int]$Port = 3000
+    [int]$Port = 3000,
+    # Testing only: allows sign-in over plain HTTP, which sends passwords unencrypted. Use HTTPS (IIS) in production.
+    [switch]$AllowHttpLogin
 )
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
@@ -25,6 +27,12 @@ try {
     $env:PGPASSWORD = $password
     $env:FORMATION_HOST = $BindAddress
     $env:FORMATION_PORT = [string]$Port
+    if ($AllowHttpLogin) {
+        $env:FORMATION_ALLOW_HTTP_LOGIN = '1'
+        Write-Warning 'Sign-in over HTTP is enabled for testing. Passwords are sent unencrypted.'
+    } else {
+        Remove-Item Env:FORMATION_ALLOW_HTTP_LOGIN -ErrorAction SilentlyContinue
+    }
     Set-Location -LiteralPath $project
     & node 'server\index.mjs'
     if ($LASTEXITCODE -ne 0) { throw 'Formation server stopped with an error.' }

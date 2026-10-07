@@ -1,4 +1,5 @@
 import { TEMPERATURE_AREAS } from './records.mjs';
+import { attachReviews } from './reviews.mjs';
 
 const APPEARANCE = new Set(['before_hpcd', 'formation', 'degas']);
 const STARTUP = new Set(['startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector']);
@@ -107,14 +108,14 @@ async function rangeRecords(pool, process, params) {
 }
 async function startupRecords(pool, process) {
   const rows = await pool.query(
-    'SELECT c.recorded_at AS date, c.team, c.operator_name AS "operatorName", c.selector_type AS "selectorType", array_to_string(c.line_values, \', \') AS line, c.cdc_line AS "cdcLine", c.cdc_floor AS floor, c.check_completed AS "checkCompleted", c.frequency, i.item, i.status, i.comment FROM (SELECT * FROM formation.startup_checks WHERE process = $1 ORDER BY recorded_at DESC, id DESC LIMIT 1000) c JOIN formation.startup_check_items i ON i.check_id = c.id ORDER BY c.recorded_at ASC, c.id ASC, i.position ASC',
+    'SELECT c.id AS "checkId", i.position, c.recorded_at AS date, c.team, c.operator_name AS "operatorName", c.selector_type AS "selectorType", array_to_string(c.line_values, \', \') AS line, c.cdc_line AS "cdcLine", c.cdc_floor AS floor, c.check_completed AS "checkCompleted", c.frequency, i.item, i.status, i.comment FROM (SELECT * FROM formation.startup_checks WHERE process = $1 ORDER BY recorded_at DESC, id DESC LIMIT 1000) c JOIN formation.startup_check_items i ON i.check_id = c.id ORDER BY c.recorded_at ASC, c.id ASC, i.position ASC',
     [process]
   );
   return rows.rows.map(row => ({ ...row, line: process === 'startup_cdc' ? row.cdcLine : row.line }));
 }
 async function resealingRecords(pool) {
   const rows = await pool.query(
-    'SELECT recorded_at AS date, operator_name AS "operatorName", shift, work_today AS work, inspection_status AS "inspectionStatus", cleaning_status AS "cleaningStatus", comment FROM (SELECT * FROM formation.resealing_checks ORDER BY recorded_at DESC, id DESC LIMIT 1000) r ORDER BY recorded_at ASC, id ASC'
+    'SELECT id, recorded_at AS date, operator_name AS "operatorName", shift, work_today AS work, inspection_status AS "inspectionStatus", cleaning_status AS "cleaningStatus", comment FROM (SELECT * FROM formation.resealing_checks ORDER BY recorded_at DESC, id DESC LIMIT 1000) r ORDER BY recorded_at ASC, id ASC'
   );
   return rows.rows;
 }
@@ -137,18 +138,19 @@ export async function readInspection(pool, params) {
   const action = params.get('action') || 'bootstrap';
   if (TEMPERATURE_AREAS[process]) {
     if (action !== 'chart') invalid('Unsupported action.');
-    return { result: 'success', process, data: await rangeRecords(pool, process, params) };
+    return { result: 'success', process, data: await attachReviews(pool, process, await rangeRecords(pool, process, params)) };
   }
   if (!APPEARANCE.has(process) && !STARTUP.has(process) && !GENERAL[process] && process !== 'startup_resealing' && process !== 'ip_dsf') invalid('Unknown process.');
   if (STARTUP.has(process) || process === 'startup_resealing' || process === 'ip_dsf') {
     if (!['bootstrap','records'].includes(action)) invalid('Unknown action.');
     const data = STARTUP.has(process) ? await startupRecords(pool, process)
       : process === 'startup_resealing' ? await resealingRecords(pool) : await ipRecords(pool);
+    await attachReviews(pool, process, data, STARTUP.has(process) ? record => record.checkId : record => record.id);
     return { result: 'success', process, data };
   }
   if (action === 'map' || action === 'chart') {
     if ((action === 'map' && !APPEARANCE.has(process)) || (action === 'chart' && process !== 'hta')) invalid('Unsupported action.');
-    return { result: 'success', process, data: await rangeRecords(pool, process, params) };
+    return { result: 'success', process, data: await attachReviews(pool, process, await rangeRecords(pool, process, params)) };
   }
   if (!['bootstrap','summary','records'].includes(action)) invalid('Unknown action.');
   const limit = Math.min(100, Math.max(1, Number(params.get('limit')) || 50));
@@ -156,12 +158,13 @@ export async function readInspection(pool, params) {
   const results = APPEARANCE.has(process)
     ? await appearanceRecords(pool, process, limit, offset)
     : await generalRecords(pool, process, limit, offset);
+  await attachReviews(pool, process, results.data);
   const response = { result: 'success', process,
     summary: await summary(pool, process, results.total, results.data[0]),
     data: results.data, pagination: page(limit, offset, results.total) };
   if (action === 'records') return response;
   if (action === 'summary') return { result: 'success', process, summary: response.summary };
-  const rangeData = (APPEARANCE.has(process) || process === 'hta') ? await rangeRecords(pool, process, params) : [];
+  const rangeData = (APPEARANCE.has(process) || process === 'hta') ? await attachReviews(pool, process, await rangeRecords(pool, process, params)) : [];
   return { result: 'success', process, summary: response.summary,
     records: response.data, pagination: response.pagination, rangeData };
 }

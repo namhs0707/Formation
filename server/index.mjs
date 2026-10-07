@@ -6,6 +6,9 @@ import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { saveInspection } from './records.mjs';
 import { readInspection, readPhoto } from './read.mjs';
+import { SESSION_COOKIE, REVIEWER_ROLES, publicUser, signUp, logIn, logOut, sessionUser, changePassword,
+  disableInactiveAccounts, listUsers, manageUser, sessionCookie } from './auth.mjs';
+import { reviewDetail, submitReview } from './reviews.mjs';
 
 const root = fileURLToPath(new URL('../public/', import.meta.url));
 const host = process.env.FORMATION_HOST || '127.0.0.1';
@@ -23,12 +26,17 @@ const pool = new pg.Pool({
   connectionTimeoutMillis: 5000
 });
 await pool.query('SELECT 1');
+// Login sends passwords, so it is only offered over HTTPS (IIS in front) unless explicitly allowed for testing.
+const allowHttpLogin = process.env.FORMATION_ALLOW_HTTP_LOGIN === '1';
+await disableInactiveAccounts(pool);
+setInterval(() => disableInactiveAccounts(pool).catch(error => console.error('Inactive account check failed:', error)), 60 * 60 * 1000).unref();
 
-function sendJson(response, status, body) {
+function sendJson(response, status, body, headers = {}) {
   response.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff'
+    'X-Content-Type-Options': 'nosniff',
+    ...headers
   });
   response.end(JSON.stringify(body));
 }
@@ -42,6 +50,47 @@ function clientIpOf(request) {
     if (isIP(forwarded)) return forwarded;
   }
   return isIP(remote) ? remote : null;
+}
+
+function isLoopback(request) {
+  const remote = String(request.socket.remoteAddress || '').replace(/^::ffff:/, '');
+  return remote === '127.0.0.1' || remote === '::1';
+}
+
+// True when the browser reached us over HTTPS through the local reverse proxy.
+function isSecure(request) {
+  return isLoopback(request) && String(request.headers['x-forwarded-proto'] || '').toLowerCase() === 'https';
+}
+
+function sessionToken(request) {
+  const match = String(request.headers.cookie || '').match(new RegExp('(?:^|;\\s*)' + SESSION_COOKIE + '=([A-Za-z0-9_-]+)'));
+  return match ? match[1] : null;
+}
+
+function fail(message, status) { const error = new Error(message); error.status = status; throw error; }
+
+// Account and review changes must come from this site's own pages as JSON, which blocks cross-site form posts.
+function checkSameOrigin(request) {
+  if (!String(request.headers['content-type'] || '').toLowerCase().startsWith('application/json')) fail('JSON request required.', 415);
+  const origin = request.headers.origin;
+  if (origin && new URL(origin).host !== request.headers.host) fail('Cross-site request blocked.', 403);
+}
+
+// At most 20 sign-in or sign-up attempts per device per 10 minutes, on top of the per-account lockout.
+const attemptLog = new Map();
+function limitAttempts(ip) {
+  const now = Date.now();
+  const recent = (attemptLog.get(ip) || []).filter(time => now - time < 10 * 60 * 1000);
+  if (recent.length >= 20) fail('Too many attempts from this device. Wait 10 minutes.', 429);
+  recent.push(now);
+  attemptLog.set(ip, recent);
+}
+
+async function requireUser(request, roles) {
+  const user = await sessionUser(pool, sessionToken(request));
+  if (!user) fail('Sign in first.', 401);
+  if (roles && !roles.has(user.role)) fail('Your role cannot do this.', 403);
+  return user;
 }
 
 async function readJson(request) {
@@ -97,6 +146,54 @@ const server = http.createServer(async (request, response) => {
       await pool.query('SELECT 1');
       sendJson(response, 200, { status: 'ok', database: 'connected' });
       return;
+    }
+    if (url.pathname.startsWith('/api/auth/') || url.pathname.startsWith('/api/admin/') || url.pathname === '/api/reviews') {
+      if (request.method === 'POST') checkSameOrigin(request);
+      const clientIp = clientIpOf(request);
+      const loginAvailable = allowHttpLogin || isSecure(request);
+      if (url.pathname === '/api/auth/me' && request.method === 'GET') {
+        return sendJson(response, 200, { loginAvailable, user: publicUser(await sessionUser(pool, sessionToken(request))) });
+      }
+      if (url.pathname === '/api/auth/signup' && request.method === 'POST') {
+        if (!loginAvailable) fail('Sign-up is available only over HTTPS.', 403);
+        limitAttempts(clientIp);
+        await signUp(pool, await readJson(request), clientIp);
+        return sendJson(response, 201, { result: 'success', message: 'Sign-up received. Wait for administrator approval.' });
+      }
+      if (url.pathname === '/api/auth/login' && request.method === 'POST') {
+        if (!loginAvailable) fail('Sign-in is available only over HTTPS.', 403);
+        limitAttempts(clientIp);
+        const session = await logIn(pool, await readJson(request), clientIp);
+        return sendJson(response, 200, { result: 'success', user: session.user }, { 'Set-Cookie': sessionCookie(session.token, isSecure(request)) });
+      }
+      if (url.pathname === '/api/auth/logout' && request.method === 'POST') {
+        await logOut(pool, sessionToken(request));
+        return sendJson(response, 200, { result: 'success' }, { 'Set-Cookie': sessionCookie('', isSecure(request), 0) });
+      }
+      if (url.pathname === '/api/auth/password' && request.method === 'POST') {
+        const user = await requireUser(request);
+        await changePassword(pool, user, await readJson(request), sessionToken(request));
+        return sendJson(response, 200, { result: 'success' });
+      }
+      if (url.pathname === '/api/admin/users' && request.method === 'GET') {
+        await requireUser(request, new Set(['admin']));
+        return sendJson(response, 200, { result: 'success', users: await listUsers(pool) });
+      }
+      const userMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)$/);
+      if (userMatch && request.method === 'POST') {
+        const admin = await requireUser(request, new Set(['admin']));
+        if (admin.must_change_password) fail('Change your temporary password first.', 403);
+        return sendJson(response, 200, { result: 'success', ...(await manageUser(pool, admin, userMatch[1], await readJson(request))) });
+      }
+      if (url.pathname === '/api/reviews' && request.method === 'GET') {
+        await requireUser(request, REVIEWER_ROLES);
+        return sendJson(response, 200, { result: 'success', ...(await reviewDetail(pool, url.searchParams.get('type'), url.searchParams.get('id'))) });
+      }
+      if (url.pathname === '/api/reviews' && request.method === 'POST') {
+        const user = await requireUser(request, REVIEWER_ROLES);
+        return sendJson(response, 200, { result: 'success', ...(await submitReview(pool, user, await readJson(request), clientIp)) });
+      }
+      fail('Not found.', 404);
     }
     if (url.pathname === '/api/inspections' && request.method === 'POST') {
       const input = await readJson(request);

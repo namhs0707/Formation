@@ -2,7 +2,17 @@ const APPEARANCE = new Set(['before_hpcd', 'formation', 'degas']);
 const STARTUP = new Set(['startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector']);
 const PROCESSES = new Set([...APPEARANCE, ...STARTUP, 'hta', 'temperature', 'maintenance', 'conductive', 'startup_resealing', 'ip_dsf']);
 const HTA_KEYS = ['hta11','hta12','hta21','hta22','hta31','hta32','hta41','hta42'];
-const fieldKeys = (prefix, suffixes) => suffixes.map(suffix => prefix + suffix.replace(/[^0-9A-Za-z]/g, ''));
+export const CONDUCTIVE_UNITS_BY_MODE = { 'Degas IR': ['1A','1B','1C','1D','2A','2B','2C','2D'], 'EOL IR': ['1A','1B','1C','1D'], 'EOL IV': ['1A','1B','2A','2B'] };
+export const TEMPERATURE_LABELS = {
+  dcir: 'DCIR', pltEast: 'PLT East', pltWest: 'PLT West', dgs: 'DGS', eol: 'EOL',
+  praEast: 'PRA East', praWest: 'PRA West', rtaEast: 'RTA East Area', rtaWest: 'RTA West Area'
+};
+const FIELD_LABEL_PREFIX = { floor: 'Floor ', jig: 'JIG ', shaEast: 'SHA East Aisle #', shaWest: 'SHA West Aisle #' };
+const fieldKeys = (prefix, suffixes) => suffixes.map(suffix => {
+  const key = prefix + suffix.replace(/[^0-9A-Za-z]/g, '');
+  TEMPERATURE_LABELS[key] = FIELD_LABEL_PREFIX[prefix] + suffix;
+  return key;
+});
 // Area temperature readings other than HTA, which keeps its own table. Mirrors TEMPERATURE_AREAS in Code.gs.
 export const TEMPERATURE_AREAS = {
   temp_cdc: { line: { maxLength: 32 }, fields: [...fieldKeys('floor', ['1-1','1-2','2-1','2-2','3-1','3-2']), 'dcir'] },
@@ -15,8 +25,8 @@ export const TEMPERATURE_AREAS = {
   temp_rta: { fields: ['rtaEast', 'rtaWest'] },
   temp_sha: { fields: [...fieldKeys('shaEast', ['1','2','3','4','5']), ...fieldKeys('shaWest', ['1','2','3','4','5'])] }
 };
-const TEAMS = ['1A', '1B', '2A', '2B'];
-const DEFECTS = ['All OK', 'Dent', 'Contamination', 'Scratch', 'Lead bending', 'Wrinkles', 'Unsealing pouch', 'Others'];
+export const TEAMS = ['1A', '1B', '2A', '2B'];
+export const DEFECTS = ['All OK', 'Dent', 'Contamination', 'Scratch', 'Lead bending', 'Wrinkles', 'Unsealing pouch', 'Others'];
 function invalid(message) { const error = new Error(message); error.status = 400; throw error; }
 function required(value, label, max = 200) {
   const text = String(value ?? '').trim();
@@ -143,7 +153,7 @@ async function saveConductive(client, input) {
   const rubberProcess = choice(input.rubberProcess, ['Degas','EOL'], 'process');
   const measurement = choice(input.measurement, rubberProcess === 'Degas' ? ['IR'] : ['IR','IV'], 'measurement');
   const units = list(input.units, 'units', 8);
-  const validUnits = { 'Degas IR': ['1A','1B','1C','1D','2A','2B','2C','2D'], 'EOL IR': ['1A','1B','1C','1D'], 'EOL IV': ['1A','1B','2A','2B'] }[`${rubberProcess} ${measurement}`];
+  const validUnits = CONDUCTIVE_UNITS_BY_MODE[`${rubberProcess} ${measurement}`];
   if (!units.length || new Set(units).size !== units.length || units.some(unit => !validUnits.includes(unit))) invalid('Invalid units.');
   const rows = await client.query(
     'INSERT INTO formation.conductive_maintenance (team, operator_name, rubber_process, line, measurement, units, action, comment) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',

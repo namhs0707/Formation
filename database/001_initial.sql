@@ -176,6 +176,61 @@ CREATE TABLE IF NOT EXISTS formation.temperature_readings (
     source_key text UNIQUE
 );
 
+-- Temporary in-app accounts for part leaders, engineers and supervisors until company AD sign-in is
+-- available. Operators do not log in. Passwords are stored only as scrypt hashes.
+CREATE TABLE IF NOT EXISTS formation.app_users (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    login_id varchar(40) NOT NULL CHECK (login_id ~ '^[A-Za-z0-9._-]{3,40}$'),
+    display_name varchar(120) NOT NULL CHECK (length(btrim(display_name)) > 0),
+    role text CHECK (role IN ('part_leader', 'engineer', 'supervisor', 'admin')),
+    status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'disabled')),
+    password_hash text,
+    must_change_password boolean NOT NULL DEFAULT false,
+    failed_attempts smallint NOT NULL DEFAULT 0,
+    locked_until timestamptz,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    created_ip inet,
+    approved_at timestamptz,
+    approved_by bigint REFERENCES formation.app_users(id),
+    last_login_at timestamptz,
+    disabled_at timestamptz,
+    disabled_reason text,
+    CHECK (status <> 'active' OR (role IS NOT NULL AND password_hash IS NOT NULL))
+);
+CREATE UNIQUE INDEX IF NOT EXISTS app_users_login_idx ON formation.app_users (lower(login_id));
+
+-- Only a SHA-256 of each session token is stored, so a database copy cannot be used to sign in.
+CREATE TABLE IF NOT EXISTS formation.app_sessions (
+    token_hash text PRIMARY KEY,
+    user_id bigint NOT NULL REFERENCES formation.app_users(id),
+    created_at timestamptz NOT NULL DEFAULT now(),
+    last_seen_at timestamptz NOT NULL DEFAULT now(),
+    expires_at timestamptz NOT NULL,
+    revoked_at timestamptz,
+    client_ip inet
+);
+
+-- Confirmations and corrections. Original records are never changed; the app shows each record with its
+-- corrections applied, and a record counts as confirmed when a confirmation follows its latest correction.
+CREATE TABLE IF NOT EXISTS formation.record_reviews (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recorded_at timestamptz NOT NULL DEFAULT now(),
+    record_type text NOT NULL CHECK (record_type IN (
+        'appearance_inspections', 'hta_readings', 'temperature_readings', 'eol_maintenance',
+        'conductive_maintenance', 'startup_checks', 'resealing_checks', 'ip_checks'
+    )),
+    record_id bigint NOT NULL,
+    action text NOT NULL CHECK (action IN ('confirm', 'edit')),
+    changes jsonb NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(changes) = 'array'),
+    reason text NOT NULL DEFAULT '',
+    user_id bigint NOT NULL REFERENCES formation.app_users(id),
+    user_name varchar(120) NOT NULL,
+    user_role text NOT NULL,
+    client_ip inet,
+    CHECK (action <> 'edit' OR (jsonb_array_length(changes) > 0 AND length(btrim(reason)) > 0))
+);
+CREATE INDEX IF NOT EXISTS record_reviews_record_idx ON formation.record_reviews (record_type, record_id, recorded_at, id);
+
 -- Which device submitted each record. Submitters do not log in, and only registered fixed IPs can reach the app,
 -- so the IP identifies the device. The app sets formation.client_ip for its transaction; rows added any other way stay NULL.
 DO $$
@@ -213,3 +268,6 @@ GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA formation TO formation_app;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA formation TO formation_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA formation GRANT SELECT, INSERT ON TABLES TO formation_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA formation GRANT USAGE, SELECT ON SEQUENCES TO formation_app;
+-- Account and session upkeep (last login, lockout, approval, sign-out) needs UPDATE on these two tables only.
+-- Inspection records and review history stay add-only for the app.
+GRANT UPDATE ON formation.app_users, formation.app_sessions TO formation_app;
