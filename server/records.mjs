@@ -216,12 +216,14 @@ async function saveIp(client, input) {
   }
   return { id };
 }
-export async function saveInspection(pool, input) {
+export async function saveInspection(pool, input, clientIp = null) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) invalid('Invalid inspection.');
   const process = processOf(input.process);
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    // Every parent table's client_ip column defaults to this transaction-local setting.
+    await client.query("SELECT set_config('formation.client_ip', $1, true)", [clientIp || '']);
     let result;
     if (APPEARANCE.has(process)) result = await saveAppearance(client, input);
     else if (process === 'hta') result = await saveHta(client, input);

@@ -41,6 +41,25 @@ VM으로 옮길 파일은 Formation-VM-App.zip, PostgreSQL Windows x64 설치 �
 
 현재 실행 스크립트는 수동으로 앱을 시작합니다. 상시 운영 시에는 회사 IT가 같은 실행 계정을 사용하는 Windows 서비스 또는 작업 스케줄러, 내부 HTTPS, 접근 권한 정책을 적용해야 합니다. 앱 자체의 사용자 로그인·권한 구분은 아직 없습니다.
 
+## 새 버전으로 업데이트
+
+이미 설치된 VM에 새 Formation-VM-App.zip을 적용할 때는 setup.ps1을 다시 실행하지 않습니다(formation_app 암호를 다시 정하게 됨). 대신 아래 순서로 진행합니다.
+
+1. 실행 중인 서버 창에서 Ctrl+C로 서버를 멈춥니다.
+2. 기존 C:\FormationInspection 폴더 이름을 C:\FormationInspection_old_날짜 로 바꿔 보관합니다.
+3. 새 ZIP을 C:\FormationInspection에 압축 해제합니다.
+4. 관리자 PowerShell에서 테이블 변경을 적용합니다. 기존 기록은 유지되고 formation_app 암호는 바뀌지 않습니다.
+
+~~~powershell
+& 'C:\FormationInspection\database\windows\apply-schema.ps1' -PostgresBin 'C:\Program Files\PostgreSQL\17\bin'
+~~~
+
+5. start-vm-server.ps1로 서버를 다시 시작합니다. 문제가 있으면 새 폴더를 지우고 보관한 _old 폴더 이름을 되돌린 뒤 다시 시작합니다.
+
+## 제출 기기 기록
+
+모든 제출 기록에 제출한 기기의 IP 주소(client_ip)가 함께 저장됩니다. 오퍼레이터는 로그인하지 않으며 본사에 등록된 고정 IP에서만 접속할 수 있으므로, 이 값으로 어느 기기에서 입력했는지 확인할 수 있습니다. 이 기능 이전에 저장된 기록은 비어 있습니다. 앞단에 HTTPS용 IIS를 두는 경우 IIS가 전달하는 실제 기기 IP를 기록하며, 이 전달 정보는 VM 내부(127.0.0.1)에서 온 요청에 대해서만 인정합니다.
+
 ## 저장 대상
 
 | 양식 | PostgreSQL 테이블 |

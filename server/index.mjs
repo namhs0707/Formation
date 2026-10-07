@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { isIP } from 'node:net';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,6 +31,17 @@ function sendJson(response, status, body) {
     'X-Content-Type-Options': 'nosniff'
   });
   response.end(JSON.stringify(body));
+}
+
+// The submitting device's IP. Behind a reverse proxy on this VM (IIS for HTTPS), the proxy connects from
+// loopback and passes the real address in X-Forwarded-For; that header is ignored from any other source.
+function clientIpOf(request) {
+  const remote = String(request.socket.remoteAddress || '').replace(/^::ffff:/, '');
+  if (remote === '127.0.0.1' || remote === '::1') {
+    const forwarded = String(request.headers['x-forwarded-for'] || '').split(',')[0].trim().replace(/^::ffff:/, '');
+    if (isIP(forwarded)) return forwarded;
+  }
+  return isIP(remote) ? remote : null;
 }
 
 async function readJson(request) {
@@ -88,7 +100,7 @@ const server = http.createServer(async (request, response) => {
     }
     if (url.pathname === '/api/inspections' && request.method === 'POST') {
       const input = await readJson(request);
-      const result = await saveInspection(pool, input);
+      const result = await saveInspection(pool, input, clientIpOf(request));
       sendJson(response, 201, { result: 'success', process: input.process, ...result });
       return;
     }

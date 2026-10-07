@@ -176,6 +176,24 @@ CREATE TABLE IF NOT EXISTS formation.temperature_readings (
     source_key text UNIQUE
 );
 
+-- Which device submitted each record. Submitters do not log in, and only registered fixed IPs can reach the app,
+-- so the IP identifies the device. The app sets formation.client_ip for its transaction; rows added any other way stay NULL.
+DO $$
+DECLARE
+    target text;
+BEGIN
+    FOREACH target IN ARRAY ARRAY[
+        'appearance_inspections', 'hta_readings', 'temperature_readings', 'eol_maintenance',
+        'conductive_maintenance', 'startup_checks', 'resealing_checks', 'ip_checks'
+    ] LOOP
+        EXECUTE format(
+            'ALTER TABLE formation.%I ADD COLUMN IF NOT EXISTS client_ip inet '
+            'DEFAULT (nullif(current_setting(''formation.client_ip'', true), ''''))::inet',
+            target
+        );
+    END LOOP;
+END $$;
+
 CREATE INDEX IF NOT EXISTS appearance_process_time_idx ON formation.appearance_inspections (process, recorded_at DESC);
 CREATE INDEX IF NOT EXISTS appearance_tray_idx ON formation.appearance_inspections (tray_id);
 CREATE INDEX IF NOT EXISTS appearance_cell_idx ON formation.appearance_inspections (cell_id);
