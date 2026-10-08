@@ -56,12 +56,6 @@ export function checkNewPassword(password, loginId) {
   return text;
 }
 
-function checkApprovalRef(value) {
-  const text = String(value ?? '').trim();
-  if (!text || text.length > 60) fail('Enter the e-approval document number (max 60 characters).');
-  return text;
-}
-
 // Account dates are plain YYYY-MM-DD in the factory's own calendar (the server's local time zone).
 const pad = number => String(number).padStart(2, '0');
 const localDate = date => date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
@@ -300,7 +294,7 @@ export async function listUsers(pool) {
   return result.rows.map(row => ({
     id: Number(row.id), loginId: row.login_id, displayName: row.display_name, role: row.role, status: row.status,
     mustChangePassword: row.must_change_password, createdAt: row.created_at, createdIp: row.created_ip_text,
-    approvedAt: row.approved_at, approvedBy: row.approved_by_name, approvalRef: row.approval_ref, lastLoginAt: row.last_login_at,
+    approvedAt: row.approved_at, approvedBy: row.approved_by_name, lastLoginAt: row.last_login_at,
     locked: Boolean(row.locked_until && new Date(row.locked_until) > new Date()),
     disabledAt: row.disabled_at, disabledReason: row.disabled_reason,
     validFrom: dateText(row.valid_from), validUntil: dateText(row.valid_until), requestReason: row.request_reason,
@@ -320,12 +314,11 @@ export async function manageUser(pool, admin, userId, input, clientIp) {
   if (['approve', 'role'].includes(action) && !ROLES.includes(role)) fail('Choose a role.');
   if (action === 'approve') {
     if (target.status !== 'pending') fail('Only pending sign-ups can be approved.');
-    const approvalRef = checkApprovalRef(input.approvalRef);
     await pool.query(
-      'UPDATE formation.app_users SET status = \'active\', role = $2, approved_at = now(), approved_by = $3, approval_ref = $4 WHERE id = $1',
-      [target.id, role, admin.id, approvalRef]
+      'UPDATE formation.app_users SET status = \'active\', role = $2, approved_at = now(), approved_by = $3 WHERE id = $1',
+      [target.id, role, admin.id]
     );
-    await event('approve', { role, approvalRef });
+    await event('approve', { role });
     return {};
   }
   if (action === 'role') {
@@ -344,14 +337,13 @@ export async function manageUser(pool, admin, userId, input, clientIp) {
   }
   if (action === 'extend') {
     if (target.status === 'pending') fail('Approve the sign-up first.');
-    // A renewal is a new period of at most one year starting today, backed by a new e-approval.
+    // A renewal is a new period of at most one year starting today.
     const today = todayText();
     const validUntil = checkDate(input.validUntil, 'end date');
     if (validUntil < today) fail('The new end date cannot be in the past.');
     checkPeriod(today, validUntil);
-    const approvalRef = checkApprovalRef(input.approvalRef);
-    await pool.query('UPDATE formation.app_users SET valid_from = $2, valid_until = $3, approval_ref = $4 WHERE id = $1', [target.id, today, validUntil, approvalRef]);
-    await event('extend', { from: dateText(target.valid_until), to: validUntil, approvalRef });
+    await pool.query('UPDATE formation.app_users SET valid_from = $2, valid_until = $3 WHERE id = $1', [target.id, today, validUntil]);
+    await event('extend', { from: dateText(target.valid_until), to: validUntil });
     return {};
   }
   if (action === 'enable' || action === 'reset-password') {
@@ -386,10 +378,10 @@ function csv(rows) {
 export async function usersCsv(pool) {
   const users = await listUsers(pool);
   return csv([
-    ['ID', 'Name', 'Role', 'Status', 'Valid from', 'Valid until', 'Request reason', 'Approved by', 'Approved at', 'E-approval no.',
+    ['ID', 'Name', 'Role', 'Status', 'Valid from', 'Valid until', 'Request reason', 'Approved by', 'Approved at',
       'Last sign-in', 'Password changed', 'Disabled reason'],
     ...users.map(user => [user.loginId, user.displayName, user.role, user.status, user.validFrom, user.validUntil, user.requestReason,
-      user.approvedBy, user.approvedAt, user.approvalRef, user.lastLoginAt, user.passwordChangedAt, user.disabledReason])
+      user.approvedBy, user.approvedAt, user.lastLoginAt, user.passwordChangedAt, user.disabledReason])
   ]);
 }
 

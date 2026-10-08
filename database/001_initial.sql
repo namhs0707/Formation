@@ -297,7 +297,7 @@ CREATE INDEX IF NOT EXISTS resealing_time_idx ON formation.resealing_checks (rec
 CREATE INDEX IF NOT EXISTS temperature_area_time_idx ON formation.temperature_readings (area, recorded_at DESC);
 
 -- Account rules from the HQ.S1.05 access-control standard: a usage period of at most one year, the request reason,
--- the company e-approval number, password age, and deletion (anonymised) after long non-use.
+-- password age, and deletion (anonymised) after long non-use. approval_ref is kept for old rows but no longer written.
 ALTER TABLE formation.app_users ADD COLUMN IF NOT EXISTS valid_from date;
 ALTER TABLE formation.app_users ADD COLUMN IF NOT EXISTS valid_until date;
 ALTER TABLE formation.app_users ADD COLUMN IF NOT EXISTS request_reason text;

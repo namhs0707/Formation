@@ -16,7 +16,8 @@ $manifest = @{
 } | ConvertTo-Json -Depth 5
 [IO.File]::WriteAllText((Join-Path $stage 'package.json'), $manifest, (New-Object System.Text.UTF8Encoding($false)))
 New-Item -ItemType Directory -Path (Join-Path $stage 'server'), (Join-Path $stage 'scripts') | Out-Null
-Copy-Item -LiteralPath (Join-Path $project 'server\index.mjs'), (Join-Path $project 'server\records.mjs'), (Join-Path $project 'server\read.mjs'), (Join-Path $project 'server\auth.mjs'), (Join-Path $project 'server\reviews.mjs'), (Join-Path $project 'server\create-admin.mjs') -Destination (Join-Path $stage 'server')
+# Every server module except the test scripts, so new modules are never left out of the package.
+Get-ChildItem -LiteralPath (Join-Path $project 'server') -Filter '*.mjs' | Where-Object { $_.Name -notlike 'test-*' } | Copy-Item -Destination (Join-Path $stage 'server')
 Copy-Item -LiteralPath (Join-Path $project 'public') -Destination $stage -Recurse
 Copy-Item -LiteralPath (Join-Path $project 'database') -Destination $stage -Recurse
 Copy-Item -LiteralPath (Join-Path $project 'scripts\start-vm-server.ps1'), (Join-Path $project 'scripts\save-vm-app-password.ps1'), (Join-Path $project 'scripts\create-admin.ps1') -Destination (Join-Path $stage 'scripts')

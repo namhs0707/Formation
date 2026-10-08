@@ -2708,7 +2708,7 @@
       </form>
       <form class="dialog-form" id="signUpForm" data-account-view="signup" hidden>
         <h3>Request a reviewer account</h3>
-        <p class="dialog-sub">Get your team leader's e-approval first; the administrator enters its number when approving. An account is valid for at most one year. Accounts unused for 60 days are disabled and deleted after 180 days.</p>
+        <p class="dialog-sub">The administrator reviews and approves your request. An account is valid for at most one year. Accounts unused for 60 days are disabled and deleted after 180 days.</p>
         <div class="form-group"><label for="signUpId">ID</label><input id="signUpId" autocomplete="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._\-]{3,40}" spellcheck="false" autocapitalize="none"><small class="input-help">3-40 letters, numbers, dot, dash or underscore.</small></div>
         <div class="form-group"><label for="signUpName">First and last name</label><input id="signUpName" autocomplete="name" required maxlength="120"></div>
         <div class="form-group"><label for="signUpPassword">Password</label><input id="signUpPassword" type="password" autocomplete="new-password" required minlength="10" maxlength="128"><small class="input-help">At least 10 characters with letters and numbers, not containing the ID.</small></div>
@@ -2757,7 +2757,7 @@
   <dialog class="app-dialog wide" id="usersDialog" aria-labelledby="usersDialogTitle">
     <div class="dialog-body">
       <h3 id="usersDialogTitle">Reviewer accounts</h3>
-      <p class="dialog-sub">Approve requests with a role and the e-approval number, extend periods (at most one year), change roles, reset passwords or disable accounts. Accounts unused for 60 days are disabled automatically and deleted after 180 days; every change is kept in the account history.</p>
+      <p class="dialog-sub">Approve requests with a role, extend periods (at most one year), change roles, reset passwords or disable accounts. Accounts unused for 60 days are disabled automatically and deleted after 180 days; every change is kept in the account history.</p>
       <div class="users-downloads"><a class="secondary-button" href="/api/admin/users.csv" download>Download account list (CSV)</a><a class="secondary-button" href="/api/admin/account-events.csv" download>Download account history (CSV)</a></div>
       <div class="users-table-wrap"><table class="users-table"><thead><tr><th>Name</th><th>ID</th><th>Status</th><th>Role</th><th>Valid until</th><th>Last sign-in</th><th>Requested</th><th>Actions</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
       <div id="usersTempPassword"></div>
@@ -7016,15 +7016,14 @@
           const today = localDateText(new Date());
           const ended = user.validUntil && user.validUntil < today;
           const soon = !ended && user.validUntil && user.validUntil <= localDateText(new Date(Date.now() + 14 * 86400000));
-          // Extending opens a small inline form: new end date (at most one year from today) and the e-approval number.
+          // Extending opens a small inline form: the new end date, at most one year from today.
           const extend = user.role && !self
             ? '<button type="button" class="secondary-button" data-user-action="show-extend">Extend</button>' +
               '<span class="user-extend" hidden><input type="date" class="user-inline" data-extend-until min="' + today + '" max="' + lastPeriodDayText(today) + '" value="' + lastPeriodDayText(today) + '" aria-label="New end date">' +
-              '<input class="user-inline" data-extend-ref maxlength="60" placeholder="E-approval no." aria-label="E-approval number"><button type="button" data-user-action="extend">Save period</button></span>'
+              '<button type="button" data-user-action="extend">Save period</button></span>'
             : '';
           const actions = user.status === 'pending'
-            ? '<input class="user-inline" data-approval-ref maxlength="60" placeholder="E-approval no." aria-label="E-approval number for ' + escapeText(user.displayName) + '">' +
-              '<button type="button" data-user-action="approve">Approve</button><button type="button" class="secondary-button" data-user-action="disable">Reject</button>'
+            ? '<button type="button" data-user-action="approve">Approve</button><button type="button" class="secondary-button" data-user-action="disable">Reject</button>'
             : user.status === 'active'
               ? (self ? '<span class="dialog-sub">This is you</span>' :
                 '<button type="button" class="secondary-button" data-user-action="role">Save role</button>' +
@@ -7035,7 +7034,7 @@
             '<td>' + escapeText(user.displayName) + (user.locked ? ' 🔒' : '') + '</td><td>' + escapeText(user.loginId) + '</td>' +
             '<td><span class="user-status ' + user.status + '" title="' + escapeText(user.disabledReason || '') + '">' + escapeText(user.status) + '</span></td>' +
             '<td>' + (self || user.status === 'disabled' ? escapeText(roleLabel(user.role)) : roleSelect(user)) + '</td>' +
-            '<td><span class="' + (ended ? 'period-ended' : soon ? 'period-soon' : '') + '" title="' + escapeText('From ' + (user.validFrom || '-') + (user.approvalRef ? ' · e-approval ' + user.approvalRef : '')) + '">' +
+            '<td><span class="' + (ended ? 'period-ended' : soon ? 'period-soon' : '') + '" title="' + escapeText('From ' + (user.validFrom || '-')) + '">' +
               escapeText(user.validUntil || '-') + '</span></td>' +
             '<td>' + escapeText(user.lastLoginAt ? formatRecordDate(user.lastLoginAt) : '-') + '</td>' +
             '<td>' + escapeText(formatRecordDate(user.createdAt)) + (user.createdIp ? ' <span class="dialog-sub">' + escapeText(user.createdIp) + '</span>' : '') +
@@ -7066,22 +7065,17 @@
       if (action === 'show-extend') {
         const form = row.querySelector('.user-extend');
         form.hidden = !form.hidden;
-        if (!form.hidden) form.querySelector('[data-extend-ref]').focus();
+        if (!form.hidden) form.querySelector('[data-extend-until]').focus();
         return;
       }
       if (['approve', 'role'].includes(action) && !role) {
         setDialogMessage(message, 'Choose a role for ' + name + ' first.');
         return;
       }
-      const approvalRef = (action === 'approve' ? row.querySelector('[data-approval-ref]') : row.querySelector('[data-extend-ref]'))?.value.trim() || '';
       const validUntil = row.querySelector('[data-extend-until]')?.value || '';
-      if (['approve', 'extend'].includes(action) && !approvalRef) {
-        setDialogMessage(message, 'Enter the e-approval number for ' + name + ' first.');
-        return;
-      }
       const prompts = {
-        approve: 'Approve ' + name + ' as ' + roleLabel(role) + ' (e-approval ' + approvalRef + ')?',
-        extend: 'Set the account period of ' + name + ' to end on ' + validUntil + ' (e-approval ' + approvalRef + ')?',
+        approve: 'Approve ' + name + ' as ' + roleLabel(role) + '?',
+        extend: 'Set the account period of ' + name + ' to end on ' + validUntil + '?',
         role: 'Change the role of ' + name + ' to ' + roleLabel(role) + '?',
         'reset-password': 'Issue a temporary password for ' + name + '? Their current password stops working.',
         disable: 'Disable ' + name + '? They are signed out and cannot sign in until enabled.',
@@ -7089,7 +7083,7 @@
       };
       if (!window.confirm(prompts[action])) return;
       try {
-        const data = await apiJson('POST', '/api/admin/users/' + row.dataset.userId, { action, role, approvalRef, validUntil });
+        const data = await apiJson('POST', '/api/admin/users/' + row.dataset.userId, { action, role, validUntil });
         setDialogMessage(message, 'Done: ' + name + '.', 'success');
         document.getElementById('usersTempPassword').innerHTML = data.temporaryPassword
           ? '<div class="temp-password">Temporary password for <strong>' + escapeText(name) + '</strong> (' + escapeText(row.dataset.userLogin) + '):<br><code>' +

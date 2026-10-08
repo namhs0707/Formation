@@ -7,7 +7,6 @@ import { checkLoginId, checkNewPassword, hashPassword, lastPeriodDay, recordAcco
 const loginId = checkLoginId(process.env.FORMATION_ADMIN_ID);
 const displayName = String(process.env.FORMATION_ADMIN_NAME || '').trim();
 if (!displayName || displayName.length > 120) throw new Error('Name is required (max 120 characters).');
-const approvalRef = String(process.env.FORMATION_ADMIN_APPROVAL_REF || 'VM setup').trim().slice(0, 60);
 const passwordHash = await hashPassword(checkNewPassword(process.env.FORMATION_ADMIN_PASSWORD, loginId));
 const validFrom = todayText();
 const validUntil = lastPeriodDay(validFrom);
@@ -26,16 +25,16 @@ try {
   const updated = await client.query(
     'UPDATE formation.app_users SET display_name = $2, role = \'admin\', status = \'active\', password_hash = $3, must_change_password = false, ' +
     'password_changed_at = now(), failed_attempts = 0, locked_until = NULL, approved_at = coalesce(approved_at, now()), disabled_at = NULL, ' +
-    'disabled_reason = NULL, valid_from = $4, valid_until = $5, approval_ref = $6, last_login_at = now() ' +
+    'disabled_reason = NULL, valid_from = $4, valid_until = $5, last_login_at = now() ' +
     'WHERE lower(login_id) = lower($1) AND status <> \'deleted\' RETURNING *',
-    [loginId, displayName, passwordHash, validFrom, validUntil, approvalRef]
+    [loginId, displayName, passwordHash, validFrom, validUntil]
   );
   const user = updated.rows[0] || (await client.query(
-    'INSERT INTO formation.app_users (login_id, display_name, role, status, password_hash, password_changed_at, approved_at, valid_from, valid_until, approval_ref, last_login_at) ' +
-    'VALUES ($1, $2, \'admin\', \'active\', $3, now(), now(), $4, $5, $6, now()) RETURNING *',
-    [loginId, displayName, passwordHash, validFrom, validUntil, approvalRef]
+    'INSERT INTO formation.app_users (login_id, display_name, role, status, password_hash, password_changed_at, approved_at, valid_from, valid_until, last_login_at) ' +
+    'VALUES ($1, $2, \'admin\', \'active\', $3, now(), now(), $4, $5, now()) RETURNING *',
+    [loginId, displayName, passwordHash, validFrom, validUntil]
   )).rows[0];
-  await recordAccountEvent(client, user, 'admin_setup', { id: null, display_name: 'VM setup script' }, { validFrom, validUntil, approvalRef });
+  await recordAccountEvent(client, user, 'admin_setup', { id: null, display_name: 'VM setup script' }, { validFrom, validUntil });
   await client.query('COMMIT');
   console.log((updated.rowCount ? 'Updated' : 'Created') + ' administrator account: ' + loginId + ' (valid until ' + validUntil + ')');
 } catch (error) {

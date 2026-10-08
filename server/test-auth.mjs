@@ -60,11 +60,10 @@ assert.equal(engineer.status, 'pending');
 await call('GET', '/api/admin/users', { expect: 401 });
 assert.equal(engineer.requestReason, request.reason);
 assert.ok(engineer.validUntil > day(360) && engineer.validUntil <= day(366));
-await call('POST', '/api/admin/users/' + engineer.id, { cookie: admin.cookie, body: { action: 'approve', role: 'engineer' }, expect: 400 });
-await call('POST', '/api/admin/users/' + engineer.id, { cookie: admin.cookie, body: { action: 'approve', role: 'engineer', approvalRef: 'EA-2026-0412' } });
+await call('POST', '/api/admin/users/' + engineer.id, { cookie: admin.cookie, body: { action: 'approve', role: 'engineer' } });
 const eng = await login('eng.kim', 'Formation2026');
 await call('GET', '/api/admin/users', { cookie: eng.cookie, expect: 403 });
-pass('administrator approves with a role and an e-approval number; engineers cannot open user management');
+pass('administrator approves with a role; engineers cannot open user management');
 
 // Reviews on a conductive rubber record submitted by an operator (no sign-in).
 const saved = await call('POST', '/api/inspections', { body: { process: 'conductive', team: '1A', operatorName: 'Operator', rubberProcess: 'Degas', line: '4-1', measurement: 'IR', units: ['1A'], action: 'Flip', comment: '' }, expect: 201 });
@@ -176,13 +175,13 @@ const admin2 = await login2(adminId, adminPassword);
 const newReviewer = async (loginId, name) => {
   await call('POST', '/api/auth/signup', { body: { loginId, displayName: name, password: 'Reviewer2026', reason: 'Supervisor review' }, headers: device, expect: 201 });
   const row = await userRow(loginId);
-  await call('POST', '/api/admin/users/' + row.id, { cookie: admin2.cookie, body: { action: 'approve', role: 'supervisor', approvalRef: 'EA-' + loginId } });
+  await call('POST', '/api/admin/users/' + row.id, { cookie: admin2.cookie, body: { action: 'approve', role: 'supervisor' } });
   return row;
 };
 
 assert.deepEqual((await eventsOf(engineer.id)).map(event => event.action),
   ['request', 'approve', 'password_reset', 'password_change', 'disable', 'disable']);
-assert.equal((await eventsOf(engineer.id))[1].details.approvalRef, 'EA-2026-0412');
+assert.equal((await eventsOf(engineer.id))[1].details.role, 'engineer');
 pass('account history records the request, approval, password reset and change, and disabling');
 
 const old = await newReviewer('sup.lee', 'Lee Supervisor');
@@ -201,15 +200,14 @@ const ended = await login2('sup.lee', 'Reviewer2027', 403);
 assert.match(ended.data.message, /period ended/);
 assert.equal((await userRow('sup.lee')).status, 'disabled');
 await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'enable' }, expect: 400 });
-await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(400), approvalRef: 'EA-renew' }, expect: 400 });
-await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(200) }, expect: 400 });
-await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(200), approvalRef: 'EA-renew' } });
+await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(400) }, expect: 400 });
+await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(200) } });
 const enabled = (await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'enable' } })).data;
 await login2('sup.lee', enabled.temporaryPassword);
 const adminRow = await userRow(adminId);
-await call('POST', '/api/admin/users/' + adminRow.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(100), approvalRef: 'EA-self' }, expect: 400 });
+await call('POST', '/api/admin/users/' + adminRow.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(100) }, expect: 400 });
 assert.deepEqual((await eventsOf(old.id)).slice(-3).map(event => event.action), ['expire', 'extend', 'enable']);
-pass('accounts end on their end date; extension needs a new e-approval, at most one year, and not by yourself');
+pass('accounts end on their end date; extension is at most one year and not by yourself');
 
 const idle = await newReviewer('sup.park', 'Park Supervisor');
 await db.query("UPDATE formation.app_users SET last_login_at = now() - interval '61 days' WHERE id = $1", [idle.id]);
