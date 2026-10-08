@@ -296,6 +296,77 @@ CREATE INDEX IF NOT EXISTS ir_time_idx ON formation.ir_checks (recorded_at DESC)
 CREATE INDEX IF NOT EXISTS resealing_time_idx ON formation.resealing_checks (recorded_at DESC);
 CREATE INDEX IF NOT EXISTS temperature_area_time_idx ON formation.temperature_readings (area, recorded_at DESC);
 
+-- Account rules from the HQ.S1.05 access-control standard: a usage period of at most one year, the request reason,
+-- the company e-approval number, password age, and deletion (anonymised) after long non-use.
+ALTER TABLE formation.app_users ADD COLUMN IF NOT EXISTS valid_from date;
+ALTER TABLE formation.app_users ADD COLUMN IF NOT EXISTS valid_until date;
+ALTER TABLE formation.app_users ADD COLUMN IF NOT EXISTS request_reason text;
+ALTER TABLE formation.app_users ADD COLUMN IF NOT EXISTS approval_ref varchar(60);
+ALTER TABLE formation.app_users ADD COLUMN IF NOT EXISTS password_changed_at timestamptz;
+ALTER TABLE formation.app_users ADD COLUMN IF NOT EXISTS deleted_at timestamptz;
+-- Accounts created before these rules start their period and password age from approval.
+UPDATE formation.app_users SET valid_from = coalesce(approved_at, created_at)::date WHERE valid_from IS NULL;
+UPDATE formation.app_users SET valid_until = (valid_from + interval '1 year')::date - 1 WHERE valid_until IS NULL;
+UPDATE formation.app_users SET password_changed_at = coalesce(approved_at, created_at) WHERE password_changed_at IS NULL AND password_hash IS NOT NULL;
+ALTER TABLE formation.app_users DROP CONSTRAINT IF EXISTS app_users_status_check;
+ALTER TABLE formation.app_users ADD CONSTRAINT app_users_status_check CHECK (status IN ('pending', 'active', 'disabled', 'deleted'));
+ALTER TABLE formation.app_users DROP CONSTRAINT IF EXISTS app_users_period_check;
+ALTER TABLE formation.app_users ADD CONSTRAINT app_users_period_check
+    CHECK (valid_from IS NULL OR valid_until IS NULL OR (valid_until >= valid_from AND valid_until < (valid_from + interval '1 year')::date));
+
+-- Account history (kept 5 years): every request, approval, role change, password change, disable, extension and deletion.
+-- The login ID and name are copied, so the history stays readable after the account itself is anonymised.
+CREATE TABLE IF NOT EXISTS formation.account_events (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recorded_at timestamptz NOT NULL DEFAULT now(),
+    user_id bigint REFERENCES formation.app_users(id),
+    login_id varchar(40) NOT NULL,
+    display_name varchar(120) NOT NULL,
+    action text NOT NULL,
+    actor_id bigint REFERENCES formation.app_users(id),
+    actor_name varchar(120) NOT NULL,
+    details jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(details) = 'object'),
+    client_ip inet
+);
+ALTER TABLE formation.account_events DROP CONSTRAINT IF EXISTS account_events_action_check;
+ALTER TABLE formation.account_events ADD CONSTRAINT account_events_action_check CHECK (action IN (
+    'request', 'approve', 'reject', 'role_change', 'disable', 'enable', 'password_reset', 'password_change',
+    'extend', 'expire', 'inactive_disable', 'delete', 'admin_setup'
+));
+CREATE INDEX IF NOT EXISTS account_events_time_idx ON formation.account_events (recorded_at);
+CREATE INDEX IF NOT EXISTS account_events_user_idx ON formation.account_events (user_id, recorded_at);
+
+-- Access log (kept 3 years): who (account or none), from which device, when (to the second) and which menu,
+-- plus sign-in attempts and photo uploads and views.
+CREATE TABLE IF NOT EXISTS formation.access_log (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recorded_at timestamptz NOT NULL DEFAULT now(),
+    user_id bigint,
+    login_id varchar(40),
+    client_ip inet,
+    method varchar(8) NOT NULL,
+    path varchar(200) NOT NULL,
+    menu varchar(60),
+    event text NOT NULL DEFAULT 'request',
+    status smallint
+);
+ALTER TABLE formation.access_log DROP CONSTRAINT IF EXISTS access_log_event_check;
+ALTER TABLE formation.access_log ADD CONSTRAINT access_log_event_check CHECK (event IN (
+    'request', 'sign_in', 'sign_in_failed', 'sign_out', 'photo_upload', 'photo_view', 'admin_denied'
+));
+CREATE INDEX IF NOT EXISTS access_log_time_idx ON formation.access_log (recorded_at);
+CREATE INDEX IF NOT EXISTS access_log_user_idx ON formation.access_log (user_id, recorded_at);
+
+-- The app may only add log rows. This owner-run function is its one way to remove rows past their retention.
+CREATE OR REPLACE FUNCTION formation.purge_expired_logs() RETURNS integer
+LANGUAGE sql SECURITY DEFINER SET search_path = formation, pg_temp AS $$
+    WITH access AS (DELETE FROM formation.access_log WHERE recorded_at < now() - interval '3 years' RETURNING 1),
+         accounts AS (DELETE FROM formation.account_events WHERE recorded_at < now() - interval '5 years' RETURNING 1)
+    SELECT ((SELECT count(*) FROM access) + (SELECT count(*) FROM accounts))::integer;
+$$;
+REVOKE ALL ON FUNCTION formation.purge_expired_logs() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION formation.purge_expired_logs() TO formation_app;
+
 -- The application role may read and add data. Schema changes and deletion remain admin operations.
 GRANT CONNECT ON DATABASE formation_inspection TO formation_app;
 GRANT USAGE ON SCHEMA formation TO formation_app;

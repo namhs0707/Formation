@@ -2,7 +2,9 @@ param(
     [string]$BindAddress = '0.0.0.0',
     [int]$Port = 3000,
     # Testing only: allows sign-in over plain HTTP, which sends passwords unencrypted. Use HTTPS (IIS) in production.
-    [switch]$AllowHttpLogin
+    [switch]$AllowHttpLogin,
+    # Administrator PCs allowed to open account management, e.g. '10.1.2.30,10.1.3.0/24'. The VM itself is always allowed.
+    [string]$AdminIps = ''
 )
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
@@ -27,6 +29,7 @@ try {
     $env:PGPASSWORD = $password
     $env:FORMATION_HOST = $BindAddress
     $env:FORMATION_PORT = [string]$Port
+    $env:FORMATION_ADMIN_IPS = $AdminIps
     if ($AllowHttpLogin) {
         $env:FORMATION_ALLOW_HTTP_LOGIN = '1'
         Write-Warning 'Sign-in over HTTP is enabled for testing. Passwords are sent unencrypted.'

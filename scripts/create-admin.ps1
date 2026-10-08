@@ -18,6 +18,7 @@ $displayName = Read-Host 'Administrator name'
 $first = Reveal (Read-Host 'Password (10+ characters, letters and numbers)' -AsSecureString)
 $second = Reveal (Read-Host 'Password again' -AsSecureString)
 if ($first -cne $second) { throw 'The passwords do not match.' }
+$approvalRef = Read-Host 'E-approval document number (press Enter if none)'
 
 $secrets = Get-Content -LiteralPath $secretPath -Raw -Encoding UTF8 | ConvertFrom-Json
 try {
@@ -29,10 +30,11 @@ try {
     $env:FORMATION_ADMIN_ID = $loginId
     $env:FORMATION_ADMIN_NAME = $displayName
     $env:FORMATION_ADMIN_PASSWORD = $first
+    $env:FORMATION_ADMIN_APPROVAL_REF = $approvalRef
     Set-Location -LiteralPath $project
     & node 'server\create-admin.mjs'
     if ($LASTEXITCODE -ne 0) { throw 'Administrator account was not created.' }
 } finally {
-    Remove-Item Env:PGPASSWORD, Env:FORMATION_ADMIN_PASSWORD, Env:FORMATION_ADMIN_ID, Env:FORMATION_ADMIN_NAME -ErrorAction SilentlyContinue
+    Remove-Item Env:PGPASSWORD, Env:FORMATION_ADMIN_PASSWORD, Env:FORMATION_ADMIN_ID, Env:FORMATION_ADMIN_NAME, Env:FORMATION_ADMIN_APPROVAL_REF -ErrorAction SilentlyContinue
     $first = $null; $second = $null
 }

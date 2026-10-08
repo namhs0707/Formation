@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { saveInspection } from './records.mjs';
 import { readInspection, readPhoto } from './read.mjs';
-import { SESSION_COOKIE, REVIEWER_ROLES, publicUser, signUp, logIn, logOut, sessionUser, changePassword,
-  disableInactiveAccounts, listUsers, manageUser, sessionCookie } from './auth.mjs';
+import { SESSION_COOKIE, REVIEWER_ROLES, publicUser, signUp, logIn, logOut, sessionUser, peekSessionUser, changePassword,
+  runAccountMaintenance, listUsers, manageUser, usersCsv, accountEventsCsv, sessionCookie } from './auth.mjs';
 import { reviewDetail, submitReview } from './reviews.mjs';
 import { readSummary } from './summary.mjs';
 import { readStatus } from './status.mjs';
@@ -30,8 +30,24 @@ const pool = new pg.Pool({
 await pool.query('SELECT 1');
 // Login sends passwords, so it is only offered over HTTPS (IIS in front) unless explicitly allowed for testing.
 const allowHttpLogin = process.env.FORMATION_ALLOW_HTTP_LOGIN === '1';
-await disableInactiveAccounts(pool);
-setInterval(() => disableInactiveAccounts(pool).catch(error => console.error('Inactive account check failed:', error)), 60 * 60 * 1000).unref();
+await runAccountMaintenance(pool);
+setInterval(() => runAccountMaintenance(pool).catch(error => console.error('Account upkeep failed:', error)), 60 * 60 * 1000).unref();
+
+// Account management opens only from registered administrator PCs (HQ.S1.05: extra check for admin pages).
+// FORMATION_ADMIN_IPS lists IPv4 addresses or ranges such as 10.1.2.30,10.1.3.0/24. The VM itself always counts.
+function ipv4Number(address) { return address.split('.').reduce((total, part) => total * 256 + Number(part), 0) >>> 0; }
+const adminNetworks = String(process.env.FORMATION_ADMIN_IPS || '').split(',').map(entry => entry.trim()).filter(Boolean).map(entry => {
+  const [address, bits = '32'] = entry.split('/');
+  if (isIP(address) !== 4 || !/^\d+$/.test(bits) || Number(bits) > 32) throw new Error('Invalid FORMATION_ADMIN_IPS entry: ' + entry);
+  return { base: ipv4Number(address), mask: Number(bits) === 0 ? 0 : (~0 << (32 - Number(bits))) >>> 0 };
+});
+function adminIpAllowed(ip) {
+  if (!ip) return false;
+  if (ip === '127.0.0.1' || ip === '::1') return true;
+  if (isIP(ip) !== 4) return false;
+  const value = ipv4Number(ip);
+  return adminNetworks.some(network => ((value & network.mask) >>> 0) === ((network.base & network.mask) >>> 0));
+}
 
 function sendJson(response, status, body, headers = {}) {
   response.writeHead(status, {
@@ -90,9 +106,45 @@ function limitAttempts(ip) {
 
 async function requireUser(request, roles) {
   const user = await sessionUser(pool, sessionToken(request));
+  request.logUser = user;
   if (!user) fail('Sign in first.', 401);
   if (roles && !roles.has(user.role)) fail('Your role cannot do this.', 403);
   return user;
+}
+
+async function requireAdmin(request) {
+  const admin = await requireUser(request, new Set(['admin']));
+  if (!adminIpAllowed(clientIpOf(request))) {
+    request.logEvent = 'admin_denied';
+    fail('Account management opens only from a registered administrator PC.', 403);
+  }
+  if (admin.must_change_password) fail('Change your password first.', 403);
+  return admin;
+}
+
+// Access log (HQ.S1.05, kept 3 years): every page load and API call with account, device IP, time and menu.
+// Written after the response is sent, so a logging problem never blocks the user.
+function menuOf(url) {
+  const params = url.searchParams;
+  const detail = params.get('process') || params.get('view') || params.get('type');
+  const section = url.pathname.replace(/^\/api\//, '').replace(/\/\d+$/, '');
+  return (detail ? section + ':' + detail : section).slice(0, 60);
+}
+function logAccess(request, response, url) {
+  response.on('finish', async () => {
+    try {
+      let user = request.logUser;
+      if (user === undefined) user = await peekSessionUser(pool, sessionToken(request));
+      const loginId = user?.login_id ?? request.logLoginId ?? null;
+      await pool.query(
+        'INSERT INTO formation.access_log (user_id, login_id, client_ip, method, path, menu, event, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        [user?.id ?? null, loginId ? String(loginId).slice(0, 40) : null, clientIpOf(request),
+          request.method.slice(0, 8), url.pathname.slice(0, 200), menuOf(url), request.logEvent || 'request', response.statusCode]
+      );
+    } catch (error) {
+      console.error('Access log failed:', error.message);
+    }
+  });
 }
 
 async function readJson(request) {
@@ -139,6 +191,7 @@ const publicFiles = new Set([
 const server = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost');
+    if (url.pathname.startsWith('/api/') || url.pathname === '/formation.html') logAccess(request, response, url);
     if (url.pathname === '/') {
       response.writeHead(302, { Location: '/formation.html' });
       response.end();
@@ -154,7 +207,10 @@ const server = http.createServer(async (request, response) => {
       const clientIp = clientIpOf(request);
       const loginAvailable = allowHttpLogin || isSecure(request);
       if (url.pathname === '/api/auth/me' && request.method === 'GET') {
-        return sendJson(response, 200, { loginAvailable, user: publicUser(await sessionUser(pool, sessionToken(request))) });
+        const user = await sessionUser(pool, sessionToken(request));
+        request.logUser = user;
+        return sendJson(response, 200, { loginAvailable, user: publicUser(user),
+          canManageAccounts: Boolean(user && user.role === 'admin' && adminIpAllowed(clientIp)) });
       }
       if (url.pathname === '/api/auth/signup' && request.method === 'POST') {
         if (!loginAvailable) fail('Sign-up is available only over HTTPS.', 403);
@@ -165,27 +221,47 @@ const server = http.createServer(async (request, response) => {
       if (url.pathname === '/api/auth/login' && request.method === 'POST') {
         if (!loginAvailable) fail('Sign-in is available only over HTTPS.', 403);
         limitAttempts(clientIp);
-        const session = await logIn(pool, await readJson(request), clientIp);
+        const input = await readJson(request);
+        request.logEvent = 'sign_in_failed';
+        request.logLoginId = String(input.loginId ?? '').trim();
+        request.logUser = null;
+        const session = await logIn(pool, input, clientIp);
+        request.logEvent = 'sign_in';
+        request.logUser = { id: session.user.id, login_id: session.user.loginId };
         return sendJson(response, 200, { result: 'success', user: session.user }, { 'Set-Cookie': sessionCookie(session.token, isSecure(request)) });
       }
       if (url.pathname === '/api/auth/logout' && request.method === 'POST') {
-        await logOut(pool, sessionToken(request));
+        request.logEvent = 'sign_out';
+        request.logUser = await logOut(pool, sessionToken(request));
         return sendJson(response, 200, { result: 'success' }, { 'Set-Cookie': sessionCookie('', isSecure(request), 0) });
       }
       if (url.pathname === '/api/auth/password' && request.method === 'POST') {
         const user = await requireUser(request);
-        await changePassword(pool, user, await readJson(request), sessionToken(request));
+        await changePassword(pool, user, await readJson(request), sessionToken(request), clientIp);
         return sendJson(response, 200, { result: 'success' });
       }
       if (url.pathname === '/api/admin/users' && request.method === 'GET') {
-        await requireUser(request, new Set(['admin']));
+        await requireAdmin(request);
         return sendJson(response, 200, { result: 'success', users: await listUsers(pool) });
+      }
+      const csvFiles = { '/api/admin/users.csv': ['accounts', usersCsv], '/api/admin/account-events.csv': ['account-history', accountEventsCsv] };
+      if (csvFiles[url.pathname] && request.method === 'GET') {
+        await requireAdmin(request);
+        const [name, build] = csvFiles[url.pathname];
+        const body = await build(pool);
+        response.writeHead(200, {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': 'attachment; filename="formation-' + name + '-' + new Date().toISOString().slice(0, 10) + '.csv"',
+          'Cache-Control': 'no-store',
+          'X-Content-Type-Options': 'nosniff'
+        });
+        response.end(body);
+        return;
       }
       const userMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)$/);
       if (userMatch && request.method === 'POST') {
-        const admin = await requireUser(request, new Set(['admin']));
-        if (admin.must_change_password) fail('Change your temporary password first.', 403);
-        return sendJson(response, 200, { result: 'success', ...(await manageUser(pool, admin, userMatch[1], await readJson(request))) });
+        const admin = await requireAdmin(request);
+        return sendJson(response, 200, { result: 'success', ...(await manageUser(pool, admin, userMatch[1], await readJson(request), clientIp)) });
       }
       if (url.pathname === '/api/reviews' && request.method === 'GET') {
         await requireUser(request, REVIEWER_ROLES);
@@ -199,6 +275,7 @@ const server = http.createServer(async (request, response) => {
     }
     if (url.pathname === '/api/inspections' && request.method === 'POST') {
       const input = await readJson(request);
+      if (input && input.defectPhotoData) request.logEvent = 'photo_upload';
       const result = await saveInspection(pool, input, clientIpOf(request));
       sendJson(response, 201, { result: 'success', process: input.process, ...result });
       return;
@@ -218,6 +295,7 @@ const server = http.createServer(async (request, response) => {
     }
     const photoMatch = url.pathname.match(/^\/api\/photos\/(\d+)$/);
     if (photoMatch && request.method === 'GET') {
+      request.logEvent = 'photo_view';
       const photo = await readPhoto(pool, photoMatch[1]);
       if (!photo) return sendJson(response, 404, { result: 'error', message: 'Photo not found.' });
       response.writeHead(200, {

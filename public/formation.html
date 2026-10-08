@@ -1595,6 +1595,21 @@
     .user-status.pending { background: #fef3c7; color: #92400e; }
     .user-status.active { background: #dcfce7; color: #166534; }
     .user-status.disabled { background: #e2e8f0; color: #475569; }
+    .dialog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+    #signUpReason { min-height: 64px; }
+    .users-downloads { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+    .users-downloads a { display: inline-flex; align-items: center; min-height: 34px; padding: 5px 12px; border: 1px solid var(--border); border-radius: 8px; color: var(--ink); background: #fff; font-size: 13px; font-weight: 600; text-decoration: none; }
+    .users-downloads a:hover { border-color: var(--primary); }
+    .users-table .user-reason { display: block; max-width: 260px; overflow: hidden; color: var(--muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .users-table .period-soon { color: #b45309; font-weight: 700; }
+    .users-table .period-ended { color: var(--danger); font-weight: 700; }
+    .users-table input.user-inline { width: 150px; min-height: 34px; margin: 0; padding: 4px 8px; font-size: 13px; }
+    .users-table input.user-inline[type="date"] { width: 140px; }
+    .user-extend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .user-extend[hidden] { display: none; }
+    .account-menu-period { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 600; }
+    .account-menu-period.soon { color: #b45309; }
+    .account-menu-note { color: var(--muted); font-size: 12px; }
     .temp-password { margin-top: 12px; padding: 12px 14px; border: 2px solid var(--primary); border-radius: 10px; background: #eff6ff; font-size: 14px; }
     .temp-password code { display: inline-block; margin: 4px 0; padding: 4px 10px; border-radius: 6px; background: #fff; font-size: 18px; font-weight: 800; letter-spacing: .05em; }
     @media (max-width: 767px) {
@@ -2693,11 +2708,16 @@
       </form>
       <form class="dialog-form" id="signUpForm" data-account-view="signup" hidden>
         <h3>Request a reviewer account</h3>
-        <p class="dialog-sub">The administrator approves the request and sets your role. Accounts unused for 90 days are disabled.</p>
+        <p class="dialog-sub">Get your team leader's e-approval first; the administrator enters its number when approving. An account is valid for at most one year. Accounts unused for 60 days are disabled and deleted after 180 days.</p>
         <div class="form-group"><label for="signUpId">ID</label><input id="signUpId" autocomplete="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._\-]{3,40}" spellcheck="false" autocapitalize="none"><small class="input-help">3-40 letters, numbers, dot, dash or underscore.</small></div>
         <div class="form-group"><label for="signUpName">First and last name</label><input id="signUpName" autocomplete="name" required maxlength="120"></div>
         <div class="form-group"><label for="signUpPassword">Password</label><input id="signUpPassword" type="password" autocomplete="new-password" required minlength="10" maxlength="128"><small class="input-help">At least 10 characters with letters and numbers, not containing the ID.</small></div>
         <div class="form-group"><label for="signUpPassword2">Password again</label><input id="signUpPassword2" type="password" autocomplete="new-password" required minlength="10" maxlength="128"></div>
+        <div class="dialog-grid">
+          <div class="form-group"><label for="signUpFrom">Start date</label><input id="signUpFrom" type="date" required></div>
+          <div class="form-group"><label for="signUpUntil">End date</label><input id="signUpUntil" type="date" required><small class="input-help">At most one year.</small></div>
+        </div>
+        <div class="form-group"><label for="signUpReason">Why you need an account</label><textarea id="signUpReason" required maxlength="500" placeholder="e.g. Part leader, Degas line 4 — confirm daily start-up checks"></textarea></div>
         <button type="button" class="link-button" data-account-switch="signin">Back to sign-in</button>
         <div class="dialog-message" role="alert"></div>
         <div class="dialog-actions"><button type="button" class="secondary-button" data-dialog-close>Cancel</button><button type="submit">Send request</button></div>
@@ -2737,8 +2757,9 @@
   <dialog class="app-dialog wide" id="usersDialog" aria-labelledby="usersDialogTitle">
     <div class="dialog-body">
       <h3 id="usersDialogTitle">Reviewer accounts</h3>
-      <p class="dialog-sub">Approve requests with a role, change roles, reset passwords or disable accounts. Accounts unused for 90 days are disabled automatically and their password removed.</p>
-      <div class="users-table-wrap"><table class="users-table"><thead><tr><th>Name</th><th>ID</th><th>Status</th><th>Role</th><th>Last sign-in</th><th>Requested</th><th>Actions</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+      <p class="dialog-sub">Approve requests with a role and the e-approval number, extend periods (at most one year), change roles, reset passwords or disable accounts. Accounts unused for 60 days are disabled automatically and deleted after 180 days; every change is kept in the account history.</p>
+      <div class="users-downloads"><a class="secondary-button" href="/api/admin/users.csv" download>Download account list (CSV)</a><a class="secondary-button" href="/api/admin/account-events.csv" download>Download account history (CSV)</a></div>
+      <div class="users-table-wrap"><table class="users-table"><thead><tr><th>Name</th><th>ID</th><th>Status</th><th>Role</th><th>Valid until</th><th>Last sign-in</th><th>Requested</th><th>Actions</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
       <div id="usersTempPassword"></div>
       <div class="dialog-message" id="usersMessage" role="alert"></div>
       <div class="dialog-actions"><button type="button" class="secondary-button" data-dialog-close>Close</button></div>
@@ -6562,7 +6583,7 @@
       eol_maintenance: 'EOL Tape/Knife maintenance', conductive_maintenance: 'Conductive Rubber', startup_checks: 'Start-up check sheet',
       resealing_checks: 'Resealing Machine check', ip_checks: 'DSF Daily IP check', ir_checks: 'IR check'
     });
-    const authState = { user: null, loginAvailable: false };
+    const authState = { user: null, loginAvailable: false, canManageAccounts: false };
     const reviewState = { type: null, id: null, detail: null, pending: null, changed: false };
 
     async function apiJson(method, path, body) {
@@ -6619,8 +6640,12 @@
       if (user) {
         area.innerHTML = '<details class="account-menu"><summary aria-label="Account menu"><span class="account-chip" aria-hidden="true">👤</span>' +
           '<span class="account-name">' + escapeText(user.displayName) + '<small>' + escapeText(roleLabel(user.role)) + '</small></span><span aria-hidden="true">▾</span></summary>' +
-          '<div class="account-menu-panel"><div class="account-menu-who">' + escapeText(user.displayName) + '<small>' + escapeText(roleLabel(user.role)) + '</small></div>' +
-          (user.role === 'admin' ? '<button type="button" class="secondary-button" id="openUsersButton">Reviewer accounts</button>' : '') +
+          '<div class="account-menu-panel"><div class="account-menu-who">' + escapeText(user.displayName) + '<small>' + escapeText(roleLabel(user.role)) + '</small>' +
+            (user.validUntil ? '<span class="account-menu-period' + (user.expiresSoon ? ' soon' : '') + '">' + (user.expiresSoon ? '⚠ ' : '') +
+              'Account valid until ' + escapeText(user.validUntil) + (user.expiresSoon ? '. Ask the administrator to extend it.' : '') + '</span>' : '') + '</div>' +
+          (user.role === 'admin' ? (authState.canManageAccounts
+            ? '<button type="button" class="secondary-button" id="openUsersButton">Reviewer accounts</button>'
+            : '<span class="account-menu-note">Account management opens only on a registered administrator PC.</span>') : '') +
           '<button type="button" class="secondary-button" id="openPasswordButton">Change password</button>' +
           '<button type="button" id="signOutButton">Sign out</button></div></details>';
       } else if (authState.loginAvailable) {
@@ -6635,8 +6660,10 @@
         const data = await apiJson('GET', '/api/auth/me');
         authState.loginAvailable = Boolean(data.loginAvailable);
         authState.user = data.user || null;
+        authState.canManageAccounts = Boolean(data.canManageAccounts);
       } catch (error) {
         authState.user = null;
+        authState.canManageAccounts = false;
       }
       renderAccountArea();
       if (authState.user && authState.user.mustChangePassword) openAccountDialog('password', true);
@@ -6656,9 +6683,16 @@
       });
       dialog.dataset.forced = forced ? 'true' : '';
       document.getElementById('passwordCancel').hidden = forced;
-      document.getElementById('passwordFormNote').textContent = forced
-        ? 'Your password was reset by the administrator. Choose a new password to continue.'
-        : 'Choose a new password.';
+      document.getElementById('passwordFormNote').textContent = !forced ? 'Choose a new password.'
+        : authState.user && authState.user.passwordExpired ? 'Your password is more than 90 days old. Choose a new password to continue.'
+        : 'Your password was reset by the administrator. Choose a new password to continue.';
+      if (view === 'signup') {
+        const today = localDateText(new Date());
+        const from = document.getElementById('signUpFrom');
+        from.min = today;
+        from.value = today;
+        updateSignUpUntil();
+      }
       if (!dialog.open) dialog.showModal();
       const first = dialog.querySelector('[data-account-view="' + view + '"] input');
       if (first) first.focus();
@@ -6698,7 +6732,7 @@
           password: document.getElementById('signInPassword').value
         });
         authState.user = data.user;
-        renderAccountArea();
+        await refreshAccount();
         if (data.user.mustChangePassword) {
           openAccountDialog('password', true);
           return;
@@ -6708,6 +6742,24 @@
         setDialogMessage(message, error.message);
       }
     });
+
+    // Account dates are local calendar days; a period ends at most one year after it starts (both days counted).
+    function localDateText(date) {
+      return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+    }
+    function lastPeriodDayText(from) {
+      const [year, month, day] = from.split('-').map(Number);
+      return localDateText(new Date(year + 1, month - 1, day - 1));
+    }
+    function updateSignUpUntil() {
+      const from = document.getElementById('signUpFrom').value;
+      const until = document.getElementById('signUpUntil');
+      if (!from) return;
+      until.min = from;
+      until.max = lastPeriodDayText(from);
+      if (!until.value || until.value < until.min || until.value > until.max) until.value = until.max;
+    }
+    document.getElementById('signUpFrom').addEventListener('change', updateSignUpUntil);
 
     document.getElementById('signUpForm').addEventListener('submit', async event => {
       event.preventDefault();
@@ -6721,7 +6773,10 @@
         const data = await apiJson('POST', '/api/auth/signup', {
           loginId: document.getElementById('signUpId').value.trim(),
           displayName: document.getElementById('signUpName').value.trim(),
-          password: document.getElementById('signUpPassword').value
+          password: document.getElementById('signUpPassword').value,
+          validFrom: document.getElementById('signUpFrom').value,
+          validUntil: document.getElementById('signUpUntil').value,
+          reason: document.getElementById('signUpReason').value.trim()
         });
         form.reset();
         setDialogMessage(message, data.message, 'success');
@@ -6958,22 +7013,35 @@
         const { users } = await apiJson('GET', '/api/admin/users');
         body.innerHTML = users.map(user => {
           const self = authState.user && user.id === authState.user.id;
+          const today = localDateText(new Date());
+          const ended = user.validUntil && user.validUntil < today;
+          const soon = !ended && user.validUntil && user.validUntil <= localDateText(new Date(Date.now() + 14 * 86400000));
+          // Extending opens a small inline form: new end date (at most one year from today) and the e-approval number.
+          const extend = user.role && !self
+            ? '<button type="button" class="secondary-button" data-user-action="show-extend">Extend</button>' +
+              '<span class="user-extend" hidden><input type="date" class="user-inline" data-extend-until min="' + today + '" max="' + lastPeriodDayText(today) + '" value="' + lastPeriodDayText(today) + '" aria-label="New end date">' +
+              '<input class="user-inline" data-extend-ref maxlength="60" placeholder="E-approval no." aria-label="E-approval number"><button type="button" data-user-action="extend">Save period</button></span>'
+            : '';
           const actions = user.status === 'pending'
-            ? '<button type="button" data-user-action="approve">Approve</button><button type="button" class="secondary-button" data-user-action="disable">Reject</button>'
+            ? '<input class="user-inline" data-approval-ref maxlength="60" placeholder="E-approval no." aria-label="E-approval number for ' + escapeText(user.displayName) + '">' +
+              '<button type="button" data-user-action="approve">Approve</button><button type="button" class="secondary-button" data-user-action="disable">Reject</button>'
             : user.status === 'active'
               ? (self ? '<span class="dialog-sub">This is you</span>' :
                 '<button type="button" class="secondary-button" data-user-action="role">Save role</button>' +
                 '<button type="button" class="secondary-button" data-user-action="reset-password">Reset password</button>' +
-                '<button type="button" class="danger-button" data-user-action="disable">Disable</button>')
-              : user.role ? '<button type="button" class="secondary-button" data-user-action="enable">Enable</button>' : '<span class="dialog-sub">Request rejected</span>';
+                '<button type="button" class="danger-button" data-user-action="disable">Disable</button>' + extend)
+              : user.role ? (ended ? '' : '<button type="button" class="secondary-button" data-user-action="enable">Enable</button>') + extend : '<span class="dialog-sub">Request rejected</span>';
           return '<tr data-user-id="' + user.id + '" data-user-name="' + escapeText(user.displayName) + '" data-user-login="' + escapeText(user.loginId) + '">' +
             '<td>' + escapeText(user.displayName) + (user.locked ? ' 🔒' : '') + '</td><td>' + escapeText(user.loginId) + '</td>' +
             '<td><span class="user-status ' + user.status + '" title="' + escapeText(user.disabledReason || '') + '">' + escapeText(user.status) + '</span></td>' +
             '<td>' + (self || user.status === 'disabled' ? escapeText(roleLabel(user.role)) : roleSelect(user)) + '</td>' +
+            '<td><span class="' + (ended ? 'period-ended' : soon ? 'period-soon' : '') + '" title="' + escapeText('From ' + (user.validFrom || '-') + (user.approvalRef ? ' · e-approval ' + user.approvalRef : '')) + '">' +
+              escapeText(user.validUntil || '-') + '</span></td>' +
             '<td>' + escapeText(user.lastLoginAt ? formatRecordDate(user.lastLoginAt) : '-') + '</td>' +
-            '<td>' + escapeText(formatRecordDate(user.createdAt)) + (user.createdIp ? '<br><span class="dialog-sub">' + escapeText(user.createdIp) + '</span>' : '') + '</td>' +
+            '<td>' + escapeText(formatRecordDate(user.createdAt)) + (user.createdIp ? ' <span class="dialog-sub">' + escapeText(user.createdIp) + '</span>' : '') +
+              (user.requestReason ? '<span class="user-reason" title="' + escapeText(user.requestReason) + '">' + escapeText(user.requestReason) + '</span>' : '') + '</td>' +
             '<td><div class="user-actions">' + actions + '</div></td></tr>';
-        }).join('') || '<tr><td colspan="7">No accounts yet.</td></tr>';
+        }).join('') || '<tr><td colspan="8">No accounts yet.</td></tr>';
       } catch (error) {
         body.innerHTML = '';
         setDialogMessage(document.getElementById('usersMessage'), error.message);
@@ -6995,12 +7063,25 @@
       const name = row.dataset.userName;
       const role = row.querySelector('[data-user-role]')?.value || '';
       const message = document.getElementById('usersMessage');
+      if (action === 'show-extend') {
+        const form = row.querySelector('.user-extend');
+        form.hidden = !form.hidden;
+        if (!form.hidden) form.querySelector('[data-extend-ref]').focus();
+        return;
+      }
       if (['approve', 'role'].includes(action) && !role) {
         setDialogMessage(message, 'Choose a role for ' + name + ' first.');
         return;
       }
+      const approvalRef = (action === 'approve' ? row.querySelector('[data-approval-ref]') : row.querySelector('[data-extend-ref]'))?.value.trim() || '';
+      const validUntil = row.querySelector('[data-extend-until]')?.value || '';
+      if (['approve', 'extend'].includes(action) && !approvalRef) {
+        setDialogMessage(message, 'Enter the e-approval number for ' + name + ' first.');
+        return;
+      }
       const prompts = {
-        approve: 'Approve ' + name + ' as ' + roleLabel(role) + '?',
+        approve: 'Approve ' + name + ' as ' + roleLabel(role) + ' (e-approval ' + approvalRef + ')?',
+        extend: 'Set the account period of ' + name + ' to end on ' + validUntil + ' (e-approval ' + approvalRef + ')?',
         role: 'Change the role of ' + name + ' to ' + roleLabel(role) + '?',
         'reset-password': 'Issue a temporary password for ' + name + '? Their current password stops working.',
         disable: 'Disable ' + name + '? They are signed out and cannot sign in until enabled.',
@@ -7008,7 +7089,7 @@
       };
       if (!window.confirm(prompts[action])) return;
       try {
-        const data = await apiJson('POST', '/api/admin/users/' + row.dataset.userId, { action, role });
+        const data = await apiJson('POST', '/api/admin/users/' + row.dataset.userId, { action, role, approvalRef, validUntil });
         setDialogMessage(message, 'Done: ' + name + '.', 'success');
         document.getElementById('usersTempPassword').innerHTML = data.temporaryPassword
           ? '<div class="temp-password">Temporary password for <strong>' + escapeText(name) + '</strong> (' + escapeText(row.dataset.userLogin) + '):<br><code>' +

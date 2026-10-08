@@ -1,6 +1,8 @@
 // Sign-in, approval and review checks against a running server on a test database.
 // The administrator account must exist first (create-admin.mjs with TEST_ADMIN_ID / TEST_ADMIN_PASSWORD).
 import assert from 'node:assert/strict';
+import pg from 'pg';
+import { runAccountMaintenance } from './auth.mjs';
 
 const base = process.env.TEST_API_URL || 'http://127.0.0.1:3001';
 const adminId = process.env.TEST_ADMIN_ID;
@@ -35,21 +37,34 @@ assert.match(admin.setCookie, /Secure/);
 assert.equal((await call('GET', '/api/auth/me', { cookie: admin.cookie })).data.user.role, 'admin');
 pass('administrator signs in with a secure, HttpOnly cookie');
 
-await call('POST', '/api/auth/signup', { body: { loginId: 'eng.kim', displayName: 'Kim Engineer', password: 'short1' }, expect: 400 });
-await call('POST', '/api/auth/signup', { body: { loginId: 'eng.kim', displayName: 'Kim Engineer', password: 'eng.kim-pass1' }, expect: 400 });
-await call('POST', '/api/auth/signup', { body: { loginId: 'eng.kim', displayName: 'Kim Engineer', password: 'Formation2026' }, expect: 201 });
-await call('POST', '/api/auth/signup', { body: { loginId: 'ENG.KIM', displayName: 'Copy', password: 'Formation2026' }, expect: 400 });
+const request = { reason: 'Engineer, confirms Degas records' };
+const today = new Date();
+const day = offset => {
+  const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+  return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+};
+const kim = { loginId: 'eng.kim', displayName: 'Kim Engineer' };
+await call('POST', '/api/auth/signup', { body: { ...kim, password: 'short1', ...request }, expect: 400 });
+await call('POST', '/api/auth/signup', { body: { ...kim, password: 'eng.kim-pass1', ...request }, expect: 400 });
+await call('POST', '/api/auth/signup', { body: { ...kim, password: 'Formation2026' }, expect: 400 });
+await call('POST', '/api/auth/signup', { body: { ...kim, password: 'Formation2026', ...request, validFrom: day(0), validUntil: day(400) }, expect: 400 });
+await call('POST', '/api/auth/signup', { body: { ...kim, password: 'Formation2026', ...request, validFrom: day(-3) }, expect: 400 });
+await call('POST', '/api/auth/signup', { body: { ...kim, password: 'Formation2026', ...request }, expect: 201 });
+await call('POST', '/api/auth/signup', { body: { loginId: 'ENG.KIM', displayName: 'Copy', password: 'Formation2026', ...request }, expect: 400 });
 await login('eng.kim', 'Formation2026', 403);
-pass('sign-up validates passwords, blocks duplicate IDs and waits for approval');
+pass('sign-up needs a reason and a period of at most one year, validates passwords, blocks duplicate IDs and waits for approval');
 
 const users = (await call('GET', '/api/admin/users', { cookie: admin.cookie })).data.users;
 const engineer = users.find(user => user.loginId === 'eng.kim');
 assert.equal(engineer.status, 'pending');
 await call('GET', '/api/admin/users', { expect: 401 });
-await call('POST', '/api/admin/users/' + engineer.id, { cookie: admin.cookie, body: { action: 'approve', role: 'engineer' } });
+assert.equal(engineer.requestReason, request.reason);
+assert.ok(engineer.validUntil > day(360) && engineer.validUntil <= day(366));
+await call('POST', '/api/admin/users/' + engineer.id, { cookie: admin.cookie, body: { action: 'approve', role: 'engineer' }, expect: 400 });
+await call('POST', '/api/admin/users/' + engineer.id, { cookie: admin.cookie, body: { action: 'approve', role: 'engineer', approvalRef: 'EA-2026-0412' } });
 const eng = await login('eng.kim', 'Formation2026');
 await call('GET', '/api/admin/users', { cookie: eng.cookie, expect: 403 });
-pass('administrator approves with a role; engineers cannot open user management');
+pass('administrator approves with a role and an e-approval number; engineers cannot open user management');
 
 // Reviews on a conductive rubber record submitted by an operator (no sign-in).
 const saved = await call('POST', '/api/inspections', { body: { process: 'conductive', team: '1A', operatorName: 'Operator', rubberProcess: 'Degas', line: '4-1', measurement: 'IR', units: ['1A'], action: 'Flip', comment: '' }, expect: 201 });
@@ -150,4 +165,108 @@ pass('disabled accounts and signed-out sessions stop working');
 
 const history = await fetch(base + '/api/inspections?process=conductive&action=records').then(response => response.json());
 assert.ok(history.data.every(item => item.review));
+
+// ---- HQ.S1.05 account rules. Time is moved by editing dates directly with the app's own database role. ----
+const db = new pg.Pool({ max: 2 });
+const device = { 'X-Forwarded-For': '10.20.0.5' };
+const login2 = async (loginId, password, expect = 200) => call('POST', '/api/auth/login', { body: { loginId, password }, headers: device, expect });
+const userRow = async loginId => (await db.query('SELECT * FROM formation.app_users WHERE lower(login_id) = lower($1)', [loginId])).rows[0];
+const eventsOf = async id => (await db.query('SELECT action, actor_name, details FROM formation.account_events WHERE user_id = $1 ORDER BY id', [id])).rows;
+const admin2 = await login2(adminId, adminPassword);
+const newReviewer = async (loginId, name) => {
+  await call('POST', '/api/auth/signup', { body: { loginId, displayName: name, password: 'Reviewer2026', reason: 'Supervisor review' }, headers: device, expect: 201 });
+  const row = await userRow(loginId);
+  await call('POST', '/api/admin/users/' + row.id, { cookie: admin2.cookie, body: { action: 'approve', role: 'supervisor', approvalRef: 'EA-' + loginId } });
+  return row;
+};
+
+assert.deepEqual((await eventsOf(engineer.id)).map(event => event.action),
+  ['request', 'approve', 'password_reset', 'password_change', 'disable', 'disable']);
+assert.equal((await eventsOf(engineer.id))[1].details.approvalRef, 'EA-2026-0412');
+pass('account history records the request, approval, password reset and change, and disabling');
+
+const old = await newReviewer('sup.lee', 'Lee Supervisor');
+await db.query("UPDATE formation.app_users SET password_changed_at = now() - interval '91 days' WHERE id = $1", [old.id]);
+const aged = await login2('sup.lee', 'Reviewer2026');
+assert.equal(aged.data.user.mustChangePassword, true);
+assert.equal(aged.data.user.passwordExpired, true);
+await call('POST', '/api/reviews', { cookie: aged.cookie, body: { type: 'startup_checks', id: startup.data.id, action: 'confirm' }, expect: 403 });
+await call('POST', '/api/auth/password', { cookie: aged.cookie, body: { currentPassword: 'Reviewer2026', newPassword: 'Reviewer2027' } });
+assert.equal((await call('GET', '/api/auth/me', { cookie: aged.cookie })).data.user.passwordExpired, false);
+pass('a password older than 90 days must be changed before reviewing');
+
+await db.query('UPDATE formation.app_users SET valid_from = current_date - 30, valid_until = current_date - 1 WHERE id = $1', [old.id]);
+assert.equal((await call('GET', '/api/auth/me', { cookie: aged.cookie })).data.user, null);
+const ended = await login2('sup.lee', 'Reviewer2027', 403);
+assert.match(ended.data.message, /period ended/);
+assert.equal((await userRow('sup.lee')).status, 'disabled');
+await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'enable' }, expect: 400 });
+await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(400), approvalRef: 'EA-renew' }, expect: 400 });
+await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(200) }, expect: 400 });
+await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(200), approvalRef: 'EA-renew' } });
+const enabled = (await call('POST', '/api/admin/users/' + old.id, { cookie: admin2.cookie, body: { action: 'enable' } })).data;
+await login2('sup.lee', enabled.temporaryPassword);
+const adminRow = await userRow(adminId);
+await call('POST', '/api/admin/users/' + adminRow.id, { cookie: admin2.cookie, body: { action: 'extend', validUntil: day(100), approvalRef: 'EA-self' }, expect: 400 });
+assert.deepEqual((await eventsOf(old.id)).slice(-3).map(event => event.action), ['expire', 'extend', 'enable']);
+pass('accounts end on their end date; extension needs a new e-approval, at most one year, and not by yourself');
+
+const idle = await newReviewer('sup.park', 'Park Supervisor');
+await db.query("UPDATE formation.app_users SET last_login_at = now() - interval '61 days' WHERE id = $1", [idle.id]);
+let upkeep = await runAccountMaintenance(db);
+assert.ok(upkeep.disabled >= 1);
+let idleRow = await userRow('sup.park');
+assert.equal(idleRow.status, 'disabled');
+assert.equal(idleRow.password_hash, null);
+await db.query("UPDATE formation.app_users SET last_login_at = now() - interval '181 days' WHERE id = $1", [idle.id]);
+upkeep = await runAccountMaintenance(db);
+assert.ok(upkeep.deleted >= 1);
+assert.equal(await userRow('sup.park'), undefined);
+idleRow = (await db.query('SELECT * FROM formation.app_users WHERE id = $1', [idle.id])).rows[0];
+assert.equal(idleRow.status, 'deleted');
+assert.equal(idleRow.display_name, 'Deleted user');
+assert.equal(idleRow.request_reason, null);
+const idleEvents = (await db.query('SELECT action, login_id FROM formation.account_events WHERE user_id = $1 ORDER BY id', [idle.id])).rows;
+assert.deepEqual(idleEvents.slice(-2).map(event => event.action), ['inactive_disable', 'delete']);
+assert.equal(idleEvents.at(-1).login_id, 'sup.park');
+assert.ok(!(await call('GET', '/api/admin/users', { cookie: admin2.cookie })).data.users.some(user => user.id === Number(idle.id)));
+await call('POST', '/api/auth/signup', { body: { loginId: 'deleted-' + idle.id, displayName: 'X', password: 'Reviewer2026', reason: 'x' }, headers: device, expect: 400 });
+pass('60 days unused disables and removes the password; 180 days unused deletes the account but keeps its history');
+
+for (const statement of ['DELETE FROM formation.account_events', "UPDATE formation.account_events SET action = 'approve'",
+  'DELETE FROM formation.access_log', 'UPDATE formation.access_log SET status = 200']) {
+  await assert.rejects(db.query(statement), error => error.code === '42501', statement);
+}
+assert.equal(typeof (await db.query('SELECT formation.purge_expired_logs() AS count')).rows[0].count, 'number');
+pass('the app cannot change or delete account history or access logs, only purge them past retention');
+
+await new Promise(resolve => setTimeout(resolve, 300));
+const logs = (await db.query('SELECT event, login_id, menu FROM formation.access_log ORDER BY id')).rows;
+assert.ok(logs.some(row => row.event === 'sign_in' && row.login_id === adminId));
+assert.ok(logs.some(row => row.event === 'sign_in_failed' && row.login_id === 'eng.kim'));
+assert.ok(logs.some(row => row.event === 'sign_out'));
+assert.ok(logs.some(row => row.event === 'request' && row.menu === 'inspections:conductive'));
+assert.ok(logs.some(row => row.event === 'request' && row.login_id === adminId && row.menu === 'admin/users'));
+pass('access log keeps sign-ins, failures, sign-outs and every menu request with account and device IP');
+
+const remote = { 'X-Forwarded-For': '10.9.9.9' };
+await call('GET', '/api/admin/users', { cookie: admin2.cookie, headers: remote, expect: 403 });
+assert.equal((await call('GET', '/api/auth/me', { cookie: admin2.cookie, headers: remote })).data.canManageAccounts, false);
+assert.equal((await call('GET', '/api/auth/me', { cookie: admin2.cookie })).data.canManageAccounts, true);
+await new Promise(resolve => setTimeout(resolve, 300));
+assert.ok((await db.query("SELECT 1 FROM formation.access_log WHERE event = 'admin_denied' AND host(client_ip) = '10.9.9.9'")).rows.length);
+pass('account management opens only from administrator PCs, and refusals are logged');
+
+const reviewerCookie = (await login2('sup.lee', enabled.temporaryPassword)).cookie;
+for (const [path, header] of [['/api/admin/users.csv', 'ID,Name,Role'], ['/api/admin/account-events.csv', 'Time,ID,Name,Action']]) {
+  const response = await fetch(base + path, { headers: { ...viaHttps, Cookie: admin2.cookie } });
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type'), /text\/csv/);
+  // Excel needs the UTF-8 byte-order mark; response.text() would hide it, so read the bytes.
+  const bytes = Buffer.from(await response.arrayBuffer());
+  assert.ok(bytes.subarray(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf])) && bytes.toString('utf8', 3).startsWith(header), path);
+  assert.equal((await fetch(base + path, { headers: { ...viaHttps, Cookie: reviewerCookie } })).status, 403);
+}
+pass('administrators download the account list and history as CSV for the yearly review');
+await db.end();
 console.log('All sign-in and review checks passed.');
