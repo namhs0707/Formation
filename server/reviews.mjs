@@ -1,6 +1,6 @@
 // Confirmations and corrections of submitted records by part leaders, engineers and supervisors.
 // Original rows are never changed: corrections are appended to formation.record_reviews and applied on read.
-import { TEAMS, DEFECTS, TEMPERATURE_AREAS, TEMPERATURE_LABELS, CONDUCTIVE_UNITS_BY_MODE } from './records.mjs';
+import { TEAMS, DEFECTS, TEMPERATURE_AREAS, TEMPERATURE_LABELS, CONDUCTIVE_UNITS_BY_MODE, IR_LOCATIONS, irResult } from './records.mjs';
 import { REVIEWER_ROLES } from './auth.mjs';
 
 const APPEARANCE = new Set(['before_hpcd', 'formation', 'degas']);
@@ -12,11 +12,11 @@ export function recordTypeOf(process) {
   if (APPEARANCE.has(process)) return 'appearance_inspections';
   if (TEMPERATURE_AREAS[process]) return 'temperature_readings';
   if (String(process).startsWith('startup_')) return process === 'startup_resealing' ? 'resealing_checks' : 'startup_checks';
-  return { hta: 'hta_readings', maintenance: 'eol_maintenance', conductive: 'conductive_maintenance', ip_dsf: 'ip_checks' }[process] || null;
+  return { hta: 'hta_readings', maintenance: 'eol_maintenance', conductive: 'conductive_maintenance', ip_dsf: 'ip_checks', ir: 'ir_checks' }[process] || null;
 }
 
 const RECORD_TYPES = new Set(['appearance_inspections', 'hta_readings', 'temperature_readings', 'eol_maintenance',
-  'conductive_maintenance', 'startup_checks', 'resealing_checks', 'ip_checks']);
+  'conductive_maintenance', 'startup_checks', 'resealing_checks', 'ip_checks', 'ir_checks']);
 
 const team = { key: 'team', label: 'Team', kind: 'choice', options: TEAMS, prop: 'team' };
 const operator = (optional = false) => ({ key: 'operator_name', label: 'Operator name', kind: 'text', max: 120, optional, prop: 'operatorName' });
@@ -87,6 +87,16 @@ function fieldsFor(type, row) {
         label: measure.process_label + (measure.lane === 'Common' ? '' : ' (' + measure.lane + ')') + ' (' + measure.point + ') ' + (side === 'plus' ? '(+)' : '(−)'),
         kind: 'number', measureId: measure.measure_id, prop: side })))];
   }
+  if (type === 'ir_checks') {
+    const trayId = (tray, prop) => ({ key: 'tray' + tray + '_id', label: 'Tray ' + tray + ' ID', kind: 'text', max: 32, pattern: '^[A-Z0-9]+$', upper: true, prop });
+    return [team, operator(),
+      { key: 'location', label: 'Where checked', kind: 'choice', options: IR_LOCATIONS, prop: 'location' },
+      { key: 'pkg_lot_id', label: 'PKG Lot ID', kind: 'text', max: 100, prop: 'pkgLotId' },
+      trayId(1, 'tray1Id'), trayId(2, 'tray2Id'),
+      ...(row.values || []).map(item => ({
+        key: 'irvalue:' + item.tray + '.' + item.channel, label: 'Tray ' + item.tray + ' CH ' + item.channel + ' (blank = OK)',
+        kind: 'number', min: 0, optional: true, tray: item.tray, channel: item.channel, prop: 'value' }))];
+  }
   return [];
 }
 
@@ -96,6 +106,10 @@ function storedValue(row, field) {
   if (field.key.startsWith('measure:')) {
     const measure = (row.measurements || []).find(item => item.measure_id === field.measureId);
     return measure ? Number(measure[field.prop === 'plus' ? 'plus_value' : 'minus_value']) : '';
+  }
+  if (field.key.startsWith('irvalue:')) {
+    const item = (row.values || []).find(value => value.tray === field.tray && value.channel === field.channel);
+    return item && item.ir_value != null ? Number(item.ir_value) : '';
   }
   const value = row[field.key];
   if (value == null) return field.kind === 'list' ? [] : '';
@@ -144,6 +158,9 @@ async function loadRow(pool, type, id) {
     row.check_date = (await pool.query('SELECT check_date::text AS value FROM formation.ip_checks WHERE id = $1', [id])).rows[0].value;
     row.measurements =(await pool.query('SELECT measure_id, process_label, point, lane, plus_value, minus_value FROM formation.ip_measurements WHERE check_id = $1 ORDER BY position', [id])).rows;
   }
+  if (type === 'ir_checks') {
+    row.values = (await pool.query('SELECT tray, channel, ir_value FROM formation.ir_values WHERE check_id = $1 ORDER BY tray, channel', [id])).rows;
+  }
   return row;
 }
 
@@ -178,9 +195,15 @@ function applyChanges(type, record, events) {
   const changes = events.filter(event => event.action === 'edit').flatMap(event => event.changes);
   for (const change of changes) {
     const [, position, measureId] = change.key.match(/^item:(\d+)\.|^measure:(.+)\.(?:plus|minus)$/) || [];
+    const [, irTray, irChannel] = change.key.match(/^irvalue:(\d+)\.(\d+)$/) || [];
     const prop = change.prop;
     const value = change.format === 'join' && Array.isArray(change.new) ? change.new.join(', ') : change.new;
     if (position) { if (Number(record.position) === Number(position)) record[prop] = value; continue; }
+    if (irTray) {
+      const item = (record.values || []).find(entry => entry.tray === Number(irTray) && entry.channel === Number(irChannel));
+      if (item) { item.value = value === '' ? null : value; item.result = irResult(item.value); item.corrected = true; }
+      continue;
+    }
     if (measureId) {
       const measure = (record.measurements || []).find(item => item.id === measureId);
       if (measure) { measure[prop] = value; measure.corrected = true; }

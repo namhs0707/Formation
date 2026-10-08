@@ -100,6 +100,14 @@ const ipRow = (await call('GET', '/api/inspections?process=ip_dsf&action=records
 assert.equal(ipRow.checkDate, '2026-10-03');
 assert.equal(ipRow.measurements[0].plus, 0.48);
 
+const ir = await call('POST', '/api/inspections', { body: { process: 'ir', team: '2B', operatorName: 'Operator', location: 'Degas', pkgLotId: '7AMFJ015J2', trays: [
+  { trayId: 'TRAYA1', values: [95, ...Array(17).fill('OK')] }, { trayId: 'TRAYB2', values: Array(18).fill('OK') }] }, expect: 201 });
+await call('POST', '/api/reviews', { cookie: eng.cookie, body: { type: 'ir_checks', id: ir.data.id, action: 'edit', changes: { 'irvalue:1.1': '', 'irvalue:2.5': 80, tray2_id: 'trayb3' }, reason: 'Re-measured' } });
+const irRow = (await call('GET', '/api/inspections?process=ir&action=records')).data.data.find(row => Number(row.id) === Number(ir.data.id));
+assert.equal(irRow.tray2Id, 'TRAYB3');
+assert.deepEqual(irRow.values.filter(item => item.result === 'NG').map(item => [item.tray, item.channel, item.value]), [[2, 5, 80]]);
+assert.equal(irRow.values[0].value, null);
+
 await call('POST', '/api/inspections', { body: { process: 'temperature', team: '1A', operatorName: 'Operator', areas: [
   { process: 'hta', values: { hta11: 60, hta12: 60, hta21: 60, hta22: 60, hta31: 60, hta32: 60, hta41: 60, hta42: 64 } },
   { process: 'temp_jig', line: '4', values: { floor1: 22, jig41: 24 }, inSpec: 'Yes' }] }, expect: 201 });
@@ -113,7 +121,7 @@ await call('POST', '/api/reviews', { cookie: eng.cookie, body: { type: 'temperat
 const jigAfter = await chart('temp_jig');
 assert.equal(jigAfter.floor2, 23.5);
 assert.equal(jigAfter.jig41, '');
-pass('start-up items, IP measurements, temperatures and HTA spec follow corrections');
+pass('start-up items, IP measurements, IR values, temperatures and HTA spec follow corrections');
 
 // Lockout after five wrong passwords.
 for (let attempt = 1; attempt <= 4; attempt++) await login('eng.kim', 'Wrong-pass-1', 401);

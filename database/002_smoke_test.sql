@@ -49,6 +49,15 @@ SELECT id, 1, 'third-wing-a-a', '3rd Wing Press', 'a',
        'Gap between upper block and lower block', '0.8 < X < 1.0',
        'A', 0.9, 0.9, true FROM ip;
 
+WITH ir AS (
+  INSERT INTO formation.ir_checks (team, operator_name, location, pkg_lot_id, tray1_id, tray2_id)
+  VALUES ('1A', 'Schema Test', 'Shipping Aging', '7AMFJ015J2', 'LHEE039851', 'LHEE047613') RETURNING id
+)
+INSERT INTO formation.ir_values (check_id, tray, channel, ir_value, result)
+SELECT id, 1, 1, NULL, 'OK' FROM ir
+UNION ALL SELECT id, 1, 2, 95, 'NG' FROM ir
+UNION ALL SELECT id, 2, 1, 120, 'OK' FROM ir;
+
 SELECT 'appearance' AS category, count(*) AS test_rows FROM formation.appearance_inspections
 UNION ALL SELECT 'hta', count(*) FROM formation.hta_readings
 UNION ALL SELECT 'temperature', count(*) FROM formation.temperature_readings
@@ -56,6 +65,7 @@ UNION ALL SELECT 'maintenance', count(*) FROM formation.eol_maintenance
 UNION ALL SELECT 'conductive', count(*) FROM formation.conductive_maintenance
 UNION ALL SELECT 'startup', count(*) FROM formation.startup_checks
 UNION ALL SELECT 'resealing', count(*) FROM formation.resealing_checks
-UNION ALL SELECT 'ip', count(*) FROM formation.ip_checks;
+UNION ALL SELECT 'ip', count(*) FROM formation.ip_checks
+UNION ALL SELECT 'ir', count(*) FROM formation.ir_checks;
 
 ROLLBACK;

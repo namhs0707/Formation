@@ -159,6 +159,31 @@ CREATE TABLE IF NOT EXISTS formation.ip_measurements (
     UNIQUE (check_id, position)
 );
 
+-- Cell IR check: two trays of 18 channels each. A channel reads "OK" (stored as NULL) or a number;
+-- a number below 100 is NG.
+CREATE TABLE IF NOT EXISTS formation.ir_checks (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recorded_at timestamptz NOT NULL DEFAULT now(),
+    team text NOT NULL CHECK (team IN ('1A', '1B', '2A', '2B')),
+    operator_name varchar(120) NOT NULL,
+    location text NOT NULL CHECK (location IN ('Degas', 'Shipping Aging')),
+    pkg_lot_id varchar(100) NOT NULL CHECK (length(btrim(pkg_lot_id)) > 0),
+    tray1_id varchar(32) NOT NULL CHECK (tray1_id ~ '^[A-Z0-9]+$'),
+    tray2_id varchar(32) NOT NULL CHECK (tray2_id ~ '^[A-Z0-9]+$'),
+    source_key text UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS formation.ir_values (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    check_id bigint NOT NULL REFERENCES formation.ir_checks(id) ON DELETE CASCADE,
+    tray smallint NOT NULL CHECK (tray IN (1, 2)),
+    channel smallint NOT NULL CHECK (channel BETWEEN 1 AND 18),
+    ir_value numeric(12,4),
+    result text NOT NULL CHECK (result IN ('OK', 'NG')),
+    UNIQUE (check_id, tray, channel),
+    CHECK (result = CASE WHEN ir_value < 100 THEN 'NG' ELSE 'OK' END)
+);
+
 -- Area temperatures (CDC, PLT, DGS, EOL, JIG, PRA, RTA, SHA); HTA stays in hta_readings.
 -- Each area has its own set of probes, so the readings are stored as {"fieldKey": value}.
 CREATE TABLE IF NOT EXISTS formation.temperature_readings (
@@ -215,10 +240,7 @@ CREATE TABLE IF NOT EXISTS formation.app_sessions (
 CREATE TABLE IF NOT EXISTS formation.record_reviews (
     id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     recorded_at timestamptz NOT NULL DEFAULT now(),
-    record_type text NOT NULL CHECK (record_type IN (
-        'appearance_inspections', 'hta_readings', 'temperature_readings', 'eol_maintenance',
-        'conductive_maintenance', 'startup_checks', 'resealing_checks', 'ip_checks'
-    )),
+    record_type text NOT NULL,
     record_id bigint NOT NULL,
     action text NOT NULL CHECK (action IN ('confirm', 'edit')),
     changes jsonb NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(changes) = 'array'),
@@ -229,6 +251,12 @@ CREATE TABLE IF NOT EXISTS formation.record_reviews (
     client_ip inet,
     CHECK (action <> 'edit' OR (jsonb_array_length(changes) > 0 AND length(btrim(reason)) > 0))
 );
+-- Replaced on every run so databases created by an older version also accept newly added record types.
+ALTER TABLE formation.record_reviews DROP CONSTRAINT IF EXISTS record_reviews_record_type_check;
+ALTER TABLE formation.record_reviews ADD CONSTRAINT record_reviews_record_type_check CHECK (record_type IN (
+    'appearance_inspections', 'hta_readings', 'temperature_readings', 'eol_maintenance',
+    'conductive_maintenance', 'startup_checks', 'resealing_checks', 'ip_checks', 'ir_checks'
+));
 CREATE INDEX IF NOT EXISTS record_reviews_record_idx ON formation.record_reviews (record_type, record_id, recorded_at, id);
 
 -- Which device submitted each record. Submitters do not log in, and only registered fixed IPs can reach the app,
@@ -239,7 +267,7 @@ DECLARE
 BEGIN
     FOREACH target IN ARRAY ARRAY[
         'appearance_inspections', 'hta_readings', 'temperature_readings', 'eol_maintenance',
-        'conductive_maintenance', 'startup_checks', 'resealing_checks', 'ip_checks'
+        'conductive_maintenance', 'startup_checks', 'resealing_checks', 'ip_checks', 'ir_checks'
     ] LOOP
         EXECUTE format(
             'ALTER TABLE formation.%I ADD COLUMN IF NOT EXISTS client_ip inet '
@@ -258,6 +286,7 @@ CREATE INDEX IF NOT EXISTS eol_maintenance_time_idx ON formation.eol_maintenance
 CREATE INDEX IF NOT EXISTS conductive_time_idx ON formation.conductive_maintenance (recorded_at DESC);
 CREATE INDEX IF NOT EXISTS startup_process_time_idx ON formation.startup_checks (process, recorded_at DESC);
 CREATE INDEX IF NOT EXISTS ip_date_line_idx ON formation.ip_checks (check_date DESC, line);
+CREATE INDEX IF NOT EXISTS ir_time_idx ON formation.ir_checks (recorded_at DESC);
 CREATE INDEX IF NOT EXISTS resealing_time_idx ON formation.resealing_checks (recorded_at DESC);
 CREATE INDEX IF NOT EXISTS temperature_area_time_idx ON formation.temperature_readings (area, recorded_at DESC);
 

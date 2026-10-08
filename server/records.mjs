@@ -1,6 +1,10 @@
 const APPEARANCE = new Set(['before_hpcd', 'formation', 'degas']);
 const STARTUP = new Set(['startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector']);
-const PROCESSES = new Set([...APPEARANCE, ...STARTUP, 'hta', 'temperature', 'maintenance', 'conductive', 'startup_resealing', 'ip_dsf']);
+const PROCESSES = new Set([...APPEARANCE, ...STARTUP, 'hta', 'temperature', 'maintenance', 'conductive', 'startup_resealing', 'ip_dsf', 'ir']);
+export const IR_LOCATIONS = ['Degas', 'Shipping Aging'];
+export const IR_CHANNELS = 18;
+// A channel reads "OK" (stored as null) or a number; numbers below 100 are NG.
+export function irResult(value) { return value != null && value !== '' && Number(value) < 100 ? 'NG' : 'OK'; }
 const HTA_KEYS = ['hta11','hta12','hta21','hta22','hta31','hta32','hta41','hta42'];
 export const CONDUCTIVE_UNITS_BY_MODE = { 'Degas IR': ['1A','1B','1C','1D','2A','2B','2C','2D'], 'EOL IR': ['1A','1B','1C','1D'], 'EOL IV': ['1A','1B','2A','2B'] };
 export const TEMPERATURE_LABELS = {
@@ -226,6 +230,39 @@ async function saveIp(client, input) {
   }
   return { id };
 }
+function irValue(value, label) {
+  if (String(value ?? '').trim().toUpperCase() === 'OK') return null;
+  const number = numeric(value, label);
+  if (number < 0 || number >= 1e8) invalid('Invalid ' + label + '.');
+  return number;
+}
+async function saveIr(client, input) {
+  const trays = list(input.trays, 'trays', 2);
+  if (trays.length !== 2) invalid('Both trays are required.');
+  const parsed = trays.map((tray, index) => {
+    if (!tray || typeof tray !== 'object') invalid('Invalid tray ' + (index + 1) + '.');
+    const trayId = required(tray.trayId, 'Tray ' + (index + 1) + ' ID', 32).toUpperCase();
+    if (!/^[A-Z0-9]+$/.test(trayId)) invalid('Tray ' + (index + 1) + ' ID must contain letters and numbers only.');
+    const values = list(tray.values, 'tray ' + (index + 1) + ' values', IR_CHANNELS);
+    if (values.length !== IR_CHANNELS) invalid('Tray ' + (index + 1) + ' needs ' + IR_CHANNELS + ' channel values.');
+    return { trayId, values: values.map((value, channel) => irValue(value, 'tray ' + (index + 1) + ' channel ' + (channel + 1) + ' value')) };
+  });
+  const rows = await client.query(
+    'INSERT INTO formation.ir_checks (team, operator_name, location, pkg_lot_id, tray1_id, tray2_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
+    [teamOf(input), required(input.operatorName, 'Name', 120), choice(input.location, IR_LOCATIONS, 'location'),
+      required(input.pkgLotId, 'PKG Lot ID', 100), parsed[0].trayId, parsed[1].trayId]
+  );
+  const id = rows.rows[0].id;
+  for (const [index, tray] of parsed.entries()) {
+    for (const [channel, value] of tray.values.entries()) {
+      await client.query(
+        'INSERT INTO formation.ir_values (check_id, tray, channel, ir_value, result) VALUES ($1,$2,$3,$4,$5)',
+        [id, index + 1, channel + 1, value, irResult(value)]
+      );
+    }
+  }
+  return { id };
+}
 export async function saveInspection(pool, input, clientIp = null) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) invalid('Invalid inspection.');
   const process = processOf(input.process);
@@ -242,6 +279,7 @@ export async function saveInspection(pool, input, clientIp = null) {
     else if (process === 'conductive') result = await saveConductive(client, input);
     else if (STARTUP.has(process)) result = await saveStartup(client, input);
     else if (process === 'startup_resealing') result = await saveResealing(client, input);
+    else if (process === 'ir') result = await saveIr(client, input);
     else result = await saveIp(client, input);
     await client.query('COMMIT');
     return result;

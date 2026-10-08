@@ -1394,6 +1394,77 @@
       .temperature-input-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
       .temperature-view-areas { grid-column: 1 / -1; }
     }
+    /* Cell IR check */
+    .ir-group { background: #f0f9ff; border-color: #bae6fd; }
+    .ir-group .process-category-toggle { color: #0369a1; }
+    .ir-group .process-category-icon { background: #e0f2fe; }
+    .ir-group .process-category-direct.active { color: #0369a1; background: #e0f2fe; }
+    .form-card.ir-check-form { max-width: 720px; }
+    .ir-fields { display: none; }
+    .ir-fields.open { display: block; }
+    .ir-tray-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+    .ir-tray { min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: #f8fafc; }
+    .ir-tray label { display: block; margin-bottom: 6px; color: var(--label); font-weight: 700; }
+    .ir-tray textarea { width: 100%; min-height: 150px; font-family: ui-monospace, Consolas, monospace; font-size: 14px; }
+    .ir-preview { margin-top: 8px; font-size: 13px; }
+    .ir-preview-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px; }
+    .ir-preview-error { color: #b91c1c; font-weight: 700; }
+    .ir-preview-ok { color: #166534; font-weight: 700; }
+    .ir-strip { display: grid; grid-template-columns: repeat(9, 24px); gap: 3px; }
+    .ir-chip { display: inline-grid; place-items: center; height: 22px; border-radius: 4px; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; color: #166534; background: #dcfce7; }
+    .ir-chip.has-value { box-shadow: inset 0 0 0 1px #16a34a; }
+    .ir-chip.ng { color: #fff; background: var(--danger); }
+    .ir-chip.missing { color: #64748b; background: #e2e8f0; }
+    .ir-chip.corrected { outline: 2px solid #ea580c; outline-offset: 1px; }
+    .ir-ng-list { margin-top: 4px; color: #b91c1c; font-size: 12px; font-weight: 700; white-space: normal; }
+    .ir-records-table { min-width: 900px; table-layout: auto; }
+    #irHistoryCard .table-container { overflow-x: auto; }
+    .ir-records-table th, .ir-records-table td { width: auto; padding-inline: 8px; }
+    .ir-records-table td.ir-tray-cell { min-width: 212px; }
+    .ir-records-table td { vertical-align: top; white-space: normal; overflow-wrap: break-word; }
+    .ir-records-table .ir-strip { grid-template-columns: repeat(9, 21px); }
+    .ir-tray-cell b { display: block; margin-bottom: 4px; }
+    .ir-result { display: inline-flex; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .ir-result.ok { color: #166534; background: #dcfce7; }
+    .ir-result.ng { color: #fff; background: var(--danger); }
+    .ir-lot-decoded { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 600; }
+    .ir-lot-decoded.bad { color: #b45309; }
+    .ir-lot-date { display: block; color: var(--muted); font-size: 12px; }
+    .ir-calendar-help { margin: 0 0 6px; color: var(--muted); font-size: 13px; }
+    .ir-calendar-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 10px; color: var(--muted); font-size: 12px; }
+    .ir-calendar-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .ir-calendar-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+    .ir-calendar-legend i.ok { background: #dcfce7; box-shadow: inset 0 0 0 1px #16a34a; }
+    .ir-calendar-legend i.ng { background: var(--danger); }
+    .ir-calendar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 8px; }
+    .ir-month h4 { margin: 0 0 6px; font-size: 15px; }
+    .ir-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+    .ir-weekday { padding: 2px 0; color: var(--muted); font-size: 11px; font-weight: 700; text-align: center; }
+    .ir-day { min-width: 0; min-height: 68px; padding: 4px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; text-align: left; color: var(--ink); background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 6px; font-size: 12px; font-weight: 600; box-shadow: none; }
+    button.ir-day { cursor: pointer; }
+    button.ir-day:hover { background: #eef2f7; box-shadow: none; }
+    .ir-day.empty { visibility: hidden; }
+    .ir-day.today { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+    .ir-day.selected { background: var(--primary-soft); border-color: var(--primary); }
+    .ir-day.has-ng { border-color: var(--danger); }
+    .ir-day-num { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .ir-day-chip { display: block; padding: 1px 4px; border-radius: 4px; font-size: 11px; font-weight: 800; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ir-day-chip.ok { color: #166534; background: #dcfce7; }
+    .ir-day-chip.ng { color: #fff; background: var(--danger); }
+    .ir-calendar-note { margin-bottom: 10px; color: #b45309; font-size: 13px; font-weight: 600; }
+    .ir-calendar-note:empty { display: none; }
+    .ir-day-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0 10px; padding: 8px 12px; border-radius: 8px; background: var(--primary-soft); font-size: 14px; font-weight: 700; }
+    .ir-day-filter[hidden] { display: none; }
+    .ir-day-filter button { width: auto; min-height: 34px; padding: 4px 12px; font-size: 13px; }
+    @media (max-width: 1100px) {
+      .ir-calendar { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 767px) {
+      .ir-tray-grid { grid-template-columns: 1fr; }
+      .ir-records-table { min-width: 0; }
+      .ir-day { min-height: 54px; padding: 3px; }
+      .ir-day-chip { padding: 0 2px; font-size: 10px; }
+    }
     /* Reviewer sign-in and record review */
     .account-area { display: flex; align-items: center; gap: 8px; }
     .account-area button, .app-dialog button, .users-table button {
@@ -1548,11 +1619,16 @@
       </div>
       <div class="process-group ip-group">
         <button type="button" class="process-category process-category-toggle" data-category="ip" aria-expanded="false">
-          <span class="process-category-icon">IP</span><span>IP check sheet</span><span class="process-category-chevron">?</span>
+          <span class="process-category-icon">IP</span><span>IP check sheet</span><span class="process-category-chevron">⌄</span>
         </button>
         <div class="process-options">
           <button type="button" class="process-button" data-process="ip_dsf">DSF Daily IP</button>
         </div>
+      </div>
+      <div class="process-group ir-group">
+        <button type="button" class="process-category process-category-toggle process-category-direct" data-category="ir" data-process="ir" aria-expanded="false">
+          <span class="process-category-icon">Ω</span><span>IR</span>
+        </button>
       </div>
     </aside>
     <main class="main-content">
@@ -1837,6 +1913,35 @@
           <div class="ip-checklist" id="ipChecklist"></div>
         </div>
 
+        <div class="ir-fields" id="irFields">
+          <div class="form-group">
+            <label for="irLocation">Where are you checking? <span aria-hidden="true">*</span></label>
+            <select id="irLocation">
+              <option value="" disabled selected>Select a location</option>
+              <option value="Degas">Degas</option>
+              <option value="Shipping Aging">Shipping Aging</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="irPkgLotId">PKG Lot ID of Cells <span aria-hidden="true">*</span></label>
+            <input type="text" id="irPkgLotId" maxlength="100" spellcheck="false" autocapitalize="characters" placeholder="e.g., 7AMFJ015J2">
+            <small class="ir-lot-decoded" id="irLotDecoded"></small>
+          </div>
+          <div class="ir-tray-grid">
+            <div class="ir-tray">
+              <label for="irTray1">IR Values for Tray 1 <span aria-hidden="true">*</span></label>
+              <textarea id="irTray1" data-ir-tray="1" spellcheck="false" placeholder="Paste here:&#10;Tray ID&#10;CH 1 (OK or value)&#10;...&#10;CH 18"></textarea>
+              <div class="ir-preview" id="irTray1Preview"></div>
+            </div>
+            <div class="ir-tray">
+              <label for="irTray2">IR Values for Tray 2 <span aria-hidden="true">*</span></label>
+              <textarea id="irTray2" data-ir-tray="2" spellcheck="false" placeholder="Paste here:&#10;Tray ID&#10;CH 1 (OK or value)&#10;...&#10;CH 18"></textarea>
+              <div class="ir-preview" id="irTray2Preview"></div>
+            </div>
+          </div>
+          <small class="input-help">Paste the Tray ID on the first line, then channels 1 to 18 in order. Each channel is OK or a number; numbers below 100 are NG.</small>
+        </div>
+
         <div class="temperature-fields" id="temperatureFields">
           <fieldset class="unit-fieldset">
             <legend>Area <span aria-hidden="true">*</span></legend>
@@ -2115,6 +2220,23 @@
         </table>
       </div>
       <div class="ip-dashboard" id="ipDashboard" style="display:none;"></div>
+    </div>
+    <div class="card history-card" id="irHistoryCard" style="display:none;">
+      <div class="history-card-header">
+        <h3 style="margin:0;">IR Check Records</h3>
+        <div class="history-actions"><span class="last-sync">Not synced</span><button type="button" class="btn-secondary" onclick="loadData()">Refresh data</button></div>
+      </div>
+      <div class="ir-calendar-help">By production date from the PKG Lot ID (4th letter year, 5th letter month, then day and line). Tap a day to list its records.</div>
+      <div class="ir-calendar-legend"><span><i class="ok"></i>All OK</span><span><i class="ng"></i>NG in at least one check</span><span>L5 ×2 = Line 5, 2 checks</span></div>
+      <div class="ir-calendar" id="irCalendar"></div>
+      <div class="ir-calendar-note" id="irCalendarNote"></div>
+      <div class="ir-day-filter" id="irDayFilter" hidden></div>
+      <div class="table-container">
+        <table class="ir-records-table">
+          <thead><tr><th>Date</th><th>Team</th><th>First and Last Name</th><th>Where</th><th>PKG Lot ID</th><th>Tray 1</th><th>Tray 2</th><th>Result</th></tr></thead>
+          <tbody id="irTableBody"><tr><td colspan="8" style="text-align:center;">Loading IR records...</td></tr></tbody>
+        </table>
+      </div>
     </div>
     <section class="chart-dashboard" id="chartDashboard">
       <div class="hta-chart-filter temperature-filter" aria-label="Temperature filters">
@@ -2897,6 +3019,194 @@
       });
     }
 
+    // ---- Cell IR check ----
+    const IR_CHANNELS = 18;
+    const IR_NUMBER = /^\d+(\.\d+)?$/;
+
+    function irResult(value) {
+      return value !== null && value < 100 ? 'NG' : 'OK';
+    }
+
+    // Pasted text: the Tray ID on the first line, then channels 1-18, each "OK" or a number.
+    function parseIrPaste(text) {
+      const lines = String(text || '').split(/[\r\n\t]+/).map(line => line.trim()).filter(Boolean);
+      const isValue = line => /^ok$/i.test(line) || IR_NUMBER.test(line);
+      const trayId = lines.length && !isValue(lines[0]) ? lines.shift().replace(/\s+/g, '').toUpperCase() : '';
+      const values = lines.map(line => /^ok$/i.test(line) ? { value: null, result: 'OK' }
+        : IR_NUMBER.test(line) ? { value: Number(line), result: irResult(Number(line)) } : { invalid: line });
+      const errors = [];
+      if (!trayId) errors.push('Tray ID is missing on the first line.');
+      else if (!/^[A-Z0-9]{1,32}$/.test(trayId)) errors.push('Tray ID must be letters and numbers only.');
+      const invalid = values.filter(entry => entry.invalid !== undefined);
+      if (invalid.length) errors.push('Not OK or a number: ' + invalid.slice(0, 3).map(entry => '"' + entry.invalid + '"').join(', ') + '.');
+      if (values.length !== IR_CHANNELS) errors.push(values.length + ' of ' + IR_CHANNELS + ' channel values.');
+      return { trayId, values, errors };
+    }
+
+    function irStripHtml(values) {
+      const chips = Array.from({ length: IR_CHANNELS }, (_, index) => {
+        const entry = values[index];
+        const channel = index + 1;
+        if (!entry || entry.invalid !== undefined) return '<span class="ir-chip missing" title="CH ' + channel + ': missing">' + channel + '</span>';
+        const shown = entry.value === null ? 'OK' : entry.value;
+        return '<span class="ir-chip' + (entry.result === 'NG' ? ' ng' : entry.value !== null ? ' has-value' : '') + (entry.corrected ? ' corrected' : '') +
+          '" title="CH ' + channel + ': ' + escapeText(shown) + ' (' + entry.result + ')' + (entry.corrected ? ', corrected' : '') + '">' + channel + '</span>';
+      }).join('');
+      const ng = values.map((entry, index) => ({ entry, channel: index + 1 })).filter(item => item.entry && item.entry.result === 'NG');
+      return '<div class="ir-strip">' + chips + '</div>' +
+        (ng.length ? '<div class="ir-ng-list">NG: ' + ng.map(item => 'CH ' + item.channel + ' (' + escapeText(item.entry.value) + ')').join(', ') + '</div>' : '');
+    }
+
+    function updateIrPreview(tray) {
+      const text = document.getElementById('irTray' + tray).value;
+      const preview = document.getElementById('irTray' + tray + 'Preview');
+      if (!text.trim()) { preview.innerHTML = ''; return null; }
+      const parsed = parseIrPaste(text);
+      const ngCount = parsed.values.filter(entry => entry.result === 'NG').length;
+      preview.innerHTML = '<div class="ir-preview-head">' + (parsed.trayId ? '<b>' + escapeText(parsed.trayId) + '</b>' : '') +
+        (parsed.errors.length
+          ? '<span class="ir-preview-error">' + parsed.errors.map(escapeText).join(' ') + '</span>'
+          : '<span class="' + (ngCount ? 'ir-preview-error' : 'ir-preview-ok') + '">' + (ngCount ? ngCount + ' NG' : 'All OK') + '</span>') +
+        '</div>' + irStripHtml(parsed.values);
+      return parsed;
+    }
+
+    document.getElementById('irFields').addEventListener('input', event => {
+      if (event.target.dataset.irTray) updateIrPreview(event.target.dataset.irTray);
+    });
+
+    // PKG Lot ID rule: 7**EF255A2 -> 4th character year (A = 2021, so F = 2026), 5th month (A = January), then two-digit day and the line digit.
+    // One record can list several lots separated by "/", commas or spaces.
+    function decodeIrLot(lot) {
+      const match = /^[0-9A-Z]{3}([A-Z])([A-L])(\d{2})(\d)[0-9A-Z]*$/.exec(String(lot || '').trim().toUpperCase());
+      if (!match) return null;
+      const year = 2021 + match[1].charCodeAt(0) - 65;
+      const month = match[2].charCodeAt(0) - 64;
+      const day = Number(match[3]);
+      if (day < 1 || day > new Date(year, month, 0).getDate()) return null;
+      return { lot: match[0], year, month, day, line: match[4], key: year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0') };
+    }
+
+    function irLotsOf(text) {
+      return String(text || '').split(/[\/,;\s]+/).filter(Boolean).map(lot => ({ lot, decoded: decodeIrLot(lot) }));
+    }
+
+    document.getElementById('irPkgLotId').addEventListener('input', event => {
+      const help = document.getElementById('irLotDecoded');
+      const lots = irLotsOf(event.target.value);
+      help.classList.toggle('bad', lots.some(item => !item.decoded));
+      help.textContent = lots.map(item => item.decoded
+        ? item.lot + ' → ' + item.decoded.key + ', Line ' + item.decoded.line
+        : item.lot + ' → not readable as a lot date').join(' · ');
+    });
+
+    let irRecordsCache = [];
+    let irSelectedDay = '';
+
+    function irCalendarMonths(today = new Date()) {
+      return [-1, 0].map(offset => new Date(today.getFullYear(), today.getMonth() + offset, 1));
+    }
+
+    function renderIrCalendar(records) {
+      const byDay = new Map();
+      let unreadable = 0;
+      records.forEach(record => {
+        const lots = irLotsOf(record.pkgLotId);
+        if (!lots.length || lots.some(item => !item.decoded)) unreadable += 1;
+        const ng = record.values.some(entry => entry.result === 'NG');
+        const seen = new Set();
+        lots.forEach(({ decoded }) => {
+          if (!decoded || seen.has(decoded.key + decoded.line)) return;
+          seen.add(decoded.key + decoded.line);
+          if (!byDay.has(decoded.key)) byDay.set(decoded.key, new Map());
+          const lines = byDay.get(decoded.key);
+          const entry = lines.get(decoded.line) || { checks: 0, ng: 0 };
+          entry.checks += 1;
+          if (ng) entry.ng += 1;
+          lines.set(decoded.line, entry);
+        });
+      });
+      const todayKey = toDateInputValue(new Date());
+      document.getElementById('irCalendar').innerHTML = irCalendarMonths().map(first => {
+        const year = first.getFullYear();
+        const month = first.getMonth();
+        const days = new Date(year, month + 1, 0).getDate();
+        const blanks = Array.from({ length: first.getDay() }, () => '<span class="ir-day empty"></span>').join('');
+        const cells = Array.from({ length: days }, (_, index) => {
+          const key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(index + 1).padStart(2, '0');
+          const lines = byDay.get(key);
+          const chips = lines ? Array.from(lines.entries()).sort().map(([line, entry]) =>
+            '<span class="ir-day-chip ' + (entry.ng ? 'ng' : 'ok') + '" title="Line ' + escapeText(line) + ': ' + entry.checks + ' check(s)' + (entry.ng ? ', ' + entry.ng + ' with NG' : ', all OK') + '">L' +
+            escapeText(line) + ' ×' + entry.checks + '</span>').join('') : '';
+          const hasNg = lines && Array.from(lines.values()).some(entry => entry.ng);
+          const classes = 'ir-day' + (key === todayKey ? ' today' : '') + (key === irSelectedDay ? ' selected' : '') + (hasNg ? ' has-ng' : '');
+          return lines
+            ? '<button type="button" class="' + classes + '" data-ir-day="' + key + '"><span class="ir-day-num">' + (index + 1) + '</span>' + chips + '</button>'
+            : '<span class="' + classes + '"><span class="ir-day-num">' + (index + 1) + '</span></span>';
+        }).join('');
+        return '<section class="ir-month"><h4>' + first.toLocaleString('en-US', { month: 'long', year: 'numeric' }) + '</h4><div class="ir-month-grid">' +
+          ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => '<span class="ir-weekday">' + day + '</span>').join('') + blanks + cells + '</div></section>';
+      }).join('');
+      document.getElementById('irCalendarNote').textContent = unreadable
+        ? unreadable + ' record(s) have a PKG Lot ID that does not follow the lot rule and are not on the calendar.'
+        : '';
+    }
+
+    function renderIrRecords(records) {
+      irRecordsCache = records;
+      const hasNg = record => record.values.some(entry => entry.result === 'NG');
+      const ngChecks = records.filter(hasNg).length;
+      document.getElementById('kpiRecords').textContent = String(records.length);
+      document.getElementById('kpiQuality').textContent = records.length ? String(ngChecks) : '—';
+      document.getElementById('kpiQualityCard').dataset.tone = records.length ? (ngChecks ? 'danger' : 'success') : '';
+      document.getElementById('kpiLatest').textContent = records.length ? formatRecordDate(records[records.length - 1].date) : 'No records';
+      renderIrCalendar(records);
+      renderIrTable();
+    }
+
+    document.getElementById('irCalendar').addEventListener('click', event => {
+      const day = event.target.closest('[data-ir-day]');
+      if (!day) return;
+      irSelectedDay = irSelectedDay === day.dataset.irDay ? '' : day.dataset.irDay;
+      renderIrCalendar(irRecordsCache);
+      renderIrTable();
+    });
+    document.getElementById('irDayFilter').addEventListener('click', event => {
+      if (!event.target.closest('button')) return;
+      irSelectedDay = '';
+      renderIrCalendar(irRecordsCache);
+      renderIrTable();
+    });
+
+    function renderIrTable() {
+      const tbody = document.getElementById('irTableBody');
+      const filter = document.getElementById('irDayFilter');
+      const records = irSelectedDay
+        ? irRecordsCache.filter(record => irLotsOf(record.pkgLotId).some(item => item.decoded && item.decoded.key === irSelectedDay))
+        : irRecordsCache;
+      filter.hidden = !irSelectedDay;
+      filter.innerHTML = irSelectedDay ? 'Lot date ' + escapeText(irSelectedDay) + ': ' + records.length + ' record(s) <button type="button" class="secondary-button">Show all</button>' : '';
+      if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No IR records yet.</td></tr>';
+        return;
+      }
+      const cell = (label, value) => '<td data-label="' + label + '">' + escapeText(value || '-') + '</td>';
+      const lotCell = record => '<td data-label="PKG Lot ID">' + irLotsOf(record.pkgLotId).map(item =>
+        escapeText(item.lot) + (item.decoded ? '<span class="ir-lot-date">' + escapeText(item.decoded.key) + ' · L' + escapeText(item.decoded.line) + '</span>' : '')).join('') + '</td>';
+      tbody.innerHTML = records.slice().reverse().map(record => {
+        const trayCell = tray => {
+          const values = Array.from({ length: IR_CHANNELS }, (_, index) =>
+            record.values.find(entry => entry.tray === tray && entry.channel === index + 1));
+          return '<td data-label="Tray ' + tray + '" class="ir-tray-cell"><b>' + escapeText(record['tray' + tray + 'Id']) + '</b>' + irStripHtml(values) + '</td>';
+        };
+        const ngCount = record.values.filter(entry => entry.result === 'NG').length;
+        return '<tr>' + dateCellHtml('Date', formatRecordDate(record.date), record.review) +
+          cell('Team', record.team) + cell('Name', record.operatorName) + cell('Where', record.location) + lotCell(record) +
+          trayCell(1) + trayCell(2) +
+          '<td data-label="Result"><span class="ir-result ' + (ngCount ? 'ng">NG ' + ngCount : 'ok">OK') + '</span></td></tr>';
+      }).join('');
+    }
+
     function isAppearanceProcess(process) {
       return process === 'before_hpcd' || process === 'formation' || process === 'degas';
     }
@@ -2997,7 +3307,8 @@
     updateConductiveMeasurementMode();
 
     function switchProcess(process) {
-      currentProcess = ['before_hpcd', 'formation', 'degas', 'temperature', 'maintenance', 'conductive', 'startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector', 'startup_resealing', 'ip_dsf'].includes(process) ? process : 'formation';
+      currentProcess = ['before_hpcd', 'formation', 'degas', 'temperature', 'maintenance', 'conductive', 'startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector', 'startup_resealing', 'ip_dsf', 'ir'].includes(process) ? process : 'formation';
+      const isIr = currentProcess === 'ir';
       const isBeforeHpcd = currentProcess === 'before_hpcd';
       const isDegas = currentProcess === 'degas';
       const isTemperature = currentProcess === 'temperature';
@@ -3012,17 +3323,17 @@
         button.classList.toggle('active', button.dataset.process === currentProcess);
       });
       document.getElementById('pageTitle').textContent =
-        isStartupCheck ? startupConfig.title : isConductive ? 'Conductive Rubber Maintenance' : isMaintenance ? 'EOL Tape/Knife Maintenance' : isTemperature ? 'Area Temperature Monitoring' : `${appearanceLabel} Inspection`;
+        isIr ? 'Cell IR Check' : isStartupCheck ? startupConfig.title : isConductive ? 'Conductive Rubber Maintenance' : isMaintenance ? 'EOL Tape/Knife Maintenance' : isTemperature ? 'Area Temperature Monitoring' : `${appearanceLabel} Inspection`;
       document.getElementById('pageEyebrow').textContent =
-        isStartupCheck ? startupConfig.eyebrow : isConductive || isMaintenance ? 'Operations / Maintenance' : isTemperature ? 'Operations / Temperature' : 'Operations / Appearance';
+        isIr ? 'Operations / IR' : isStartupCheck ? startupConfig.eyebrow : isConductive || isMaintenance ? 'Operations / Maintenance' : isTemperature ? 'Operations / Temperature' : 'Operations / Appearance';
       document.getElementById('kpiProcess').textContent =
-        isStartupCheck ? startupConfig.kpi : isConductive ? 'Conductive Rubber' : isMaintenance ? 'EOL Tape/Knife' : isTemperature ? 'Temperature' : appearanceLabel;
+        isIr ? 'IR' : isStartupCheck ? startupConfig.kpi : isConductive ? 'Conductive Rubber' : isMaintenance ? 'EOL Tape/Knife' : isTemperature ? 'Temperature' : appearanceLabel;
       document.getElementById('kpiRecords').textContent = '—';
       document.getElementById('kpiQuality').textContent = '—';
       document.getElementById('kpiQualityCard').dataset.tone = '';
       document.getElementById('kpiLatest').textContent = '—';
       document.getElementById('formTitle').textContent =
-        isStartupCheck ? startupConfig.formTitle : isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isTemperature ? 'New Temperature Reading' : `New ${appearanceLabel} Inspection`;
+        isIr ? 'New IR Check' : isStartupCheck ? startupConfig.formTitle : isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isTemperature ? 'New Temperature Reading' : `New ${appearanceLabel} Inspection`;
       document.getElementById('lineLabel').textContent =
         isDegas ? 'Degas line' : 'Jig line';
       document.getElementById('lineLabel').htmlFor = isDegas ? 'degasProcessLine' : 'processLine';
@@ -3043,14 +3354,17 @@
       const isSelectorStartup = currentProcess === 'startup_selector';
       const isResealingStartup = currentProcess === 'startup_resealing';
       const isIpCheck = currentProcess === 'ip_dsf';
-      document.getElementById('kpiQualityLabel').textContent = isIpCheck ? 'Measurements in range' : isStartupCheck ? 'Check status' : isTemperature ? 'Out of Spec' : 'Defect Rate';
+      document.getElementById('kpiQualityLabel').textContent = isIr ? 'Checks with NG' : isIpCheck ? 'Measurements in range' : isStartupCheck ? 'Check status' : isTemperature ? 'Out of Spec' : 'Defect Rate';
       formCard.classList.toggle('ip-check-form', isIpCheck);
+      formCard.classList.toggle('ir-check-form', isIr);
+      document.getElementById('irFields').classList.toggle('open', isIr);
+      ['irLocation', 'irPkgLotId', 'irTray1', 'irTray2'].forEach(id => { document.getElementById(id).required = isIr; });
       const needsStartupOperator = isDegasStartup || isCdcStartup || isEolStartup || isSelectorStartup || isResealingStartup;
       document.getElementById('team').required = !isResealingStartup && !isIpCheck;
       document.getElementById('team').closest('.form-group').style.display = isResealingStartup || isIpCheck ? 'none' : '';
       document.getElementById('operatorName').required = !isStartupCheck || needsStartupOperator;
       document.getElementById('operatorName').closest('.form-group').style.display = isStartupCheck && !needsStartupOperator ? 'none' : '';
-      document.getElementById('operatorNameLabel').textContent = isResealingStartup ? 'Name' : needsStartupOperator ? 'First and Last Name' : 'Operator Name';
+      document.getElementById('operatorNameLabel').textContent = isResealingStartup ? 'Name' : needsStartupOperator || isIr ? 'First and Last Name' : 'Operator Name';
       document.getElementById('resealingFields').classList.toggle('open', isResealingStartup);
       document.getElementById('ipFields').classList.toggle('open', isIpCheck);
       ['ipDate', 'ipLine'].forEach(id => { document.getElementById(id).required = isIpCheck; });
@@ -3095,6 +3409,7 @@
       document.getElementById('maintenanceHistoryCard').style.display = isMaintenance ? '' : 'none';
       document.getElementById('conductiveHistoryCard').style.display = isConductive ? '' : 'none';
       document.getElementById('startupHistoryCard').style.display = isStartupCheck ? '' : 'none';
+      document.getElementById('irHistoryCard').style.display = isIr ? '' : 'none';
       document.getElementById('startupHistoryTitle').textContent = isStartupCheck ? startupConfig.historyTitle : 'Start-up Check Sheets';
       document.getElementById('startupHistoryTable').style.display = isResealingStartup || isIpCheck ? 'none' : '';
       document.getElementById('ipDashboard').style.display = isIpCheck ? '' : 'none';
@@ -3121,8 +3436,8 @@
       document.getElementById('weeklyMapCount').textContent = '0 points';
       setWeeklyMapOpen(true);
       document.getElementById('chartDashboard').style.display = isTemperature ? 'block' : 'none';
-      openFormBtn.textContent = isStartupCheck ? `＋ New ${startupConfig.title.replace(' Start-up Check Sheet', ' Check Sheet')}` : isConductive ? '＋ New Record' : isMaintenance ? '＋ New Maintenance' : isTemperature ? '＋ New Reading' : 'New Inspection';
-      document.getElementById('submitBtn').textContent = isStartupCheck ? startupConfig.submitLabel : isConductive ? 'Submit Record' : isMaintenance ? 'Submit Maintenance' : isTemperature ? 'Submit Readings' : 'Submit Inspection';
+      openFormBtn.textContent = isIr ? '＋ New IR Check' : isStartupCheck ? `＋ New ${startupConfig.title.replace(' Start-up Check Sheet', ' Check Sheet')}` : isConductive ? '＋ New Record' : isMaintenance ? '＋ New Maintenance' : isTemperature ? '＋ New Reading' : 'New Inspection';
+      document.getElementById('submitBtn').textContent = isIr ? 'Submit IR Check' : isStartupCheck ? startupConfig.submitLabel : isConductive ? 'Submit Record' : isMaintenance ? 'Submit Maintenance' : isTemperature ? 'Submit Readings' : 'Submit Inspection';
       document.getElementById('submitAndAddCellBtn').style.display = isAppearance ? '' : 'none';
       const activeButton = document.querySelector(`.process-button[data-process="${currentProcess}"], .process-category-direct[data-process="${currentProcess}"]`);
       if (activeButton) {
@@ -3180,7 +3495,7 @@
       document.body.style.overflow = 'hidden';
       if (currentProcess === 'ip_dsf' && !document.getElementById('ipDate').value) document.getElementById('ipDate').value = toDateInputValue(new Date());
       const focusId = currentProcess === 'ip_dsf' ? 'ipDate' : currentProcess === 'startup_resealing' ? 'operatorName' : currentProcess === 'startup_cdc' ? 'startupCdcLine' : currentProcess === 'startup_selector' ? 'startupSelectorFieldset' : isStartupCheckProcess() ? (getStartupConfig().usesLine ? 'startupLines' : 'startupCompletedYes') : currentProcess === 'temperature' ? 'temperatureAreaOptions' : currentProcess === 'maintenance' ? 'maintenanceLine' : currentProcess === 'conductive' ? 'conductiveProcess' : 'trayId';
-      const focusTarget = currentProcess === 'temperature' ? document.getElementById('team') : currentProcess === 'startup_selector' ? document.querySelector('input[name="startupSelector"]') : isStartupCheckProcess() && getStartupConfig().usesLine
+      const focusTarget = currentProcess === 'temperature' || currentProcess === 'ir' ? document.getElementById('team') : currentProcess === 'startup_selector' ? document.querySelector('input[name="startupSelector"]') : isStartupCheckProcess() && getStartupConfig().usesLine
         ? document.querySelector('#startupLines input')
         : document.getElementById(focusId);
       setTimeout(() => focusTarget?.focus(), 300);
@@ -3188,6 +3503,7 @@
 
     function closeForm() {
       inspectionForm.reset();
+      ['irTray1Preview', 'irTray2Preview', 'irLotDecoded'].forEach(id => { document.getElementById(id).innerHTML = ''; });
       updateConductiveMeasurementMode();
       updateTemperatureFormState();
       defectMapPoints = [];
@@ -3577,6 +3893,39 @@
           await loadData(true);
           statusDiv.style.color = '#16a34a';
           statusDiv.textContent = 'DSF Daily IP check saved in PostgreSQL.';
+        } catch (error) {
+          statusDiv.style.color = '#dc2626';
+          statusDiv.textContent = 'Save failed: ' + error.message;
+        } finally {
+          submitBtn.disabled = false;
+          submitAndAddCellBtn.disabled = false;
+        }
+        return;
+      }
+
+      if (currentProcess === 'ir') {
+        const trays = [1, 2].map(tray => updateIrPreview(tray) || parseIrPaste(''));
+        const trayError = trays.findIndex(tray => tray.errors.length);
+        if (trayError >= 0) {
+          statusDiv.style.color = '#c93434';
+          statusDiv.textContent = 'Tray ' + (trayError + 1) + ': ' + trays[trayError].errors.join(' ');
+          submitBtn.disabled = false;
+          submitAndAddCellBtn.disabled = false;
+          return;
+        }
+        try {
+          await submitToDatabase({
+            process: 'ir',
+            team: document.getElementById('team').value,
+            operatorName: document.getElementById('operatorName').value.trim(),
+            location: document.getElementById('irLocation').value,
+            pkgLotId: document.getElementById('irPkgLotId').value.trim(),
+            trays: trays.map(tray => ({ trayId: tray.trayId, values: tray.values.map(entry => entry.value === null ? 'OK' : entry.value) }))
+          });
+          closeForm();
+          await loadData(true);
+          statusDiv.style.color = '#16a34a';
+          statusDiv.textContent = 'IR check saved in PostgreSQL.';
         } catch (error) {
           statusDiv.style.color = '#dc2626';
           statusDiv.textContent = 'Save failed: ' + error.message;
@@ -4661,7 +5010,7 @@
       const requestId = ++loadRequestId;
       const systemStatus = document.getElementById('systemStatus');
       const refreshButton = document.getElementById('refreshDataBtn');
-      if (isStartupCheckProcess(requestedProcess)) {
+      if (isStartupCheckProcess(requestedProcess) || requestedProcess === 'ir') {
         systemStatus.textContent = 'Syncing Data';
         systemStatus.className = 'system-status syncing';
         updateSyncLabels('Loading PostgreSQL records...', false);
@@ -4671,7 +5020,8 @@
             process: requestedProcess, action: 'records'
           }));
           if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
-          renderStartupRecords(response.data || []);
+          if (requestedProcess === 'ir') renderIrRecords(response.data || []);
+          else renderStartupRecords(response.data || []);
           systemStatus.textContent = 'System Online';
           systemStatus.className = 'system-status';
           updateSyncLabels('Loaded from PostgreSQL', false);
@@ -5136,7 +5486,7 @@
     const REVIEW_TYPE_LABELS = Object.freeze({
       appearance_inspections: 'Appearance inspection', hta_readings: 'HTA temperature', temperature_readings: 'Area temperature',
       eol_maintenance: 'EOL Tape/Knife maintenance', conductive_maintenance: 'Conductive Rubber', startup_checks: 'Start-up check sheet',
-      resealing_checks: 'Resealing Machine check', ip_checks: 'DSF Daily IP check'
+      resealing_checks: 'Resealing Machine check', ip_checks: 'DSF Daily IP check', ir_checks: 'IR check'
     });
     const authState = { user: null, loginAvailable: false };
     const reviewState = { type: null, id: null, detail: null, pending: null, changed: false };

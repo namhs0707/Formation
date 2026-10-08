@@ -42,6 +42,10 @@ const cases = [
   })),
   { process: 'startup_resealing', operatorName: 'API Test', shift: '1A',
     work: 'Test work', inspectionStatus: 'Pass', cleaningStatus: 'Completed', comment: '' },
+  { process: 'ir', ...teams, location: 'Shipping Aging', pkgLotId: '7AMFJ015J2', trays: [
+    { trayId: 'LHEE039851', values: Array(18).fill('OK') },
+    { trayId: 'LHEE047613', values: [95, 120, ...Array(16).fill('ok')] }
+  ] },
   { process: 'ip_dsf', checkDate: '2026-10-01', line: 'EOL #4-1', measurements: [
     { id: 'test-common-a', process: 'Test', point: 'a', name: 'Gap', target: '0.4 < X < 0.5',
       lane: 'Common', plus: 0.45, minus: 0.46, inRange: true }
@@ -78,6 +82,17 @@ await post({ process: 'conductive', ...teams, rubberProcess: 'EOL', line: '4-1',
 await post({ process: 'conductive', ...teams, rubberProcess: 'EOL', line: '4-1', measurement: 'IV', units: ['1C'], action: 'Flip' }, 400);
 await post({ process: 'ip_dsf', checkDate: '2026-10-01', line: 'ESHD #5-1', measurements: cases.at(-1).measurements }, 400);
 console.log('PASS conductive units and IP line validation');
+const irCase = cases.find(item => item.process === 'ir');
+const irSaved = (await get('ir', 'records')).data.at(-1);
+assert.equal(irSaved.values.length, 36);
+assert.deepEqual(irSaved.values.filter(item => item.result === 'NG').map(item => [item.tray, item.channel, item.value]), [[2, 1, 95]]);
+assert.equal(irSaved.values.find(item => item.tray === 2 && item.channel === 2).result, 'OK');
+assert.equal(irSaved.values.find(item => item.tray === 1 && item.channel === 1).value, null);
+await post({ ...irCase, trays: [irCase.trays[0], { trayId: 'LHEE047613', values: Array(17).fill('OK') }] }, 400);
+await post({ ...irCase, trays: [irCase.trays[0], { trayId: 'LHEE047613', values: ['NG', ...Array(17).fill('OK')] }] }, 400);
+await post({ ...irCase, trays: [irCase.trays[0]] }, 400);
+await post({ ...irCase, location: 'EOL' }, 400);
+console.log('PASS IR check results and validation');
 await post({ process: 'before_hpcd', ...teams, team: 'bad', trayId: 'TEST', defect: ['All OK'] }, 400);
 const before = await get('startup_jig', 'records');
 await post({ process: 'startup_jig', ...teams, lines: ['3-1'], checkCompleted: 'No', frequency: 'Shift',
@@ -85,4 +100,4 @@ await post({ process: 'startup_jig', ...teams, lines: ['3-1'], checkCompleted: '
 const after = await get('startup_jig', 'records');
 assert.equal(after.data.length, before.data.length);
 console.log('PASS validation and rollback');
-console.log('All 14 form types passed.');
+console.log('All 15 form types passed.');

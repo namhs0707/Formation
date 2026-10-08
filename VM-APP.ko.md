@@ -95,6 +95,7 @@ VM으로 옮길 파일은 Formation-VM-App.zip, PostgreSQL Windows x64 설치 �
 | Start-up: HPCD / Jig / Degas / CDC / EOL / Selector | startup_checks, startup_check_items |
 | Resealing Machine | resealing_checks |
 | DSF Daily IP | ip_checks, ip_measurements |
+| IR (Tray 1·2, 채널 18개) | ir_checks, ir_values |
 
 새 버전은 Google Sheet와 Google Drive에 새 데이터를 보내지 않습니다. 기존 Sheet·Drive 기록과 브라우저 로컬 저장 기록은 그대로 남아 있으며 아직 PostgreSQL에 가져오지 않았습니다.
 

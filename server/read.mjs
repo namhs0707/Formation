@@ -133,6 +133,23 @@ async function ipRecords(pool) {
   for (const item of items.rows) byId.get(String(item.check_id)).measurements.push(item);
   return [...byId.values()];
 }
+async function irRecords(pool) {
+  const checks = await pool.query(
+    'SELECT id, recorded_at AS date, team, operator_name AS "operatorName", location, pkg_lot_id AS "pkgLotId", tray1_id AS "tray1Id", tray2_id AS "tray2Id" FROM (SELECT * FROM formation.ir_checks ORDER BY recorded_at DESC, id DESC LIMIT 1000) c ORDER BY recorded_at ASC, id ASC'
+  );
+  if (!checks.rows.length) return [];
+  const items = await pool.query(
+    'SELECT check_id, tray, channel, ir_value, result FROM formation.ir_values WHERE check_id = ANY($1::bigint[]) ORDER BY check_id, tray, channel',
+    [checks.rows.map(row => row.id)]
+  );
+  const byId = new Map(checks.rows.map(row => [String(row.id), { ...row, values: [] }]));
+  for (const item of items.rows) {
+    byId.get(String(item.check_id)).values.push({
+      tray: item.tray, channel: item.channel, value: item.ir_value == null ? null : Number(item.ir_value), result: item.result
+    });
+  }
+  return [...byId.values()];
+}
 export async function readInspection(pool, params) {
   const process = params.get('process');
   const action = params.get('action') || 'bootstrap';
@@ -140,11 +157,13 @@ export async function readInspection(pool, params) {
     if (action !== 'chart') invalid('Unsupported action.');
     return { result: 'success', process, data: await attachReviews(pool, process, await rangeRecords(pool, process, params)) };
   }
-  if (!APPEARANCE.has(process) && !STARTUP.has(process) && !GENERAL[process] && process !== 'startup_resealing' && process !== 'ip_dsf') invalid('Unknown process.');
-  if (STARTUP.has(process) || process === 'startup_resealing' || process === 'ip_dsf') {
+  const listOnly = STARTUP.has(process) || ['startup_resealing', 'ip_dsf', 'ir'].includes(process);
+  if (!APPEARANCE.has(process) && !GENERAL[process] && !listOnly) invalid('Unknown process.');
+  if (listOnly) {
     if (!['bootstrap','records'].includes(action)) invalid('Unknown action.');
     const data = STARTUP.has(process) ? await startupRecords(pool, process)
-      : process === 'startup_resealing' ? await resealingRecords(pool) : await ipRecords(pool);
+      : process === 'startup_resealing' ? await resealingRecords(pool)
+      : process === 'ir' ? await irRecords(pool) : await ipRecords(pool);
     await attachReviews(pool, process, data, STARTUP.has(process) ? record => record.checkId : record => record.id);
     return { result: 'success', process, data };
   }
