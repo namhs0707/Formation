@@ -29,7 +29,7 @@ const cases = [
     degasLine: '4-1', defect: ['Dent'], comment: 'Test', defectMap: '[]' },
   { process: 'hta', ...teams, hta11: 60, hta12: 60, hta21: 60, hta22: 60,
     hta31: 60, hta32: 60, hta41: 60, hta42: 60 },
-  { process: 'maintenance', ...teams, line: 'EOL 4-1', equipment: 'Tape',
+  { process: 'maintenance', ...teams, line: 'EOL 4-1', equipment: 'Knife',
     maintenance: 'Cleaning', tapingLine: 'A' },
   { process: 'conductive', ...teams, rubberProcess: 'Degas', line: '4-1',
     measurement: 'IR', units: ['1A'], action: 'Flip', comment: '' },
@@ -127,8 +127,12 @@ const jigToday = startupView.sheets.find(sheet => sheet.process === 'startup_jig
 assert.ok(jigToday.sheets >= 1 && jigToday.issues >= 1, 'jig sheet with "No" counts as an issue today');
 assert.equal(startupView.sheets.find(sheet => sheet.process === 'startup_resealing').days.at(-1).issues, 0);
 const tapeView = await statusOfView('maintenance');
-assert.equal(tapeView.lines.find(line => line.line === 'EOL 4-1').cells[0].days, 0, 'EOL 4-1 tape cleaning was done today');
-assert.equal(tapeView.lines.find(line => line.line === 'EOL 5-2').cells[0].days, null);
+assert.deepEqual(tapeView.columns.map(column => column.equipment + ' ' + column.maintenance), ['Tape Replace', 'Knife Cleaning', 'Knife Replace'], 'Tape is never cleaned');
+assert.equal(tapeView.lines.find(line => line.line === 'EOL 4-1').cells[1].days, 0, 'EOL 4-1 knife cleaning was done today');
+assert.equal(tapeView.lines.find(line => line.line === 'EOL 5-2').cells[1].days, null);
+const tapeCleaning = await fetch(base + '/api/inspections', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ process: 'maintenance', ...teams, line: 'EOL 4-1', equipment: 'Tape', maintenance: 'Cleaning', tapingLine: 'A' }) });
+assert.equal(tapeCleaning.status, 400, 'Tape cleaning is rejected');
 const rubberView = await statusOfView('conductive');
 const eolIv = rubberView.modes.find(mode => mode.mode === 'EOL IV');
 assert.equal(eolIv.lines.find(line => line.line === '4-1').cells[eolIv.units.indexOf('2A')].days, 0);

@@ -146,7 +146,49 @@
   .mini-cal i.ok { background: var(--ok-tint); color: var(--ok); }
   .mini-cal i.ng { background: var(--bad); color: #fff; }
 
+  /* IP check sheet: process images + A/B/C table (live format) */
+  .legend-line { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+  .ipimgs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .ipimg { margin: 0; border: 1px solid var(--line); border-radius: 6px; background: #fff; overflow: hidden; }
+  .ipimg img { display: block; width: 100%; height: 150px; object-fit: contain; padding: 8px; background: #fbfcfd; }
+  .ipimg figcaption { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--line); font-size: 14px; }
+  .ipimg figcaption b { color: var(--ink); font-weight: 600; }
+  .ipimg figcaption span { padding: 1px 8px; border-radius: 3px; font-size: 12px; font-weight: 700; color: var(--idle); background: var(--idle-tint); white-space: nowrap; }
+  .ipimg.out { border-color: #efc2bf; }
+  .ipimg.out figcaption span { color: #fff; background: var(--bad); }
+  .ipscroll { max-width: 100%; }
+  table.ipt { border-collapse: separate; border-spacing: 0; font-size: 13.5px; min-width: 100%; }
+  .ipt th, .ipt td { border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .ipt thead th { background: #f4f8f7; color: var(--ink); font-weight: 600; text-align: center; padding: 6px 10px; }
+  .ipt thead th.grp { font-size: 13.5px; border-left: 2px solid var(--line-strong); }
+  .ipt thead th.pt { color: var(--ok); font-size: 13px; }
+  .ipt thead th.spec { color: var(--muted); font-size: 12px; font-weight: 500; }
+  .ipt .gs { border-left: 2px solid var(--line-strong); }
+  .ipt .pt:not(.gs), .ipt .spec:not(.gs), .ipt td.v:not(.gs) { border-left: 1px solid var(--line); }
+  .ipt .stick { position: sticky; z-index: 1; background: #fff; text-align: left; }
+  .ipt thead .stick { z-index: 2; background: #f4f8f7; }
+  .ipt .stick.d { left: 0; min-width: 118px; padding: 8px 10px; }
+  .ipt .stick.l { left: 118px; min-width: 92px; padding: 8px 10px; box-shadow: 1px 0 0 var(--line-strong); }
+  .ipt td.stick.d b { display: block; color: var(--ink); font-weight: 600; }
+  .ipt td.stick.d .pill { margin-top: 3px; }
+  .ipt .mline { display: none; }
+  .ipt tr.has-out td.stick.d { box-shadow: inset 4px 0 0 var(--bad); }
+  .ipt .outtag { display: inline-block; margin: 3px 6px 0 0; padding: 1px 6px; border-radius: 3px; color: #fff; background: var(--bad); font-size: 11.5px; font-weight: 700; }
+  .ipt td.v { padding: 8px 12px; text-align: center; font-variant-numeric: tabular-nums; }
+  .ipt td.v span { display: inline-block; min-width: 54px; color: var(--text); }
+  .ipt td.v span + span { margin-left: 6px; color: var(--muted); }
+  .ipt td.v.bad { background: var(--bad-tint); }
+  .ipt td.v span.b { color: var(--bad); font-weight: 700; }
+  .ipt tbody tr:hover td { background: #f7f9fb; }
+  .ipt tbody tr:hover td.v.bad { background: #f8dcda; }
   @media (max-width: 900px) {
+    .ipimgs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ipimg img { height: 110px; }
+    .ipt .stick.d { min-width: 104px; padding: 8px; }
+    .ipt .stick.l { position: static; min-width: 0; box-shadow: none; }
+    .ipt .mline { display: block; font-size: 12.5px; color: var(--muted); }
+    .ipt tr td.stick.d, .ipt thead th.stick.d { box-shadow: 1px 0 0 var(--line-strong); }
+    .ipt tr.has-out td.stick.d { box-shadow: inset 4px 0 0 var(--bad), 1px 0 0 var(--line-strong); }
     .grid2, .grid-wide { grid-template-columns: 1fr; }
     .today { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .today div:nth-child(3) { border-left: 0; }
@@ -301,24 +343,74 @@ pages.push(['Start-up', () => {
 }]);
 
 // ---------- IP check sheet ----------
+// Same process images and A/B/C table as the live page; the coverage table on top shows which line was checked each day.
+const IP_COLS = [
+  { group: '2nd Wing Press', lane: '', img: 'ip-check-image3.png', pts: [['A', '0.4 < X < 0.5', 0.4, 0.5, 0.45], ['B', '2 < X < 2.5', 2, 2.5, 2.25], ['C', '120 < X < 122', 120, 122, 121]] },
+  { group: '90° Folding', lane: '', img: 'ip-check-image1.png', pts: [['A', '0.5 < X', 0.5, null, 0.8], ['B', '0.5 < X', 0.5, null, 0.9]] },
+  { group: '3rd Wing Press', lane: 'A', img: 'ip-check-image3.png', pts: [['A', '0.8 < X < 1.0', 0.8, 1, 0.9], ['B', '3.0 < X < 3.5', 3, 3.5, 3.2], ['C', '120 < X < 122', 120, 122, 121]] },
+  { group: '3rd Wing Press', lane: 'B', img: 'ip-check-image3.png', pts: [['A', '0.8 < X < 1.0', 0.8, 1, 0.92], ['B', '3.0 < X < 3.5', 3, 3.5, 3.15], ['C', '120 < X < 122', 120, 122, 120.9]] },
+  { group: '270° Folding', lane: 'A', img: 'ip-check-image2.png', pts: [['A', '3 < X', 3, null, 3.4], ['B', '1.5 < X', 1.5, null, 1.8], ['C', '1.5 < X', 1.5, null, 1.7]] },
+  { group: '270° Folding', lane: 'B', img: 'ip-check-image2.png', pts: [['A', '3 < X', 3, null, 3.6], ['B', '1.5 < X', 1.5, null, 1.9], ['C', '1.5 < X', 1.5, null, 1.8]] }
+];
+// Rows match the coverage table: [date, line, {"col.point.side": value} for readings out of spec].
+const IP_ROWS = [
+  ['2026-10-07', 'EOL #5-1', { '4.1.+': 1.38 }],
+  ['2026-10-07', 'EOL #4-1', {}],
+  ['2026-10-06', 'EOL #5-1', { '0.0.+': 0.52, '3.1.-': 3.6 }],
+  ['2026-10-06', 'EOL #4-2', {}],
+  ['2026-10-05', 'EOL #5-1', {}],
+  ['2026-10-05', 'EOL #4-1', {}],
+  ['2026-10-04', 'EOL #5-2', {}],
+  ['2026-10-04', 'EOL #4-2', {}]
+];
+const ipFmt = v => String(Number(v.toFixed(3)));
+const ipIn = (v, lo, hi) => v > lo && (hi == null || v < hi);
+
 pages.push(['IP check sheet', () => {
-  const cov = [['EOL #4-1', '-o-o-o-o-o-o-o'], ['EOL #4-2', 'o-o-o-o-o-o-o-'], ['EOL #5-1', '-o-o-o-o-o-oxx'.slice(0, 14)], ['EOL #5-2', 'o-o-o-o-o-o-i-']];
+  const cov = [['EOL #4-1', '-o-o-o-o-o-o-o'], ['EOL #4-2', 'o-o-o-o-o-o-o-'], ['EOL #5-1', '-o-o-o-o-o-oxx'], ['EOL #5-2', 'o-o-o-o-o-o-i-']];
   const s = { o: 'ok', x: 'bad', i: 'idle', '-': 'na' };
-  const pts = [['2nd Wing Press · a', '0.4 – 0.5', 0.46, 0.4, 0.5], ['2nd Wing Press · b', '2 – 2.5', 2.31, 2, 2.5], ['2nd Wing Press · c', '120 – 122', 121.2, 120, 122],
-    ['90° Folding · a', '> 0.5', 0.62, 0.5, 0.8], ['3rd Wing Press A · a', '0.8 – 1.0', 0.93, 0.8, 1.0], ['3rd Wing Press A · c', '0.4 – 0.5', 0.53, 0.4, 0.5]];
+  let seed = 7;
+  const jitter = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280 - 0.5; };
+  const rows = IP_ROWS.map(([date, line, outs]) => {
+    const cells = IP_COLS.map((col, ci) => col.pts.map(([p, t, lo, hi, mid], pi) => {
+      const span = hi == null ? 0.3 : (hi - lo) * 0.6;
+      return ['+', '-'].map(side => {
+        const forced = outs[ci + '.' + pi + '.' + side];
+        const v = forced != null ? forced : Math.round((mid + jitter() * span) * (mid > 100 ? 10 : 100)) / (mid > 100 ? 10 : 100);
+        return { v, bad: !ipIn(v, lo, hi), side };
+      });
+    }));
+    return { date, line, cells, out: cells.flat(2).filter(c => c.bad).length };
+  });
+  // Out-of-spec count per image, over the rows in the date range.
+  const imgOut = ['2nd Wing Press', '90° Folding', '3rd Wing Press', '270° Folding'].map(name => ({
+    name, img: IP_COLS.find(c => c.group === name).img,
+    out: rows.reduce((n, r) => n + IP_COLS.reduce((m, c, ci) => m + (c.group === name ? r.cells[ci].flat().filter(x => x.bad).length : 0), 0), 0)
+  }));
+  const colHead = col => col.group + (col.lane ? ' (' + col.lane + ')' : '');
+  const table = '<table class="ipt"><thead>' +
+    '<tr><th class="stick d" rowspan="3">Date</th><th class="stick l" rowspan="3">Line</th>' + IP_COLS.map(c => '<th class="grp" colspan="' + c.pts.length + '">' + colHead(c) + '</th>').join('') + '</tr>' +
+    '<tr>' + IP_COLS.map(c => c.pts.map(([p], i) => '<th class="pt' + (i === 0 ? ' gs' : '') + '">' + p + '</th>').join('')).join('') + '</tr>' +
+    '<tr>' + IP_COLS.map(c => c.pts.map(([, t], i) => '<th class="spec' + (i === 0 ? ' gs' : '') + '">' + t + '</th>').join('')).join('') + '</tr></thead><tbody>' +
+    rows.map(r => '<tr' + (r.out ? ' class="has-out"' : '') + '><td class="stick d"><b>' + r.date + '</b><span class="mline">' + r.line + '</span>' +
+        (r.out ? '<span class="outtag">' + r.out + ' out</span>' : '') + '<span class="pill pend">Pending</span></td>' +
+      '<td class="stick l">' + r.line + '</td>' +
+      r.cells.map(col => col.map((pair, i) => '<td class="v' + (i === 0 ? ' gs' : '') + (pair.some(x => x.bad) ? ' bad' : '') + '">' +
+        pair.map(x => '<span class="' + (x.bad ? 'b' : '') + '">' + (x.side === '+' ? '+' : '−') + ipFmt(x.v) + '</span>').join('') + '</td>').join('')).join('') + '</tr>').join('') +
+    '</tbody></table>';
+
   return header('IP check sheet / DSF', 'DSF daily IP check', 'New IP check') +
-    today([['EOL #5-1', 'Checked today'], ['1', 'Points out of range today', true], ['13 / 14', 'Days checked, last 14'], ['21:57', 'Last check']]) +
-    why('공정 그림 4장이 화면 위를 크게 차지하던 것을 작은 참고 그림으로 줄이고, <b>라인 × 날짜 점검 현황</b>(하루 한쪽 라인 점검 규칙이 지켜지는지)과 <b>최근 측정값의 스펙 위치</b>를 먼저 보여 줍니다.') +
+    today([['#4-1 · #5-1', 'Lines checked today'], ['1', 'Points out of spec today', true], ['13 / 14', 'Days checked, last 14'], ['21:57', 'Last check']]) +
+    why('<b>Which line was checked</b> 표를 위에 추가하고, <b>공정 그림 4장과 A/B/C 측정 표는 지금 형식 그대로</b> 둠. 대신 표는 ① 스펙 밖 행 전체를 빨갛게 칠하던 것을 왼쪽 빨간 줄 + "N out" 표시로 바꾸고 스펙 밖 <b>칸만</b> 빨강, ② 0.4440처럼 붙던 0을 빼고 입력한 자릿수만, ③ 오른쪽으로 넘길 때 Date·Line 칸이 고정, ④ 공정 사이에 굵은 구분선. 그림 위 숫자는 <b>선택한 기간</b> 기준으로 세고, 0이면 회색.') +
     '<div class="panel" style="margin-bottom:18px"><h3>Which line was checked <small>last 14 days</small></h3><div class="pad scroll"><table class="sm"><tr><th></th>' + DAYS14.map(d => '<th>' + d.slice(3) + '</th>').join('') + '</tr>' +
       cov.map(([l, c]) => '<tr><th class="row">' + l + '</th>' + c.padEnd(14, '-').split('').map((ch, i) => '<td class="' + s[ch] + (i === 13 ? ' now' : '') + '">' + MARK[s[ch]] + '</td>').join('') + '</tr>').join('') +
-      '</table><div style="font-size:12.5px;color:var(--muted);margin-top:6px">✓ 점검, 모두 스펙 안 · ✕ 스펙 밖 있음 · ○ 순서인데 점검 없음 · – 그날 순서 아님</div></div></div>' +
-    '<div class="grid-wide"><div class="panel"><h3>Latest check: EOL #5-1 <small>10/07 21:57, (+) side</small></h3><div class="pad">' +
-      pts.map(([n, t, v, lo, hi]) => { const span = hi - lo, min = lo - span * 0.6, max = hi + span * 0.6, pos = Math.max(2, Math.min(98, (v - min) / (max - min) * 100)), bad = v < lo || v > hi;
-        return '<div class="rb"><span>' + n + '<br><small style="color:var(--muted)">' + t + '</small></span><span class="track"><span class="band"></span><span class="dot' + (bad ? ' bad' : '') + '" style="left:' + pos + '%"></span></span><span class="v' + (bad ? ' bad' : '') + '">' + v + '</span></div>'; }).join('') +
-      '<div style="font-size:12.5px;color:var(--muted);margin-top:6px">초록 띠 = 스펙 범위. 점이 띠 밖이면 빨강.</div></div></div>' +
-    '<div class="panel"><h3>Reference <small>작게</small></h3><div class="pad" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
-      ['2nd Wing Press', '90° Folding', '3rd Wing Press', '270° Folding'].map(n => '<div style="border:1px solid var(--line);border-radius:4px;height:84px;display:grid;place-items:center;font-size:12px;color:var(--muted)">' + n + '<br>(그림)</div>').join('') + '</div></div></div>' +
-    '<div class="panel"><h3>Measurement history <small>지금 표 유지, 스펙 밖 값만 빨간 칸</small></h3><div class="pad" style="color:var(--muted)">기존 공정별 A/B/C 표</div></div>';
+      '</table><div class="legend-line">✓ 점검, 모두 스펙 안 · ✕ 스펙 밖 있음 · ○ 순서인데 점검 없음 · – 그날 순서 아님</div></div></div>' +
+    '<div class="panel"><h3>DSF daily IP checks <small>10/04 – 10/07 · 8 checks</small></h3>' +
+      '<div class="ipimgs">' + imgOut.map(m => '<figure class="ipimg' + (m.out ? ' out' : '') + '"><img src="../../public/' + m.img + '" alt="' + m.name + ' measurement points"><figcaption><b>' + m.name + '</b>' +
+        '<span>' + (m.out ? m.out + ' out' : 'All in spec') + '</span></figcaption></figure>').join('') + '</div>' +
+      '<div class="chips"><span class="chip on">All 8</span><span class="chip">Out of spec only 2</span><span class="chip">Line: All ▾</span><span class="chip">Waiting for review 8</span>' +
+        '<span class="legend-line" style="margin:0 0 0 auto;align-self:center">값은 (+) / (−) 순서. 스펙 밖 값은 빨간 글자.</span></div>' +
+      '<div class="scroll ipscroll">' + table + '</div></div>';
 }]);
 
 // ---------- IR ----------

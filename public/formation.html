@@ -649,6 +649,10 @@
     .jig-equipment-header { display: flex; align-items: start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
     .jig-equipment-header h4 { margin: 0; color: var(--ink); font-size: 13px; font-weight: 800; letter-spacing: .02em; }
     .jig-equipment-header p { margin: 2px 0 0; color: var(--muted); font-size: 10px; }
+    .jig-equipment-actions { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; }
+    .jig-photo-button { width: auto; min-height: 26px; margin: 0; padding: 2px 10px; color: #fff; background: var(--primary); border: 0; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .jig-photo-button:hover { filter: brightness(1.08); }
+    .jig-photo-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
     .jig-equipment-count { flex: 0 0 auto; padding: 3px 7px; color: #1e3a8a; background: #dbeafe; border-radius: 999px; font-size: 10px; font-weight: 800; }
     .jig-equipment-axis { margin: 0 0 5px 48px; color: var(--muted); font-size: 10px; font-weight: 800; text-align: center; text-transform: uppercase; letter-spacing: .08em; }
     .jig-equipment-grid {
@@ -761,7 +765,7 @@
     .gallery-thumbnail-button img { display: block; width: 100%; height: 66px; object-fit: cover; border-radius: 4px; }
     .hta-fields { display:none; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:14px; }
     .hta-fields .form-group { margin:0; }
-    .chart-dashboard { display:none; }
+    .chart-dashboard { display:none; min-width:0; }
     .chart-dashboard.open { display:block; }
     .hta-chart-filter { display:flex; align-items:end; gap:12px; margin-bottom:16px; padding:14px 16px; background:white; border:1px solid #e2e8f0; border-radius:12px; }
     .hta-chart-filter .form-group { width:min(220px, 100%); margin:0; }
@@ -1245,57 +1249,74 @@
     .ip-lane-card .ip-target-status { grid-column: 1; }
     .ip-lane-card .ip-measure-row:first-of-type { border-top: 0; }
     .ip-dashboard { display: grid; gap: 14px; }
+    .ip-coverage-wrap { overflow-x: auto; }
+    .ip-coverage-table { width: 100%; min-width: 560px; border-collapse: separate; border-spacing: 3px; font-size: 12px; }
+    .ip-coverage-table th { padding: 2px 4px; color: var(--muted); font-weight: 600; text-align: center; white-space: nowrap; }
+    .ip-coverage-table th[scope="row"] { padding-right: 10px; color: var(--ink); font-size: 13px; text-align: left; }
+    .ip-coverage-table th.today { color: var(--primary, #1d4ed8); }
+    .ip-coverage-table td { height: 28px; border-radius: 4px; text-align: center; font-size: 13px; font-weight: 700; }
+    .ip-coverage-table td.ok { color: #1f7a4d; background: #e6f2ec; }
+    .ip-coverage-table td.bad { color: #fff; background: var(--danger); }
+    .ip-coverage-table td.none { color: #c6ccd5; }
+    .ip-coverage-table td.today { box-shadow: inset 0 0 0 2px var(--primary, #1d4ed8); }
+    .ip-coverage-note { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
     .ip-dash-images { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
     .ip-dash-image { margin: 0; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
-    .ip-dash-image.has-out { border-color: var(--danger); box-shadow: 0 0 0 2px rgba(220, 38, 38, .2); }
+    .ip-dash-image.has-out { border-color: #efc2bf; }
     .ip-dash-image a { display: block; }
-    .ip-dash-image img { display: block; width: 100%; height: 150px; object-fit: contain; }
+    .ip-dash-image img { display: block; width: 100%; height: 130px; object-fit: contain; }
     .ip-dash-image figcaption { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 6px; color: var(--ink); font-size: 14px; font-weight: 700; }
-    .ip-dash-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .ip-dash-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
     .ip-dash-head small { color: var(--muted); font-size: 13px; }
-    .ip-dash-table-wrap { max-height: 70vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
-    .ip-dash-table { width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
-    .ip-dash-table th, .ip-dash-table td { height: auto; min-height: 0; padding: 5px 8px; line-height: 1.3; border-bottom: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .ip-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -4px 0 0; }
+    .ip-filters small { margin-left: auto; color: var(--muted); font-size: 12px; }
+    .ip-chip { width: auto; min-height: 32px; margin: 0; padding: 2px 12px; color: var(--muted); background: #fff; border: 1px solid var(--border); border-radius: 16px; font: inherit; font-size: 13px; font-weight: 600; box-shadow: none; cursor: pointer; transition: border-color .15s, color .15s; }
+    .ip-chip:hover { border-color: #94a3b8; }
+    .ip-chip[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+    .ip-chip:focus-visible, .ip-line-filter:focus-visible { outline: 2px solid var(--primary, #1d4ed8); outline-offset: 2px; }
+    .ip-line-filter { width: auto; min-height: 32px; margin: 0; padding: 2px 10px; border-radius: 16px; font-size: 13px; }
+    /* The whole table fits the page width: columns shrink and a value pair wraps at "/" before the table scrolls. */
+    .ip-dash-table-wrap { max-height: 75vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+    .ip-dash-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .ip-dash-table th, .ip-dash-table td { height: auto; min-height: 0; white-space: normal; padding: 4px 5px; line-height: 1.3; border-bottom: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle); }
     .ip-dash-table thead { position: sticky; top: 0; z-index: 3; }
-    .ip-dash-table thead th { background: #f0fdfa; color: #0f766e; text-align: center; }
-    .ip-dash-table thead tr.ip-head-group th { color: var(--ink); font-size: 13px; border-bottom-color: var(--border); }
-    .ip-dash-table thead tr.ip-head-spec th { color: var(--muted); font-size: 12px; font-weight: 600; }
+    .ip-dash-table thead th { background: #f0fdfa; color: #0f766e; text-align: center; font-size: 12px; }
+    .ip-dash-table thead tr.ip-head-group th { color: var(--ink); border-bottom-color: var(--border); }
+    .ip-dash-table thead tr.ip-head-spec th { color: var(--muted); font-size: 11px; font-weight: 600; }
+    .ip-dash-table thead tr.ip-head-sign th { color: var(--muted); font-size: 11px; font-weight: 500; white-space: nowrap; }
     .ip-dash-table th.ip-group-start, .ip-dash-table td.ip-group-start { border-left: 2px solid #94a3b8; }
-    .ip-dash-table .ip-col-date, .ip-dash-table .ip-col-line { position: sticky; z-index: 1; background: var(--surface); text-align: center; }
-    .ip-dash-table .ip-col-date { left: 0; min-width: 104px; width: 104px; }
-    .ip-dash-table .ip-col-line { left: 104px; min-width: 84px; width: 84px; box-shadow: 2px 0 0 var(--border); }
-    .ip-dash-table thead .ip-col-date, .ip-dash-table thead .ip-col-line { z-index: 4; background: #f0fdfa; color: #0f766e; vertical-align: middle; }
+    .ip-dash-table .ip-col-date { position: sticky; left: 0; z-index: 1; min-width: 84px; background: var(--surface); text-align: left; box-shadow: 2px 0 0 var(--border); }
+    .ip-dash-table thead .ip-col-date { z-index: 4; background: #f0fdfa; color: #0f766e; vertical-align: middle; text-align: center; }
+    .ip-dash-table td.ip-col-date b { display: block; color: var(--ink); font-size: 13px; }
+    .ip-dash-table .ip-col-line { display: block; color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .ip-dash-table .ip-out-count { display: inline-block; margin: 2px 4px 0 0; padding: 0 5px; border-radius: 3px; color: #fff; background: var(--danger); font-size: 11px; font-weight: 700; }
+    .ip-dash-table td.ip-col-date .review-badge { margin-top: 2px; padding: 1px 5px; font-size: 10.5px; white-space: normal; text-align: left; }
+    .ip-dash-table tr.ip-row-out td.ip-col-date { box-shadow: inset 4px 0 0 var(--danger), 2px 0 0 var(--border); }
     .ip-dash-table td.ip-cell { text-align: center; }
-    .ip-dash-table td.ip-cell.out { background: #fef2f2; box-shadow: inset 0 0 0 2px var(--danger); }
-    .ip-dash-table tr.ip-row-out td.ip-col-date, .ip-dash-table tr.ip-row-out td.ip-col-line { color: #fff; background: var(--danger); font-weight: 800; }
-    .ip-dash-table tr.ip-row-out td { background-color: #fff7f7; }
-    .ip-dash-table tr.ip-row-out td.ip-cell.out { background: #fee2e2; }
-    .ip-dash-table .ip-out-count { display: block; font-size: 11px; font-weight: 700; }
-    .ip-dash-values { display: inline-flex; gap: 4px; }
-    .ip-val { display: inline-block; min-width: 46px; padding: 1px 4px; border-radius: 4px; }
-    .ip-val.out { color: #fff; background: var(--danger); font-weight: 800; }
-    .ip-val.out::after { content: ' \26A0'; }
+    .ip-dash-table td.ip-cell.out { background: #fdecec; }
+    .ip-dash-table tbody tr:hover td { background-color: #f7f9fb; }
+    .ip-dash-table tbody tr:hover td.ip-cell.out { background: #f9dcdc; }
+    .ip-val { white-space: nowrap; }
+    .ip-val.out { color: var(--danger); font-weight: 800; }
+    .ip-val-sep { color: #a3acb8; }
     .ip-spec-badge { display: inline-flex; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
     .ip-spec-badge.ok { color: #166534; background: #dcfce7; }
     .ip-spec-badge.none { color: #475569; background: #e2e8f0; }
-    .ip-spec-badge.out { color: #fff; background: var(--danger); animation: ip-spec-pulse 1.6s ease-in-out infinite; }
-    @keyframes ip-spec-pulse { 50% { box-shadow: 0 0 0 4px rgba(220, 38, 38, .25); } }
-    @media (prefers-reduced-motion: reduce) { .ip-spec-badge.out { animation: none; } }
+    .ip-spec-badge.out { color: #fff; background: var(--danger); }
     .ip-dash-empty { color: var(--muted); text-align: center; }
     @media (max-width: 900px) {
       .ip-dash-images { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .ip-dash-image img { height: 120px; }
+      .ip-dash-image img { height: 110px; }
     }
     @media (max-width: 767px) {
       .ip-dash-head { flex-direction: column; align-items: flex-start; gap: 4px; }
-      .ip-dash-table-wrap { max-height: 75vh; }
+      .ip-filters small { flex-basis: 100%; margin-left: 0; }
+      .ip-dash-table { width: max-content; min-width: 100%; }
       .ip-dash-table thead { display: table-header-group; }
       .ip-dash-table tbody { display: table-row-group; }
       .ip-dash-table tr, .ip-dash-table tbody tr { display: table-row; margin: 0; border: 0; border-radius: 0; }
-      .ip-dash-table th, .ip-dash-table td, .ip-dash-table tbody td { display: table-cell; width: auto; min-height: 0; padding: 6px 8px; }
+      .ip-dash-table th, .ip-dash-table td, .ip-dash-table tbody td { display: table-cell; width: auto; min-height: 0; padding: 5px 6px; }
       .ip-dash-table tbody td::before { content: none; display: none; }
-      .ip-dash-table .ip-col-date { min-width: 92px; width: 92px; }
-      .ip-dash-table .ip-col-line { left: 92px; min-width: 76px; width: 76px; }
     }
     .ip-measure-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .9fr); align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border-subtle); }
     .ip-measure-name { color: var(--label); font-weight: 700; }
@@ -1378,17 +1399,45 @@
     .temperature-panel { margin-bottom: 18px; }
     .temperature-panel-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
     .temperature-panel-header h3 { margin: 0; }
-    .temperature-panel .chart-grid { margin-bottom: 14px; }
     .temperature-panel { min-width: 0; overflow: hidden; }
     @media (min-width: 768px) { .temperature-panel table { min-width: 720px; } }
+    /* One chart per row: every group gets the full width so lines have room to separate. */
+    .temperature-chart-stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-bottom: 16px; }
+    .temperature-chart-card { padding: 16px 18px 12px; }
+    .temperature-chart-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; margin-bottom: 8px; }
+    .temperature-chart-head h3 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+    .temperature-chart-stats { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; font-variant-numeric: tabular-nums; }
+    .temperature-chart-stats div { display: flex; align-items: baseline; gap: 6px; }
+    .temperature-chart-stats dt { color: var(--muted, #64748b); font-size: 12px; font-weight: 500; }
+    .temperature-chart-stats dd { margin: 0; color: var(--text, #0f172a); font-size: 14px; font-weight: 600; }
+    .temperature-chart-stats .bad dd { color: #c0352f; }
+    .temperature-chart-stats .ok dd { color: #1d7a52; }
     .temperature-chart { position: relative; }
-    .temperature-tooltip { position: absolute; z-index: 2; pointer-events: none; min-width: 120px; padding: 8px 10px; color: #0b0b0b; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 14px rgba(15, 23, 42, .12); font-size: 12px; line-height: 1.5; white-space: nowrap; }
+    .temperature-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .temperature-spec-band { fill: #e9f5ee; }
+    .temperature-spec-label { fill: #3b8a63; font-size: 11px; font-weight: 600; }
+    .temperature-gridline { stroke: #eef1f5; }
+    .temperature-axis { stroke: #cbd5e1; }
+    .temperature-axis-tick { stroke: #cbd5e1; }
+    .temperature-axis-label { fill: #8a8f98; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .temperature-out-point { fill: #c0352f; stroke: #fff; stroke-width: 1.5; }
+    .temperature-crosshair { stroke: #94a3b8; stroke-dasharray: 3 3; }
+    .temperature-tooltip { position: absolute; z-index: 2; pointer-events: none; min-width: 140px; padding: 8px 10px; color: #0b0b0b; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 6px 18px rgba(15, 23, 42, .12); font-size: 12px; line-height: 1.6; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .temperature-tooltip[hidden] { display: none; }
-    .temperature-tooltip-swatch { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; }
-    .temperature-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; color: var(--muted, #52514e); font-size: 12px; }
-    .temperature-legend span { display: inline-flex; align-items: center; gap: 5px; }
-    .temperature-legend i { display: inline-block; width: 14px; height: 2px; border-radius: 1px; }
-    .temperature-legend i.spec { height: 0; border-top: 2px dashed #d03b3b; }
+    .temperature-tooltip-date { margin-bottom: 2px; font-weight: 600; }
+    .temperature-tooltip .out b { color: #c0352f; }
+    .temperature-tooltip-swatch { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; }
+    .temperature-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+    .temperature-legend button { flex: 0 0 auto; width: auto; margin: 0; box-shadow: none; display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 2px 10px; color: var(--text, #0f172a); background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; transition: opacity .15s, border-color .15s, background-color .15s; }
+    .temperature-legend button:hover { border-color: #94a3b8; }
+    .temperature-legend button:focus-visible { outline: 2px solid var(--primary, #1d4ed8); outline-offset: 2px; }
+    .temperature-legend button[aria-pressed="false"] { color: #94a3b8; background: #f8fafc; }
+    .temperature-legend button[aria-pressed="false"] i { opacity: .3; }
+    .temperature-legend i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; }
+    @media (max-width: 767px) {
+      .temperature-chart-card { padding: 12px 10px 8px; }
+      .temperature-chart-stats { gap: 2px 12px; }
+    }
     .process-category-direct.active { color: #c2410c; background: #ffedd5; }
     @media (max-width: 767px) {
       .temperature-input-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -1666,6 +1715,8 @@
     .age-cell.d4 { background: #4f78cc; color: #fff; }
     .age-blocks { display: flex; flex-wrap: wrap; gap: 12px 32px; }
     .age-block { min-width: 0; max-width: 100%; }
+    .age-blocks.equipment-blocks { column-gap: 64px; }
+    @media (max-width: 480px) { .age-blocks.equipment-blocks { column-gap: 24px; } }
     .age-block h4 { margin: 0 0 4px; font-size: 14px; color: var(--ink); }
     .sheet-matrix { width: 100%; min-width: 560px; }
     .sheet-matrix tbody tr { cursor: pointer; }
@@ -1788,18 +1839,37 @@
     #weeklyMapCard .jig-equipment-cell.count-3 { background: #8eaae0; border-color: #6d8fd6; }
     #weeklyMapCard .jig-equipment-dots { left: 0; right: 0; bottom: 3px; justify-content: center; }
     #weeklyMapCard .jig-equipment-dot { width: 5px; height: 5px; }
-    .line-defect-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) 28px; gap: 8px; align-items: center; min-height: 30px; font-size: 14px; }
-    .line-defect-track i { display: block; height: 10px; min-width: 2px; border-radius: 0 3px 3px 0; background: #5c6878; }
-    .line-defect-row b { text-align: right; color: var(--ink); }
+    .line-defect-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 220px)); gap: 10px; }
+    .line-defect-card { display: grid; gap: 8px; align-content: start; padding: 10px 12px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; background: #fff; }
+    .line-defect-card.top { border-color: #94a3b8; box-shadow: inset 0 0 0 1px #94a3b8; }
+    button.line-defect-card { width: 100%; min-height: 0; margin: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s, box-shadow .15s, opacity .15s, transform .1s; }
+    button.line-defect-card:hover { border-color: var(--primary, #2454d8); }
+    button.line-defect-card:active { transform: translateY(1px); }
+    button.line-defect-card:focus-visible { outline: 2px solid var(--primary, #2454d8); outline-offset: 2px; }
+    .line-defect-card.selected { border-color: var(--primary, #2454d8); box-shadow: inset 0 0 0 2px var(--primary, #2454d8); background: #f5f8ff; }
+    .line-defect-card.dimmed { opacity: .45; }
+    .line-defect-card.no-line { background: #f8fafc; }
+    .line-defect-head { display: flex; width: 100%; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .line-defect-head span { color: var(--label); font-size: 14px; font-weight: 600; }
+    .line-defect-head b { color: var(--ink); font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
+    .line-defect-card.no-line .line-defect-head b { color: var(--muted); }
+    .line-defect-bar { display: flex; height: 8px; min-width: 2px; gap: 1px; overflow: hidden; border-radius: 4px; background: #eef1f5; }
+    .line-defect-bar i { display: block; min-width: 2px; opacity: .72; }
+    .line-defect-types { display: flex; flex-wrap: wrap; gap: 2px 10px; color: var(--muted); font-size: 12px; }
+    .line-defect-types > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .line-defect-types i { width: 7px; height: 7px; border-radius: 50%; opacity: .72; }
+    .line-defect-types b { color: var(--ink); font-weight: 700; }
     .line-defect-note { margin: 8px 0 0; color: var(--muted); font-size: 12.5px; }
-    .defect-type-strip { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 14px; padding: 12px 18px 14px; border-top: 1px solid var(--border-subtle); }
-    .defect-type-strip .strip-label { color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
-    .defect-type-strip .strip-bar { display: flex; gap: 2px; height: 6px; overflow: hidden; border-radius: 3px; background: #eef1f4; }
-    .defect-type-strip .strip-bar i { display: block; opacity: .45; }
-    .defect-type-strip .strip-legend { grid-column: 2; display: flex; flex-wrap: wrap; gap: 2px 14px; color: var(--muted); font-size: 12.5px; }
-    .defect-type-strip .strip-legend span { display: inline-flex; align-items: center; gap: 5px; }
-    .defect-type-strip .strip-legend i { width: 8px; height: 8px; border-radius: 50%; opacity: .6; }
-    .defect-type-strip .strip-legend b { color: var(--text); font-weight: 600; }
+    .defect-type-strip { display: grid; gap: 8px; padding: 14px 18px 16px; border-bottom: 1px solid var(--border-subtle); }
+    .defect-type-strip .strip-label { color: var(--ink); font-size: 14px; font-weight: 700; white-space: nowrap; }
+    .defect-type-strip .strip-bar { display: flex; gap: 2px; height: 26px; overflow: hidden; border-radius: 6px; background: #eef1f4; }
+    .defect-type-strip .strip-bar i { display: flex; align-items: center; justify-content: center; min-width: 3px; opacity: .78; }
+    .defect-type-strip .strip-bar span { color: #fff; font-size: 12px; font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 1px 1px rgba(15, 23, 42, .35); }
+    .defect-type-strip .strip-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font-size: 13px; }
+    .defect-type-strip .strip-legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .defect-type-strip .strip-legend i { width: 9px; height: 9px; border-radius: 2px; opacity: .78; }
+    .defect-type-strip .strip-legend b { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .defect-type-strip .strip-legend small { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
     .defect-type-strip .strip-empty { color: var(--muted); font-size: 13px; }
     .kpi-card .kpi-trend { display: flex; align-items: flex-end; gap: 3px; height: 24px; margin-top: 6px; }
     .kpi-card .kpi-trend i { flex: 1; max-width: 14px; min-height: 2px; border-radius: 2px 2px 0 0; background: #c5d4f0; }
@@ -1818,8 +1888,7 @@
     @media (max-width: 767px) {
       #weeklyMapCard .jig-equipment-panel { overflow-x: auto; }
       #weeklyMapCard .jig-equipment-grid { min-width: 520px; }
-      .defect-type-strip { grid-template-columns: 1fr; }
-      .defect-type-strip .strip-legend { grid-column: 1; }
+      .defect-type-strip { padding: 12px 14px 14px; }
       .appearance-filters .form-group { min-width: calc(50% - 7px); }
     }
   </style>
@@ -1938,6 +2007,7 @@
       <span class="weekly-map-toggle-meta"><span class="weekly-map-count" id="weeklyMapCount">0 points</span><span class="weekly-map-chevron">⌄</span></span>
     </button>
     <div class="weekly-map-body" id="weeklyMapBody">
+      <div class="defect-type-strip" id="weeklyMapLegend"></div>
       <div class="appearance-map-layout">
         <section class="map-cell-panel">
           <p class="map-sub">Position on the cell</p>
@@ -1949,15 +2019,14 @@
         <section class="map-where-panel">
           <section class="jig-equipment-panel" id="jigEquipmentPanel" aria-label="Jig line and hot jig equipment location map">
             <div class="jig-equipment-header">
-              <div><h4>Where: Jig line × Hot jig</h4><p>Darker = more defects. Tap a box to see its photos.</p></div>
-              <span class="jig-equipment-count" id="jigEquipmentCount">0 records</span>
+              <div><h4>Where: Jig line × Hot jig</h4><p id="jigEquipmentHelp">Darker = more defects. Click a box to show only it on the map.</p></div>
+              <span class="jig-equipment-actions"><button type="button" class="jig-photo-button" id="jigPhotoButton" hidden></button><span class="jig-equipment-count" id="jigEquipmentCount">0 records</span></span>
             </div>
             <div class="jig-equipment-grid" id="jigEquipmentGrid"></div>
           </section>
           <div class="line-defect-panel" id="lineDefectPanel" hidden></div>
         </section>
       </div>
-      <div class="defect-type-strip" id="weeklyMapLegend"></div>
     </div>
   </section>
 
@@ -3207,55 +3276,107 @@
       label: group.label + (lane === 'Common' ? '' : ' (' + lane + ')'),
       specs: IP_CHECK_ROWS.filter(spec => spec.id.startsWith(group.id + '-') && spec.lane === lane)
     })));
+    const IP_LINES = ['EOL #4-1', 'EOL #4-2', 'EOL #5-1', 'EOL #5-2'];
+    const IP_COVERAGE_DAYS = 14;
+    let ipDashboardRecords = [];
+    const ipDashboardFilter = { outOnly: false, line: '' };
+    // Values are stored as numeric(12,4); show them as entered (0.4400 -> 0.44).
+    const formatIpValue = raw => raw === '' || raw === null || raw === undefined ? '-' : Number.isFinite(Number(raw)) ? String(Number(raw)) : String(raw);
 
-    function renderIpDashboard(records) {
+    function renderIpDashboard(records = ipDashboardRecords) {
+      ipDashboardRecords = records;
       const dashboard = document.getElementById('ipDashboard');
       const rows = records.slice().reverse().map(record => {
         const byId = new Map((record.measurements || []).map(measure => [measure.id, measure]));
         const cells = new Map(IP_CHECK_ROWS.map(spec => {
           const measure = byId.get(spec.id);
           if (!measure) return [spec.id, { out: false, html: '<span class="ip-dash-empty">-</span>' }];
-          const values = [['+', measure.plus], ['−', measure.minus]].map(([sign, raw]) => {
+          const values = [measure.plus, measure.minus].map(raw => {
             const out = raw === '' || raw === null || raw === undefined ? !measure.inRange : !ipValueInRange(Number(raw), spec);
-            return { out, html: '<span class="ip-val' + (out ? ' out' : '') + '" title="' + (out ? 'Spec out (' + escapeText(spec.target) + ')' : 'Within spec') + '">' + sign + escapeText(raw ?? '-') + '</span>' };
+            return { out, html: '<span class="ip-val' + (out ? ' out' : '') + '"' + (out ? ' title="Spec out (' + escapeText(spec.target) + ')"' : '') + '>' + escapeText(formatIpValue(raw)) + '</span>' };
           });
-          return [spec.id, { out: values.some(value => value.out), html: '<span class="ip-dash-values">' + values.map(value => value.html).join('') + '</span>' }];
+          return [spec.id, { out: values.some(value => value.out), html: values[0].html + '<span class="ip-val-sep"> / </span>' + values[1].html }];
         }));
         return { record, cells, outCount: Array.from(cells.values()).filter(cell => cell.out).length };
       });
-      const groupOut = new Map(IP_CHECK_GROUPS.map(group => [group.id, rows.reduce((sum, row) =>
-        sum + IP_CHECK_ROWS.filter(spec => spec.id.startsWith(group.id + '-') && row.cells.get(spec.id).out).length, 0)]));
 
+      // Coverage and image counts use the last 14 days, so an old spec-out does not stay red forever.
+      const today = new Date();
+      const days = Array.from({ length: IP_COVERAGE_DAYS }, (_, index) =>
+        toDateInputValue(new Date(today.getFullYear(), today.getMonth(), today.getDate() - (IP_COVERAGE_DAYS - 1 - index))));
+      const recent = rows.filter(row => row.record.checkDate >= days[0]);
+      const coverage = new Map();
+      recent.forEach(row => {
+        const key = row.record.line + '|' + row.record.checkDate;
+        coverage.set(key, coverage.get(key) === 'bad' || row.outCount ? 'bad' : 'ok');
+      });
+      const coverageTable = '<section class="ip-coverage"><div class="ip-dash-head"><strong>Which line was checked</strong><small>Last ' + IP_COVERAGE_DAYS + ' days</small></div>' +
+        '<div class="ip-coverage-wrap"><table class="ip-coverage-table"><thead><tr><th></th>' +
+          days.map((day, index) => '<th' + (index === days.length - 1 ? ' class="today"' : '') + '>' + escapeText(day.slice(5).replace('-', '/')) + '</th>').join('') + '</tr></thead><tbody>' +
+          IP_LINES.map(line => '<tr><th scope="row">' + escapeText(line) + '</th>' + days.map((day, index) => {
+            const state = coverage.get(line + '|' + day) || 'none';
+            const label = state === 'ok' ? 'Checked, all in spec' : state === 'bad' ? 'Checked, spec out' : 'No check';
+            return '<td class="' + state + (index === days.length - 1 ? ' today' : '') + '" title="' + escapeText(line + ' · ' + day + ': ' + label) + '">' +
+              (state === 'ok' ? '✓' : state === 'bad' ? '✕' : '–') + '</td>';
+          }).join('') + '</tr>').join('') +
+        '</tbody></table></div><p class="ip-coverage-note">✓ Checked, all in spec · ✕ Checked, spec out · – No check</p></section>';
+
+      const groupOut = new Map(IP_CHECK_GROUPS.map(group => [group.id, recent.reduce((sum, row) =>
+        sum + IP_CHECK_ROWS.filter(spec => spec.id.startsWith(group.id + '-') && row.cells.get(spec.id).out).length, 0)]));
       const images = '<div class="ip-dash-images">' + IP_CHECK_GROUPS.map(group => {
         const out = groupOut.get(group.id);
         return '<figure class="ip-dash-image' + (out ? ' has-out' : '') + '">' +
           '<a href="' + escapeText(group.image) + '" target="_blank" rel="noopener"><img src="' + escapeText(group.image) + '" alt="' + escapeText(group.label) + ' measurement diagram" loading="lazy"></a>' +
-          '<figcaption>' + escapeText(group.label) + '<span class="ip-spec-badge ' + (out ? 'out' : rows.length ? 'ok' : 'none') + '">' +
-            (out ? out + ' out' : rows.length ? 'OK' : 'No data') + '</span></figcaption></figure>';
+          '<figcaption>' + escapeText(group.label) + '<span class="ip-spec-badge ' + (out ? 'out' : recent.length ? 'ok' : 'none') + '">' +
+            (out ? out + ' out' : recent.length ? 'All in spec' : 'No data') + '</span></figcaption></figure>';
       }).join('') + '</div>';
+
+      const outRows = rows.filter(row => row.outCount).length;
+      const shown = rows.filter(row => (!ipDashboardFilter.outOnly || row.outCount) && (!ipDashboardFilter.line || row.record.line === ipDashboardFilter.line));
+      const chip = (attrs, label, on) => '<button type="button" class="ip-chip" ' + attrs + ' aria-pressed="' + String(on) + '">' + label + '</button>';
+      const filters = '<div class="ip-filters" role="group" aria-label="Filter IP checks">' +
+        chip('data-ip-filter="all"', 'All ' + rows.length, !ipDashboardFilter.outOnly) +
+        chip('data-ip-filter="out"', 'Spec out only ' + outRows, ipDashboardFilter.outOnly) +
+        '<select class="ip-line-filter" aria-label="Line"><option value="">All lines</option>' +
+          IP_LINES.map(line => '<option value="' + escapeText(line) + '"' + (ipDashboardFilter.line === line ? ' selected' : '') + '>' + escapeText(line) + '</option>').join('') + '</select>' +
+        '<small>Newest on top. Hover a point letter for its name.</small></div>';
 
       const eachSpec = render => IP_DASHBOARD_COLUMNS.map(column =>
         column.specs.map((spec, index) => render(spec, index === 0 ? ' ip-group-start' : '')).join('')
       ).join('');
       const head = '<thead>' +
-        '<tr class="ip-head-group"><th class="ip-col-date" rowspan="3">Date</th><th class="ip-col-line" rowspan="3">Line</th>' +
+        '<tr class="ip-head-group"><th class="ip-col-date" rowspan="4">Date / Line</th>' +
           IP_DASHBOARD_COLUMNS.map(column => '<th class="ip-group-start" colspan="' + column.specs.length + '">' + escapeText(column.label) + '</th>').join('') + '</tr>' +
         '<tr class="ip-head-point">' + eachSpec((spec, start) => '<th class="' + start + '" title="' + escapeText(spec.name) + '">' + escapeText(spec.point.toUpperCase()) + '</th>') + '</tr>' +
         '<tr class="ip-head-spec">' + eachSpec((spec, start) => '<th class="' + start + '">' + escapeText(spec.target) + '</th>') + '</tr>' +
+        '<tr class="ip-head-sign">' + eachSpec((spec, start) => '<th class="' + start + '">(+) / (−)</th>') + '</tr>' +
       '</thead>';
-      const body = rows.length
-        ? rows.map(row => '<tr class="' + (row.outCount ? 'ip-row-out' : '') + '">' +
-            '<td class="ip-col-date"><span class="date-review">' + escapeText(row.record.checkDate) + (row.outCount ? '<span class="ip-out-count">⚠ ' + row.outCount + ' spec out</span>' : '') + reviewBadge(row.record.review) + '</span></td>' +
-            '<td class="ip-col-line">' + escapeText(row.record.line) + '</td>' +
+      const body = shown.length
+        ? shown.map(row => '<tr class="' + (row.outCount ? 'ip-row-out' : '') + '">' +
+            '<td class="ip-col-date" title="' + escapeText(row.record.checkDate) + '"><b>' + escapeText(row.record.checkDate.slice(5).replace('-', '/')) + '</b>' +
+              '<span class="ip-col-line">' + escapeText(row.record.line) + '</span>' +
+              (row.outCount ? '<span class="ip-out-count">' + row.outCount + ' out</span>' : '') + reviewBadge(row.record.review) + '</td>' +
             eachSpec((spec, start) => { const cell = row.cells.get(spec.id); return '<td class="ip-cell' + start + (cell.out ? ' out' : '') + '">' + cell.html + '</td>'; }) +
           '</tr>').join('')
-        : '<tr><td class="ip-col-date ip-dash-empty">No data yet</td><td class="ip-col-line ip-dash-empty">-</td>' +
+        : '<tr><td class="ip-col-date ip-dash-empty">' + (rows.length ? 'No match' : 'No data yet') + '</td>' +
             eachSpec((spec, start) => '<td class="ip-cell ip-dash-empty' + start + '">-</td>') + '</tr>';
 
-      dashboard.innerHTML = images +
-        '<div class="ip-dash-head"><strong>Measurement results</strong><small>Newest on top. Values are (+) / (−). Hover a point letter for its name.</small></div>' +
+      dashboard.innerHTML = coverageTable + images +
+        '<div class="ip-dash-head"><strong>Measurement results</strong></div>' + filters +
         '<div class="ip-dash-table-wrap"><table class="ip-dash-table">' + head + '<tbody>' + body + '</tbody></table></div>';
     }
+
+    document.getElementById('ipDashboard').addEventListener('click', event => {
+      const chip = event.target.closest('[data-ip-filter]');
+      if (!chip) return;
+      ipDashboardFilter.outOnly = chip.dataset.ipFilter === 'out';
+      renderIpDashboard();
+    });
+    document.getElementById('ipDashboard').addEventListener('change', event => {
+      if (!event.target.matches('.ip-line-filter')) return;
+      ipDashboardFilter.line = event.target.value;
+      renderIpDashboard();
+    });
 
     document.getElementById('ipChecklist').addEventListener('input', event => {
       const row = event.target.closest('.ip-measure-row');
@@ -3839,6 +3960,7 @@
       inspectionForm.reset();
       ['irTray1Preview', 'irTray2Preview', 'irLotDecoded'].forEach(id => { document.getElementById(id).innerHTML = ''; });
       updateConductiveMeasurementMode();
+      updateMaintenanceActionOptions();
       updateTemperatureFormState();
       defectMapPoints = [];
       renderDefectMapPreview();
@@ -4836,7 +4958,8 @@
 
     function renderJigEquipmentMap(records, selectedLine, selectedHotJig) {
       const grid = document.getElementById('jigEquipmentGrid');
-      const visibleLines = selectedLine ? [selectedLine] : FORMATION_LINES;
+      // The whole grid stays visible; the filtered line / hot jig is highlighted and the rest is dimmed.
+      const visibleLines = FORMATION_LINES;
       const locationRecords = records.filter(record => {
         const line = String(record.jigLine || '').trim();
         const hotJig = String(record.hotJig || '').trim();
@@ -4858,7 +4981,7 @@
       });
 
       grid.innerHTML = '';
-      grid.classList.toggle('single-line', Boolean(selectedLine));
+      grid.classList.remove('single-line');
       const corner = document.createElement('span');
       corner.className = 'jig-equipment-corner';
       corner.textContent = 'Line';
@@ -4871,7 +4994,7 @@
       });
 
       visibleLines.forEach((line, lineIndex) => {
-        const groupStart = !selectedLine && lineIndex > 0 && line.endsWith('-1');
+        const groupStart = lineIndex > 0 && line.endsWith('-1');
         const rowLabel = document.createElement('span');
         rowLabel.className = `jig-equipment-row-label${groupStart ? ' group-start' : ''}`;
         rowLabel.textContent = line;
@@ -4880,9 +5003,12 @@
           const item = grouped.get(`${line}|${hotJig}`);
           const cell = document.createElement('button');
           cell.type = 'button';
-          cell.className = `jig-equipment-cell${item ? ' has-records count-' + Math.min(3, item.count) : ''}${item && item.photos.length ? ' has-photos' : ''}${groupStart ? ' group-start' : ''}${selectedLine === line && selectedHotJig === hotJig ? ' is-selected' : ''}${selectedHotJig && selectedHotJig !== hotJig ? ' is-muted' : ''}`;
-          cell.setAttribute('aria-label', `${line}, Hot Jig ${hotJig}${item ? `, ${item.count} records${item.photos.length ? ', click to view photos' : ''}` : ', no records'}`);
+          cell.className = `jig-equipment-cell${item ? ' has-records count-' + Math.min(3, item.count) : ''}${item && item.photos.length ? ' has-photos' : ''}${groupStart ? ' group-start' : ''}${selectedLine === line && selectedHotJig === hotJig ? ' is-selected' : ''}${(selectedLine && selectedLine !== line) || (selectedHotJig && selectedHotJig !== hotJig) ? ' is-muted' : ''}`;
+          cell.setAttribute('aria-label', `${line}, Hot Jig ${hotJig}${item ? `, ${item.count} records, click to show on the map` : ', no records'}`);
           if (item) {
+            cell.dataset.jigLine = line;
+            cell.dataset.hotJig = hotJig;
+            cell.setAttribute('aria-pressed', String(selectedLine === line && selectedHotJig === hotJig));
             cell.textContent = item.count;
             const dots = document.createElement('span');
             dots.className = 'jig-equipment-dots';
@@ -4914,16 +5040,22 @@
               tooltip.appendChild(row);
             });
             cell.appendChild(tooltip);
-            if (item.photos.length) cell.addEventListener('click', () => openDefectGallery({
-              defectType: `${line} · Hot Jig ${hotJig}`,
-              photos: item.photos
-            }));
           }
           grid.appendChild(cell);
         });
       });
       document.getElementById('jigEquipmentCount').textContent = `${locationRecords.length} record${locationRecords.length === 1 ? '' : 's'}`;
+      // Photos of the selected box open from the header button, since a click on a box now filters the map.
+      const selectedItem = selectedLine && selectedHotJig ? grouped.get(`${selectedLine}|${selectedHotJig}`) : null;
+      const photoButton = document.getElementById('jigPhotoButton');
+      jigSelectedPhotos = selectedItem && selectedItem.photos.length ? { defectType: `${selectedLine} · Hot Jig ${selectedHotJig}`, photos: selectedItem.photos } : null;
+      photoButton.hidden = !jigSelectedPhotos;
+      if (jigSelectedPhotos) photoButton.textContent = `View ${jigSelectedPhotos.photos.length} photo${jigSelectedPhotos.photos.length === 1 ? '' : 's'}`;
+      document.getElementById('jigEquipmentHelp').textContent = selectedLine || selectedHotJig
+        ? `Map shows ${[selectedLine, selectedHotJig && 'Hot jig ' + selectedHotJig].filter(Boolean).join(' · ')} only. Click outside the boxes to show all.`
+        : 'Darker = more defects. Click a box to show only it on the map.';
     }
+    let jigSelectedPhotos = null;
 
     function updateMapFilterOptions(selectId, rawValues, allLabel) {
       const select = document.getElementById(selectId);
@@ -4975,11 +5107,14 @@
         result[point.defectType] = (result[point.defectType] || 0) + 1;
         return result;
       }, {});
-      // Defect type is a quiet strip under the map so the map stays the focus.
+      // All defect types as one stacked bar above the map; each segment shows its count when there is room.
       const present = Object.keys(DEFECT_COLORS).filter(label => label !== 'All OK' && counts[label]);
+      const totalPoints = present.reduce((sum, label) => sum + counts[label], 0);
+      const share = label => Math.round(counts[label] / totalPoints * 100) + '%';
       document.getElementById('weeklyMapLegend').innerHTML = '<span class="strip-label">Defect type</span>' + (present.length
-        ? '<div class="strip-bar">' + present.map(label => '<i title="' + escapeText(label + ': ' + counts[label]) + '" style="flex:' + counts[label] + ';background:' + DEFECT_COLORS[label] + '"></i>').join('') + '</div>' +
-          '<div class="strip-legend">' + present.map(label => '<span><i style="background:' + DEFECT_COLORS[label] + '"></i>' + escapeText(label) + ' <b>' + counts[label] + '</b></span>').join('') + '</div>'
+        ? '<div class="strip-bar">' + present.map(label => '<i title="' + escapeText(label + ': ' + counts[label] + ' (' + share(label) + ')') + '" style="flex:' + counts[label] + ';background:' + DEFECT_COLORS[label] + '">' +
+            (counts[label] / totalPoints >= 0.06 ? '<span>' + counts[label] + '</span>' : '') + '</i>').join('') + '</div>' +
+          '<div class="strip-legend">' + present.map(label => '<span><i style="background:' + DEFECT_COLORS[label] + '"></i>' + escapeText(label) + ' <b>' + counts[label] + '</b><small>' + share(label) + '</small></span>').join('') + '</div>'
         : '<span class="strip-empty">No defect points in this range.</span>');
     }
 
@@ -5026,6 +5161,42 @@
     document.getElementById('weeklyStartDate').addEventListener('change', event => handleWeeklyDateChange(event.currentTarget));
     document.getElementById('weeklyEndDate').addEventListener('change', event => handleWeeklyDateChange(event.currentTarget));
     document.getElementById('weeklyLineFilter').addEventListener('change', applyWeeklyMapFilters);
+    // Before HPCD and Degas: a line card filters the map to that line; the same card again, or a click on an
+    // empty part of the map box, shows all lines again.
+    function setWeeklyLineFilter(line) {
+      const select = document.getElementById('weeklyLineFilter');
+      if (select.value === line) return;
+      select.value = line;
+      applyWeeklyMapFilters();
+    }
+    document.getElementById('weeklyMapBody').addEventListener('click', event => {
+      if (currentProcess === 'formation') {
+        // Jig Formation: a box filters to its jig line and hot jig; the same box again or an empty spot clears both.
+        const lineSelect = document.getElementById('weeklyLineFilter');
+        const hotJigSelect = document.getElementById('weeklyHotJigFilter');
+        if (event.target.closest('#jigPhotoButton')) {
+          if (jigSelectedPhotos) openDefectGallery(jigSelectedPhotos);
+          return;
+        }
+        const cell = event.target.closest('[data-jig-line]');
+        const same = cell && lineSelect.value === cell.dataset.jigLine && hotJigSelect.value === cell.dataset.hotJig;
+        if (cell && !same) {
+          lineSelect.value = cell.dataset.jigLine;
+          hotJigSelect.value = cell.dataset.hotJig;
+          applyWeeklyMapFilters();
+        } else if ((same || !event.target.closest('button:not(.jig-equipment-cell), a, input, select, label, .map-marker')) && (lineSelect.value || hotJigSelect.value)) {
+          lineSelect.value = '';
+          hotJigSelect.value = '';
+          applyWeeklyMapFilters();
+        }
+        return;
+      }
+      if (!APPEARANCE_LINE_SETS[currentProcess]) return;
+      const card = event.target.closest('[data-line-card]');
+      const current = document.getElementById('weeklyLineFilter').value;
+      if (card) setWeeklyLineFilter(current === card.dataset.lineCard ? '' : card.dataset.lineCard);
+      else if (current && !event.target.closest('button, a, input, select, label, .map-marker')) setWeeklyLineFilter('');
+    });
     document.getElementById('weeklyHotJigFilter').addEventListener('change', applyWeeklyMapFilters);
 
     function initializeTemperatureDateRange() {
@@ -5360,6 +5531,17 @@
 
     document.getElementById('loadMoreRecordsBtn').addEventListener('click', loadMoreRecords);
     document.getElementById('maintenanceLoadMoreBtn').addEventListener('click', loadMoreRecords);
+
+    // Tape is only replaced, never cleaned, so Tape leaves Replace as the one choice.
+    function updateMaintenanceActionOptions() {
+      const action = document.getElementById('maintenanceAction');
+      const cleaning = action.querySelector('option[value="Cleaning"]');
+      const tape = document.getElementById('maintenanceEquipment').value === 'Tape';
+      cleaning.hidden = tape;
+      cleaning.disabled = tape;
+      if (tape) action.value = 'Replace';
+    }
+    document.getElementById('maintenanceEquipment').addEventListener('change', updateMaintenanceActionOptions);
     document.getElementById('conductiveLoadMoreBtn').addEventListener('click', loadMoreRecords);
 
     async function loadData(forceRefresh = false) {
@@ -5525,7 +5707,6 @@
 
     const TEMPERATURE_EOL_LINES = Object.freeze(['4-1', '4-2', '5-1', '5-2']);
     const TEMPERATURE_SERIES_COLORS = Object.freeze(['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4']);
-    const TEMPERATURE_SPEC_COLOR = '#d03b3b';
     const TEMPERATURE_AREAS = Object.freeze([
       { process: 'temp_cdc', label: 'CDC', line: { label: 'CDC Line', type: 'text' }, groups: [
         { title: 'Floor 1', fields: temperatureFieldList('floor', 'Floor ', ['1-1', '1-2']) },
@@ -5709,9 +5890,10 @@
         records.length + ' reading' + (records.length === 1 ? '' : 's') + ' in this date range</span></div>';
       document.getElementById('temperaturePanels').innerHTML = !records.length
         ? '<article class="card temperature-panel">' + header + '<p class="input-help">No readings in this date range.</p></article>'
-        : '<article class="card temperature-panel">' + header + '<div class="chart-grid">' + area.groups.map((group, index) =>
-            '<article class="chart-card"><h3>' + escapeText(group.title) + '</h3>' + buildTemperatureChart(area.process + '-' + index, records, area, group) + '</article>').join('') +
+        : '<article class="card temperature-panel">' + header + '<div class="temperature-chart-stack">' + area.groups.map((group, index) =>
+            buildTemperatureChart(area.process + '-' + index, records, area, group)).join('') +
           '</div>' + buildTemperatureTable(area, records) + '</article>';
+      temperatureRenderedWidth = temperatureChartWidth();
       document.getElementById('temperatureRangeSummary').textContent =
         range.startLabel + ' to ' + range.endLabel + ' · ' + total + ' reading' + (total === 1 ? '' : 's') + ' in all areas. Tap an area to see its charts.';
       const read = tiles.filter(tile => tile.status !== 'idle').length;
@@ -5783,6 +5965,17 @@
         headers.map(header => '<th>' + escapeText(header) + '</th>').join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
     }
 
+    // Series the viewer switched off in a legend, kept across re-renders as chartId|label.
+    const temperatureHiddenSeries = new Set();
+    let temperatureRenderedWidth = 0;
+    // Charts are drawn at the width they are shown, so labels stay at their real size on phones and wide screens.
+    function temperatureChartWidth() {
+      const panels = document.getElementById('temperaturePanels');
+      const inner = panels ? panels.clientWidth - (window.innerWidth < 768 ? 44 : 84) : 0;
+      return Math.round(Math.max(300, Math.min(1400, inner || 900)));
+    }
+    const formatTemperature = value => (Math.round(value * 10) / 10).toFixed(1);
+
     function buildTemperatureChart(chartId, records, area, group) {
       const series = area.seriesByLine
         ? Array.from(new Set(records.map(record => String(record.line || '-'))))
@@ -5791,54 +5984,87 @@
         : group.fields.map(field => ({ label: field.label, key: field.key, records }));
       series.forEach((item, index) => {
         item.color = TEMPERATURE_SERIES_COLORS[index % TEMPERATURE_SERIES_COLORS.length];
+        item.hidden = temperatureHiddenSeries.has(chartId + '|' + item.label);
         item.points = item.records.map(record => ({ time: parseRecordDate(record.date)?.getTime(), value: Number(record[item.key]), record }))
           .filter(point => Number.isFinite(point.time) && hasTemperatureValue(point.record[item.key]) && Number.isFinite(point.value));
       });
-      const points = series.flatMap(item => item.points);
-      if (!points.length) return '<div class="chart-empty">No readings for this group.</div>';
+      const outOfSpec = point => point.value < area.spec.min || point.value > area.spec.max;
+      const allPoints = series.flatMap(item => item.points);
+      const title = '<h3>' + escapeText(group.title) + '</h3>';
+      if (!allPoints.length) return '<article class="chart-card temperature-chart-card"><div class="temperature-chart-head">' + title + '</div><div class="chart-empty">No readings for this group.</div></article>';
 
-      const width = 520, height = 230, left = 44, right = 14, top = 14, bottom = 30;
+      // Header stats cover every series, shown or not, so switching lines off never hides an out-of-spec reading.
+      const latestTime = Math.max(...allPoints.map(point => point.time));
+      const latest = allPoints.filter(point => point.time === latestTime).map(point => point.value);
+      const outCount = allPoints.filter(outOfSpec).length;
+      const stats = '<dl class="temperature-chart-stats">' +
+        '<div><dt>Latest</dt><dd>' + (Math.min(...latest) === Math.max(...latest) ? formatTemperature(latest[0]) : formatTemperature(Math.min(...latest)) + '–' + formatTemperature(Math.max(...latest))) + ' °C</dd></div>' +
+        '<div><dt>Min</dt><dd>' + formatTemperature(Math.min(...allPoints.map(point => point.value))) + '</dd></div>' +
+        '<div><dt>Max</dt><dd>' + formatTemperature(Math.max(...allPoints.map(point => point.value))) + '</dd></div>' +
+        '<div class="' + (outCount ? 'bad' : 'ok') + '"><dt>Out of spec</dt><dd>' + outCount + '</dd></div></dl>';
+
+      const shown = series.filter(item => !item.hidden);
+      const points = shown.flatMap(item => item.points);
+      const width = temperatureChartWidth();
+      const height = width < 600 ? 210 : 250, left = 40, right = 12, top = 12, bottom = 28;
       const plotWidth = width - left - right, plotHeight = height - top - bottom;
-      const times = points.map(point => point.time);
-      const minTime = Math.min(...times), maxTime = Math.max(...times);
-      const values = points.map(point => point.value).concat(area.spec ? [area.spec.min, area.spec.max] : []);
+      const range = getTemperatureDateRange();
+      const minTime = range.start.getTime(), maxTime = Math.max(range.end.getTime(), minTime + 1);
+      const values = (points.length ? points : allPoints).map(point => point.value).concat([area.spec.min, area.spec.max]);
       let minValue = Math.min(...values), maxValue = Math.max(...values);
-      const pad = Math.max(0.5, (maxValue - minValue) * 0.12);
-      minValue = Math.floor((minValue - pad) * 2) / 2;
-      maxValue = Math.ceil((maxValue + pad) * 2) / 2;
-      const x = time => left + (maxTime === minTime ? plotWidth / 2 : (time - minTime) * plotWidth / (maxTime - minTime));
+      const pad = Math.max(0.5, (maxValue - minValue) * 0.1);
+      minValue = Math.floor(minValue - pad);
+      maxValue = Math.ceil(maxValue + pad);
+      const x = time => left + (time - minTime) * plotWidth / (maxTime - minTime);
       const y = value => top + (maxValue - value) * plotHeight / (maxValue - minValue);
-      const ticks = Array.from({ length: 5 }, (_, index) => minValue + (maxValue - minValue) * index / 4);
-      const grid = ticks.map(value =>
-        '<line x1="' + left + '" y1="' + y(value).toFixed(1) + '" x2="' + (width - right) + '" y2="' + y(value).toFixed(1) + '" stroke="#e2e8f0"/>' +
-        '<text x="' + (left - 6) + '" y="' + (y(value) + 4).toFixed(1) + '" text-anchor="end" font-size="11" fill="#898781">' + (Math.round(value * 10) / 10) + '</text>'
-      ).join('');
-      const spec = area.spec ? [area.spec.min, area.spec.max].map(value =>
-        '<line x1="' + left + '" y1="' + y(value).toFixed(1) + '" x2="' + (width - right) + '" y2="' + y(value).toFixed(1) + '" stroke="' + TEMPERATURE_SPEC_COLOR + '" stroke-width="1.5" stroke-dasharray="6 4"/>'
-      ).join('') : '';
-      const lines = series.map(item => {
-        const path = item.points.map(point => x(point.time).toFixed(1) + ',' + y(point.value).toFixed(1)).join(' ');
-        const markers = item.points.map(point =>
-          '<circle cx="' + x(point.time).toFixed(1) + '" cy="' + y(point.value).toFixed(1) + '" r="4" fill="' + item.color + '" stroke="#ffffff" stroke-width="2"/>'
-        ).join('');
-        return (item.points.length > 1 ? '<polyline points="' + path + '" fill="none" stroke="' + item.color + '" stroke-width="2" stroke-linejoin="round"/>' : '') + markers;
+      const step = Math.max(1, Math.ceil((maxValue - minValue) / 5));
+      const grid = [];
+      for (let value = Math.ceil(minValue / step) * step; value <= maxValue; value += step) {
+        grid.push('<line x1="' + left + '" y1="' + y(value).toFixed(1) + '" x2="' + (width - right) + '" y2="' + y(value).toFixed(1) + '" class="temperature-gridline"/>' +
+          '<text x="' + (left - 8) + '" y="' + (y(value) + 4).toFixed(1) + '" text-anchor="end" class="temperature-axis-label">' + value + '</text>');
+      }
+      // Day ticks at local midnight, spaced so labels never touch.
+      const dayMs = 86400000;
+      const dayStep = Math.max(1, Math.ceil((maxTime - minTime) / dayMs / Math.max(2, Math.floor(plotWidth / 72))));
+      const ticks = [];
+      for (let day = new Date(range.start.getFullYear(), range.start.getMonth(), range.start.getDate()); day.getTime() <= maxTime; day.setDate(day.getDate() + dayStep)) {
+        if (day.getTime() < minTime) continue;
+        const tx = x(day.getTime()).toFixed(1);
+        ticks.push('<line x1="' + tx + '" y1="' + (height - bottom) + '" x2="' + tx + '" y2="' + (height - bottom + 4) + '" class="temperature-axis-tick"/>' +
+          '<text x="' + tx + '" y="' + (height - 8) + '" text-anchor="middle" class="temperature-axis-label">' +
+          String(day.getMonth() + 1).padStart(2, '0') + '/' + String(day.getDate()).padStart(2, '0') + '</text>');
+      }
+      const band = '<rect x="' + left + '" y="' + y(area.spec.max).toFixed(1) + '" width="' + plotWidth + '" height="' + (y(area.spec.min) - y(area.spec.max)).toFixed(1) + '" class="temperature-spec-band"/>' +
+        '<text x="' + (width - right - 6) + '" y="' + (y(area.spec.max) + 13).toFixed(1) + '" text-anchor="end" class="temperature-spec-label">Spec ' + escapeText(area.spec.label) + '</text>';
+      // A line breaks where readings are more than a day and a half apart instead of bridging the gap.
+      const lines = shown.map(item => {
+        let path = '';
+        item.points.forEach((point, index) => {
+          const gap = index === 0 || point.time - item.points[index - 1].time > dayMs * 1.5;
+          path += (gap ? 'M' : 'L') + x(point.time).toFixed(1) + ' ' + y(point.value).toFixed(1);
+        });
+        const dots = item.points.length <= 24
+          ? item.points.map(point => '<circle cx="' + x(point.time).toFixed(1) + '" cy="' + y(point.value).toFixed(1) + '" r="2.5" fill="' + item.color + '"/>').join('')
+          : '';
+        return '<path d="' + path + '" fill="none" stroke="' + item.color + '" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/>' + dots;
       }).join('');
-      const firstLabel = escapeText(formatRecordDate(points.find(point => point.time === minTime).record.date));
-      const lastLabel = escapeText(formatRecordDate(points.find(point => point.time === maxTime).record.date));
-      temperatureCharts.set(chartId, { series, x, y, top, bottom: height - bottom, width, height });
-      const legend = series.map(item => '<span><i style="background:' + item.color + '"></i>' + escapeText(item.label) + '</span>').join('') +
-        (area.spec ? '<span><i class="spec"></i>Spec ' + escapeText(area.spec.label) + '</span>' : '');
-      return '<div class="temperature-chart">' +
+      const alarms = points.filter(outOfSpec).map(point =>
+        '<circle cx="' + x(point.time).toFixed(1) + '" cy="' + y(point.value).toFixed(1) + '" r="3.5" class="temperature-out-point"/>').join('');
+      temperatureCharts.set(chartId, { series: shown, area, x, top, bottom: height - bottom, width, height });
+      const legend = series.length > 1
+        ? '<div class="temperature-legend" role="group" aria-label="Show or hide lines">' + series.map(item =>
+            '<button type="button" data-temperature-series="' + escapeText(chartId + '|' + item.label) + '" aria-pressed="' + String(!item.hidden) + '">' +
+            '<i style="background:' + item.color + '"></i>' + escapeText(item.label) + '</button>').join('') + '</div>'
+        : '';
+      return '<article class="chart-card temperature-chart-card"><div class="temperature-chart-head">' + title + stats + '</div>' + legend +
+        '<div class="temperature-chart">' +
         '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="' + escapeText(area.label + ' ' + group.title) + ' temperature trend" data-temperature-chart="' + chartId + '">' +
-          grid + spec +
-          '<line x1="' + left + '" y1="' + (height - bottom) + '" x2="' + (width - right) + '" y2="' + (height - bottom) + '" stroke="#94a3b8"/>' +
-          lines +
-          '<line class="temperature-crosshair" x1="0" y1="' + top + '" x2="0" y2="' + (height - bottom) + '" stroke="#64748b" stroke-dasharray="3 3" visibility="hidden"/>' +
-          '<text x="' + left + '" y="' + (height - 10) + '" font-size="10" fill="#898781">' + firstLabel + '</text>' +
-          '<text x="' + (width - right) + '" y="' + (height - 10) + '" text-anchor="end" font-size="10" fill="#898781">' + lastLabel + '</text>' +
+          band + grid.join('') +
+          '<line x1="' + left + '" y1="' + (height - bottom) + '" x2="' + (width - right) + '" y2="' + (height - bottom) + '" class="temperature-axis"/>' +
+          ticks.join('') + lines + alarms +
+          '<line class="temperature-crosshair" x1="0" y1="' + top + '" x2="0" y2="' + (height - bottom) + '" visibility="hidden"/>' +
           '<rect x="' + left + '" y="' + top + '" width="' + plotWidth + '" height="' + plotHeight + '" fill="transparent"/>' +
-        '</svg><div class="temperature-tooltip" hidden></div>' +
-        '<div class="temperature-legend">' + legend + '</div></div>';
+        '</svg><div class="temperature-tooltip" hidden></div></div></article>';
     }
 
     function hasTemperatureValue(value) {
@@ -5860,18 +6086,20 @@
       if (!nearest) return;
       const rows = chart.series.map(item => {
         const point = item.points.find(candidate => candidate.time === nearest.time);
-        return point ? '<div><span class="temperature-tooltip-swatch" style="background:' + item.color + '"></span>' +
-          escapeText(item.label) + ': <b>' + escapeText(Math.round(point.value * 100) / 100) + ' °C</b></div>' : '';
+        if (!point) return '';
+        const out = point.value < chart.area.spec.min || point.value > chart.area.spec.max;
+        return '<div' + (out ? ' class="out"' : '') + '><span class="temperature-tooltip-swatch" style="background:' + item.color + '"></span>' +
+          escapeText(item.label) + ': <b>' + escapeText(formatTemperature(point.value)) + ' °C</b></div>';
       }).join('');
       const crosshair = svg.querySelector('.temperature-crosshair');
       crosshair.setAttribute('x1', chart.x(nearest.time));
       crosshair.setAttribute('x2', chart.x(nearest.time));
       crosshair.setAttribute('visibility', 'visible');
       const tooltip = svg.parentElement.querySelector('.temperature-tooltip');
-      tooltip.innerHTML = '<div><b>' + escapeText(formatRecordDate(nearest.record.date)) + '</b></div>' + rows;
+      tooltip.innerHTML = '<div class="temperature-tooltip-date">' + escapeText(formatRecordDate(nearest.record.date)) + '</div>' + rows;
       tooltip.hidden = false;
       const left = chart.x(nearest.time) * box.width / chart.width;
-      tooltip.style.left = Math.max(0, Math.min(left + 12, box.width - tooltip.offsetWidth)) + 'px';
+      tooltip.style.left = (left + 12 + tooltip.offsetWidth > box.width ? Math.max(0, left - 12 - tooltip.offsetWidth) : left + 12) + 'px';
       tooltip.style.top = '8px';
     }
 
@@ -5881,6 +6109,22 @@
       svg.querySelector('.temperature-crosshair').setAttribute('visibility', 'hidden');
       svg.parentElement.querySelector('.temperature-tooltip').hidden = true;
     }
+
+    document.getElementById('temperaturePanels').addEventListener('click', event => {
+      const button = event.target.closest('[data-temperature-series]');
+      if (!button) return;
+      const key = button.dataset.temperatureSeries;
+      if (temperatureHiddenSeries.has(key)) temperatureHiddenSeries.delete(key);
+      else temperatureHiddenSeries.add(key);
+      renderTemperatureDashboard();
+    });
+    let temperatureResizeTimer = 0;
+    window.addEventListener('resize', () => {
+      clearTimeout(temperatureResizeTimer);
+      temperatureResizeTimer = setTimeout(() => {
+        if (currentProcess === 'temperature' && document.querySelector('.temperature-chart-card') && Math.abs(temperatureChartWidth() - temperatureRenderedWidth) > 40) renderTemperatureDashboard();
+      }, 200);
+    });
 
     renderTemperatureForm();
     renderTemperatureViewOptions();
@@ -5904,19 +6148,41 @@
       const set = APPEARANCE_LINE_SETS[currentProcess];
       panel.hidden = !set;
       if (!set) return;
-      const counts = new Map(set.lines.map(line => [line, 0]));
-      let noLine = 0;
-      records.filter(record => getRecordDefectTypes(record.defect).length).forEach(record => {
-        const line = String(record[set.key] || '').trim();
-        if (counts.has(line)) counts.set(line, counts.get(line) + 1);
-        else noLine += 1;
+      const selectedLine = document.getElementById('weeklyLineFilter').value;
+      // One small card per line: total defect records, a bar split by defect type, and the type counts.
+      const empty = () => ({ total: 0, types: new Map() });
+      const byLine = new Map(set.lines.map(line => [line, empty()]));
+      const noLine = empty();
+      records.forEach(record => {
+        const types = getRecordDefectTypes(record.defect);
+        if (!types.length) return;
+        const entry = byLine.get(String(record[set.key] || '').trim()) || noLine;
+        entry.total += 1;
+        types.forEach(type => entry.types.set(type, (entry.types.get(type) || 0) + 1));
       });
-      const rows = Array.from(counts.entries()).concat(noLine ? [['', noLine]] : []);
-      const max = Math.max(1, ...rows.map(([, count]) => count));
-      panel.innerHTML = '<p class="map-sub">Defects by ' + escapeText(set.label) + '</p>' + rows.map(([line, count]) =>
-        '<div class="line-defect-row"><span>' + (line ? escapeText(set.prefix + line) : 'No line') + '</span>' +
-        '<span class="line-defect-track"><i style="width:' + (count / max * 100) + '%"></i></span><b>' + count + '</b></div>').join('') +
-        '<p class="line-defect-note">Defect records in the date range' + (noLine ? '. "No line" = saved before the line was recorded.' : '.') + '</p>';
+      const cards = Array.from(byLine.entries()).concat(noLine.total ? [['', noLine]] : []);
+      const max = Math.max(1, ...cards.map(([, entry]) => entry.total));
+      const order = Object.keys(DEFECT_COLORS);
+      panel.innerHTML = '<p class="map-sub">Defects by ' + escapeText(set.label) + '</p><div class="line-defect-grid">' + cards.map(([line, entry]) => {
+        const types = Array.from(entry.types.entries()).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]));
+        const typeTotal = types.reduce((sum, [, count]) => sum + count, 0) || 1;
+        const top = entry.total && entry.total === max;
+        // Line cards are buttons that set the line filter; "No line" cannot be filtered, so it stays a plain box.
+        const tag = line ? 'button' : 'div';
+        const state = !line ? '' : selectedLine === line ? ' selected' : selectedLine ? ' dimmed' : '';
+        return '<' + tag + ' class="line-defect-card' + (line ? '' : ' no-line') + (top ? ' top' : '') + state + '"' +
+          (line ? ' type="button" data-line-card="' + escapeText(line) + '" aria-pressed="' + String(selectedLine === line) + '" title="Show only ' + escapeText((set.prefix || 'Line ') + line) + ' on the map"' : '') + '>' +
+          '<span class="line-defect-head"><span>' + (line ? escapeText((set.prefix || 'Line ') + line) : 'No line') + '</span><b>' + entry.total + '</b></span>' +
+          '<span class="line-defect-bar" style="width:' + (entry.total / max * 100) + '%">' +
+            types.map(([type, count]) => '<i style="flex:' + count / typeTotal + ';background:' + getDefectColor(type) + '" title="' + escapeText(type + ' ' + count) + '"></i>').join('') + '</span>' +
+          '<span class="line-defect-types">' + (types.length
+            ? types.map(([type, count]) => '<span><i style="background:' + getDefectColor(type) + '"></i>' + escapeText(type) + ' <b>' + count + '</b></span>').join('')
+            : 'No defects') + '</span></' + tag + '>';
+      }).join('') + '</div>' +
+        '<p class="line-defect-note">' + (selectedLine
+          ? 'Map shows ' + escapeText((set.prefix || 'Line ') + selectedLine) + ' only. Click outside the boxes to show all lines.'
+          : 'Click a line to show only its defects on the map.') +
+        ' Defect records in the date range' + (noLine.total ? '; "No line" = saved before the line was recorded.' : '.') + '</p>';
     }
 
     // Today's status from the date-range records; the small bars are checks with defects per day.
@@ -6059,9 +6325,15 @@
             line.cells.map((entry, index) => cell(entry, mode.mode + ' ' + line.line + ' unit ' + mode.units[index])).join('') + '</tr>').join('')) +
           '</div>').join('') + '</div>';
       } else {
-        const names = data.columns.map(column => column.equipment + ' ' + column.maintenance.toLowerCase());
-        html = table(names, data.lines.map(line => '<tr><th>' + escapeText(line.line) + '</th>' +
-          line.cells.map((entry, index) => cell(entry, line.line + ' ' + names[index])).join('') + '</tr>').join(''));
+        // One compact block per equipment, laid out like the Conductive Rubber blocks.
+        const equipment = Array.from(new Set(data.columns.map(column => column.equipment)));
+        html = '<div class="age-blocks equipment-blocks">' + equipment.map(name => {
+          const indexes = data.columns.map((column, index) => column.equipment === name ? index : -1).filter(index => index >= 0);
+          return '<div class="age-block"><h4>' + escapeText(name) + '</h4>' +
+            table(indexes.map(index => data.columns[index].maintenance), data.lines.map(line => '<tr><th>' + escapeText(line.line.replace(/^EOL /, '')) + '</th>' +
+              indexes.map(index => cell(line.cells[index], line.line + ' ' + name + ' ' + data.columns[index].maintenance.toLowerCase())).join('') + '</tr>').join('')) +
+            '</div>';
+        }).join('') + '</div>';
       }
       document.getElementById('maintenanceStatusTitle').textContent = process === 'conductive' ? 'Days since last work, by unit' : 'Days since last work';
       document.getElementById('maintenanceStatusBody').innerHTML = html;

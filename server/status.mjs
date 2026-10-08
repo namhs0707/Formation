@@ -62,7 +62,7 @@ async function maintenanceStatus(pool, today, dayOf) {
   )).rows);
   const latest = new Map();
   for (const row of rows) latest.set(row.line + '|' + row.equipment + '|' + row.maintenance, row.date);
-  const columns = [['Tape', 'Cleaning'], ['Tape', 'Replace'], ['Knife', 'Cleaning'], ['Knife', 'Replace']];
+  const columns = [['Tape', 'Replace'], ['Knife', 'Cleaning'], ['Knife', 'Replace']];
   return {
     columns: columns.map(([equipment, maintenance]) => ({ equipment, maintenance })),
     lines: EOL_LINES.map(line => ({

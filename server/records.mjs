@@ -147,6 +147,8 @@ async function saveTemperature(client, input) {
   return { id: ids[0], ids };
 }
 async function saveMaintenance(client, input) {
+  // Tape is only replaced; Tape cleaning records saved before this rule stay as they are.
+  if (input.equipment === 'Tape' && input.maintenance === 'Cleaning') invalid('Tape is replaced, not cleaned.');
   const rows = await client.query(
     'INSERT INTO formation.eol_maintenance (team, operator_name, line, equipment, maintenance, taping_line) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
     [teamOf(input), required(input.operatorName, 'Name', 120), choice(input.line, ['EOL 4-1','EOL 4-2','EOL 5-1','EOL 5-2'], 'line'),
