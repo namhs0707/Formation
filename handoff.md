@@ -40,6 +40,7 @@
 - Conductive Rubber 참고 이미지와 공정·측정별 Unit 제한 (EOL IV는 1A, 1B, 2A, 2B).
 - DSF Daily IP: Line 드롭다운(`EOL #4-1` 등), 대시보드(이미지 4장 + 점검별 1행 표, 스펙 아웃 강조).
 - **IR** (메뉴 단독 버튼, process `ir`): Team, 이름, 위치(Degas / Shipping Aging), PKG Lot ID, Tray 1·2 붙여넣기(첫 줄 Tray ID + 채널 1~18이 OK 또는 숫자). 숫자가 100 미만이면 NG. 서버가 판정을 다시 계산합니다. 테이블은 `ir_checks`, `ir_values`(OK는 NULL)이며 검토·수정도 지원합니다. `record_reviews`의 record_type 제약은 스키마를 적용할 때마다 다시 만들어지므로, 기존 DB도 `apply-schema.ps1`만 실행하면 됩니다.
+- **Summary** (앱 첫 화면, 메뉴 맨 위): `GET /api/summary`(`server/summary.mjs`)가 오늘(공장 시간대) 점검 상태를 계산합니다. 불량·스펙 아웃·NG·Flagged/Incomplete/No → Problem, 오늘 기록 없음 → No record today, EOL Tape/Knife와 Conductive Rubber는 수시 정비라 마지막 기록만 표시. 검토 대기는 최근 7일 미확인 건수. 판정 기준은 화면 하단 "How status is decided"에도 있습니다.
 - **제출 기기 IP(`client_ip`)**: 모든 부모 테이블에 저장. 거래 단위 설정값을 컬럼 기본값으로 씀. 로컬 IIS(127.0.0.1)가 보낸 `X-Forwarded-For`만 신뢰.
 - **검토자 임시 로그인** (`server/auth.mjs`)
   - 계정 신청 → 관리자가 역할(part_leader / engineer / supervisor / admin)을 정해 승인. ID는 자유 형식.

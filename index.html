@@ -1436,11 +1436,13 @@
     .ir-calendar-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
     .ir-calendar-legend i.ok { background: #dcfce7; box-shadow: inset 0 0 0 1px #16a34a; }
     .ir-calendar-legend i.ng { background: var(--danger); }
-    .ir-calendar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 8px; }
-    .ir-month h4 { margin: 0 0 6px; font-size: 15px; }
+    .ir-calendar { display: grid; gap: 18px; margin-bottom: 8px; }
+    .ir-line h4 { margin: 0 0 8px; font-size: 16px; }
+    .ir-line-months { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .ir-month h5 { margin: 0 0 6px; color: var(--muted); font-size: 13px; }
     .ir-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
     .ir-weekday { padding: 2px 0; color: var(--muted); font-size: 11px; font-weight: 700; text-align: center; }
-    .ir-day { min-width: 0; min-height: 68px; padding: 4px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; text-align: left; color: var(--ink); background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 6px; font-size: 12px; font-weight: 600; box-shadow: none; }
+    .ir-day { min-width: 0; min-height: 50px; padding: 4px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; text-align: left; color: var(--ink); background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 6px; font-size: 12px; font-weight: 600; box-shadow: none; }
     button.ir-day { cursor: pointer; }
     button.ir-day:hover { background: #eef2f7; box-shadow: none; }
     .ir-day.empty { visibility: hidden; }
@@ -1457,12 +1459,12 @@
     .ir-day-filter[hidden] { display: none; }
     .ir-day-filter button { width: auto; min-height: 34px; padding: 4px 12px; font-size: 13px; }
     @media (max-width: 1100px) {
-      .ir-calendar { grid-template-columns: 1fr; }
+      .ir-line-months { grid-template-columns: 1fr; }
     }
     @media (max-width: 767px) {
       .ir-tray-grid { grid-template-columns: 1fr; }
       .ir-records-table { min-width: 0; }
-      .ir-day { min-height: 54px; padding: 3px; }
+      .ir-day { min-height: 44px; padding: 3px; }
       .ir-day-chip { padding: 0 2px; font-size: 10px; }
     }
     /* Reviewer sign-in and record review */
@@ -1557,6 +1559,92 @@
       .users-table tr { display: table-row; }
       .users-table td::before { content: none; }
     }
+    /* Summary: today's status of every check */
+    #summaryView { display: none; --s-line: #dfe4ea; --s-ok: #1f7a4d; --s-bad: #c0352f; --s-bad-tint: #fbe9e8; --s-idle: #5c6878; --s-idle-tint: #edf0f3; --s-faint: #9aa4b1;
+      font-family: Bahnschrift, 'Segoe UI', 'Malgun Gothic', sans-serif; font-variant-numeric: tabular-nums; color: var(--text); }
+    .main-content.summary-mode > :not(#summaryView) { display: none !important; }
+    .main-content.summary-mode > #summaryView { display: block; }
+    .summary-nav-group .process-category-direct.active { color: var(--primary); background: var(--primary-soft); }
+    .summary-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; padding-bottom: 12px; border-bottom: 1px solid #c4ccd6; }
+    .summary-top h2 { margin: 0; font-size: 22px; color: var(--ink); }
+    .summary-top .summary-meta { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 14px; }
+    .summary-top .summary-meta button { width: auto; min-height: 40px; padding: 0 14px; font-size: 14px; }
+    .summary-verdict { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 32px; align-items: end; padding: 18px 0 14px; }
+    .summary-verdict h3 { margin: 0; font-size: 30px; line-height: 1.15; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
+    .summary-verdict h3 em { font-style: normal; color: var(--s-bad); }
+    .summary-verdict p { margin: 4px 0 0; color: var(--muted); }
+    .summary-counters { display: flex; gap: 28px; }
+    .summary-counter { text-align: right; }
+    .summary-counter b { display: block; font-size: 30px; line-height: 1; color: var(--ink); }
+    .summary-counter span { font-size: 13px; color: var(--muted); }
+    .summary-counter.bad b { color: var(--s-bad); }
+    .summary-strip { display: flex; gap: 10px; margin-bottom: 6px; }
+    .summary-strip .grp { display: flex; gap: 2px; min-width: 0; }
+    .summary-strip .seg { flex: 1; height: 10px; border-radius: 2px; background: var(--s-ok); opacity: .35; }
+    .summary-strip .seg.bad { background: var(--s-bad); opacity: 1; }
+    .summary-strip .seg.idle { background: var(--s-idle); opacity: .5; }
+    .summary-strip .seg.info { background: #c4ccd6; opacity: 1; }
+    .summary-strip-labels { display: flex; gap: 10px; margin-bottom: 22px; font-size: 12px; color: var(--muted); }
+    .summary-strip-labels span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .summary-main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px; align-items: start; }
+    .summary-board { columns: 2 300px; column-gap: 24px; }
+    .summary-group { break-inside: avoid; margin-bottom: 20px; background: #fff; border: 1px solid var(--s-line); border-radius: 4px; }
+    .summary-group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 10px 14px 8px; border-bottom: 1px solid var(--s-line); }
+    .summary-group-head h4 { margin: 0; font-size: 16px; color: var(--ink); }
+    .summary-group-head span { font-size: 13px; color: var(--muted); }
+    .summary-group-head b.bad { color: var(--s-bad); }
+    .summary-row { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 2px 8px; align-items: baseline; width: 100%; min-height: 0; margin: 0; padding: 7px 14px; border: 0; border-top: 1px solid var(--s-line); border-radius: 0; background: transparent; box-shadow: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .summary-group-head + .summary-row { border-top: 0; }
+    .summary-row:hover { background: #f6f8fa; transform: none; box-shadow: none; }
+    .summary-row:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+    .summary-row .mk { font-weight: 700; font-size: 14px; text-align: center; }
+    .summary-row .nm { font-weight: 600; color: var(--ink); }
+    .summary-row .tm { font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .summary-row .why { grid-column: 2 / 4; font-size: 13px; }
+    .summary-row.ok .mk { color: var(--s-ok); }
+    .summary-row.ok .nm { color: var(--muted); font-weight: 500; }
+    .summary-row.ok .tm, .summary-row.info .tm { color: var(--s-faint); }
+    .summary-row.ok .why { display: none; }
+    .summary-row.info .mk { color: var(--s-faint); }
+    .summary-row.info .nm { color: var(--muted); font-weight: 500; }
+    .summary-row.info .why { color: var(--muted); }
+    .summary-row.bad { background: var(--s-bad-tint); box-shadow: inset 3px 0 0 var(--s-bad); }
+    .summary-row.bad .mk, .summary-row.bad .why { color: var(--s-bad); }
+    .summary-row.idle { background: var(--s-idle-tint); box-shadow: inset 3px 0 0 var(--s-idle); }
+    .summary-row.idle .mk, .summary-row.idle .why { color: var(--s-idle); }
+    .summary-queue { position: sticky; top: 16px; background: #fff; border: 1px solid var(--s-line); border-radius: 4px; }
+    .summary-queue h4 { display: flex; justify-content: space-between; align-items: baseline; margin: 0; padding: 12px 16px 10px; font-size: 16px; color: var(--ink); border-bottom: 1px solid var(--s-line); }
+    .summary-queue h4 span { font-size: 13px; color: var(--muted); font-weight: 500; }
+    .summary-q { display: grid; grid-template-columns: 4px minmax(0, 1fr) auto; gap: 0 12px; padding: 12px 16px 12px 0; border-top: 1px solid var(--s-line); }
+    .summary-queue h4 + .summary-q { border-top: 0; }
+    .summary-q .bar { border-radius: 0 2px 2px 0; }
+    .summary-q.bad .bar { background: var(--s-bad); }
+    .summary-q.idle .bar { background: var(--s-idle); }
+    .summary-q .what { font-weight: 700; color: var(--ink); }
+    .summary-q .where { font-size: 13px; color: var(--muted); font-weight: 500; }
+    .summary-q .why { font-size: 14px; margin-top: 2px; }
+    .summary-q.bad .why { color: var(--s-bad); }
+    .summary-q .since { font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .summary-q button { display: inline-block; width: auto; min-height: 32px; margin-top: 6px; padding: 0; border: 0; background: none; box-shadow: none; color: var(--primary); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .summary-q button:hover { text-decoration: underline; transform: none; }
+    .summary-sep { padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--muted); background: #f8f9fb; border-top: 1px solid var(--s-line); }
+    .summary-empty { padding: 16px; color: var(--s-ok); font-weight: 600; }
+    .summary-review { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-top: 1px solid #c4ccd6; }
+    .summary-review b { display: block; font-size: 26px; line-height: 1; color: var(--ink); }
+    .summary-review span { font-size: 13px; color: var(--muted); }
+    .summary-rules { margin-top: 8px; color: var(--muted); font-size: 13px; }
+    .summary-rules summary { cursor: pointer; font-weight: 600; min-height: 32px; }
+    .summary-rules ul { margin: 6px 0 0; padding-left: 18px; }
+    .summary-error { padding: 14px 16px; border-radius: 4px; background: var(--s-bad-tint); color: var(--s-bad); font-weight: 600; }
+    @media (max-width: 1100px) {
+      .summary-main { grid-template-columns: 1fr; }
+      .summary-queue { position: static; order: -1; }
+      .summary-verdict { grid-template-columns: 1fr; }
+      .summary-counters { justify-content: flex-start; flex-wrap: wrap; gap: 16px 24px; }
+      .summary-counter { text-align: left; }
+      .summary-strip-labels { display: none; }
+      .summary-strip { margin-bottom: 18px; }
+    }
   </style>
 </head>
 <body>
@@ -1579,7 +1667,12 @@
   <div class="app-shell">
     <aside class="process-nav" aria-label="Process selection">
       <div class="process-nav-title">Category</div>
-      <div class="process-group appearance-group open">
+      <div class="process-group summary-nav-group">
+        <button type="button" class="process-category process-category-toggle process-category-direct" data-summary="true" aria-expanded="false">
+          <span class="process-category-icon">≡</span><span>Summary</span>
+        </button>
+      </div>
+      <div class="process-group appearance-group">
         <button type="button" class="process-category process-category-toggle" data-category="appearance" aria-expanded="true">
           <span class="process-category-icon">◉</span><span>Appearance</span><span class="process-category-chevron">⌄</span>
         </button>
@@ -1632,6 +1725,23 @@
       </div>
     </aside>
     <main class="main-content">
+  <section id="summaryView" aria-labelledby="summaryTitle">
+    <header class="summary-top">
+      <h2 id="summaryTitle">Summary</h2>
+      <div class="summary-meta"><span id="summaryUpdated">Loading…</span><button type="button" class="btn-secondary" id="summaryRefresh">↻ Refresh</button></div>
+    </header>
+    <div id="summaryBody"></div>
+    <details class="summary-rules">
+      <summary>How status is decided</summary>
+      <ul>
+        <li>"Today" is the calendar day in the plant time zone.</li>
+        <li>Problem: a record today has a defect, an out-of-spec temperature, an IP point out of range, an IR NG, or a check sheet item that is flagged, incomplete or "No".</li>
+        <li>No record today: nothing has been submitted today yet. Early in the day most checks show this.</li>
+        <li>EOL Tape/Knife and Conductive Rubber are done only when needed, so they show the last record instead of a status.</li>
+        <li>Waiting for review counts records from the last 7 days that no reviewer has confirmed since their last correction.</li>
+      </ul>
+    </details>
+  </section>
   <div class="page-header">
     <div><div class="page-eyebrow" id="pageEyebrow">Operations / Appearance</div><h2 id="pageTitle">Jig Formation Inspection</h2></div>
     <div class="page-actions">
@@ -2226,8 +2336,8 @@
         <h3 style="margin:0;">IR Check Records</h3>
         <div class="history-actions"><span class="last-sync">Not synced</span><button type="button" class="btn-secondary" onclick="loadData()">Refresh data</button></div>
       </div>
-      <div class="ir-calendar-help">By production date from the PKG Lot ID (4th letter year, 5th letter month, then day and line). Tap a day to list its records.</div>
-      <div class="ir-calendar-legend"><span><i class="ok"></i>All OK</span><span><i class="ng"></i>NG in at least one check</span><span>L5 ×2 = Line 5, 2 checks</span></div>
+      <div class="ir-calendar-help">By production date from the PKG Lot ID (4th letter year, 5th letter month, then day and line), e.g. FJ01 = 2026 Oct 1. Tap a day to list its records.</div>
+      <div class="ir-calendar-legend"><span><i class="ok"></i>OK 2 = 2 checks all OK</span><span><i class="ng"></i>NG 1 = 1 check with NG</span></div>
       <div class="ir-calendar" id="irCalendar"></div>
       <div class="ir-calendar-note" id="irCalendarNote"></div>
       <div class="ir-day-filter" id="irDayFilter" hidden></div>
@@ -3103,53 +3213,64 @@
     let irRecordsCache = [];
     let irSelectedDay = '';
 
+    const IR_CALENDAR_LINES = ['4', '5'];
+
     function irCalendarMonths(today = new Date()) {
       return [-1, 0].map(offset => new Date(today.getFullYear(), today.getMonth() + offset, 1));
+    }
+
+    // Lot date code as printed in the PKG Lot ID: year letter (A = 2021), month letter (A = January), two-digit day.
+    function irLotDateCode(year, month, day) {
+      return String.fromCharCode(65 + year - 2021) + String.fromCharCode(64 + month) + (day == null ? '' : String(day).padStart(2, '0'));
     }
 
     function renderIrCalendar(records) {
       const byDay = new Map();
       let unreadable = 0;
+      let otherLines = 0;
       records.forEach(record => {
         const lots = irLotsOf(record.pkgLotId);
         if (!lots.length || lots.some(item => !item.decoded)) unreadable += 1;
+        if (lots.some(item => item.decoded && !IR_CALENDAR_LINES.includes(item.decoded.line))) otherLines += 1;
         const ng = record.values.some(entry => entry.result === 'NG');
         const seen = new Set();
         lots.forEach(({ decoded }) => {
-          if (!decoded || seen.has(decoded.key + decoded.line)) return;
-          seen.add(decoded.key + decoded.line);
-          if (!byDay.has(decoded.key)) byDay.set(decoded.key, new Map());
-          const lines = byDay.get(decoded.key);
-          const entry = lines.get(decoded.line) || { checks: 0, ng: 0 };
+          if (!decoded) return;
+          const dayLine = decoded.key + '|' + decoded.line;
+          if (seen.has(dayLine)) return;
+          seen.add(dayLine);
+          const entry = byDay.get(dayLine) || { checks: 0, ng: 0 };
           entry.checks += 1;
           if (ng) entry.ng += 1;
-          lines.set(decoded.line, entry);
+          byDay.set(dayLine, entry);
         });
       });
       const todayKey = toDateInputValue(new Date());
-      document.getElementById('irCalendar').innerHTML = irCalendarMonths().map(first => {
+      const monthHtml = (first, line) => {
         const year = first.getFullYear();
         const month = first.getMonth();
         const days = new Date(year, month + 1, 0).getDate();
-        const blanks = Array.from({ length: first.getDay() }, () => '<span class="ir-day empty"></span>').join('');
         const cells = Array.from({ length: days }, (_, index) => {
           const key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(index + 1).padStart(2, '0');
-          const lines = byDay.get(key);
-          const chips = lines ? Array.from(lines.entries()).sort().map(([line, entry]) =>
-            '<span class="ir-day-chip ' + (entry.ng ? 'ng' : 'ok') + '" title="Line ' + escapeText(line) + ': ' + entry.checks + ' check(s)' + (entry.ng ? ', ' + entry.ng + ' with NG' : ', all OK') + '">L' +
-            escapeText(line) + ' ×' + entry.checks + '</span>').join('') : '';
-          const hasNg = lines && Array.from(lines.values()).some(entry => entry.ng);
-          const classes = 'ir-day' + (key === todayKey ? ' today' : '') + (key === irSelectedDay ? ' selected' : '') + (hasNg ? ' has-ng' : '');
-          return lines
-            ? '<button type="button" class="' + classes + '" data-ir-day="' + key + '"><span class="ir-day-num">' + (index + 1) + '</span>' + chips + '</button>'
-            : '<span class="' + classes + '"><span class="ir-day-num">' + (index + 1) + '</span></span>';
+          const dayLine = key + '|' + line;
+          const entry = byDay.get(dayLine);
+          const label = '<span class="ir-day-num">' + irLotDateCode(year, month + 1, index + 1) + '</span>';
+          const classes = 'ir-day' + (key === todayKey ? ' today' : '') + (dayLine === irSelectedDay ? ' selected' : '') + (entry && entry.ng ? ' has-ng' : '');
+          if (!entry) return '<span class="' + classes + '">' + label + '</span>';
+          const ok = entry.checks - entry.ng;
+          const chips = (ok ? '<span class="ir-day-chip ok">OK ' + ok + '</span>' : '') + (entry.ng ? '<span class="ir-day-chip ng">NG ' + entry.ng + '</span>' : '');
+          return '<button type="button" class="' + classes + '" data-ir-day="' + dayLine + '" title="Line ' + line + ', ' + key + ': ' + ok + ' OK, ' + entry.ng + ' NG">' + label + chips + '</button>';
         }).join('');
-        return '<section class="ir-month"><h4>' + first.toLocaleString('en-US', { month: 'long', year: 'numeric' }) + '</h4><div class="ir-month-grid">' +
-          ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => '<span class="ir-weekday">' + day + '</span>').join('') + blanks + cells + '</div></section>';
-      }).join('');
-      document.getElementById('irCalendarNote').textContent = unreadable
-        ? unreadable + ' record(s) have a PKG Lot ID that does not follow the lot rule and are not on the calendar.'
-        : '';
+        return '<section class="ir-month"><h5>' + irLotDateCode(year, month + 1) + ' · ' + first.toLocaleString('en-US', { month: 'long', year: 'numeric' }) +
+          '</h5><div class="ir-month-grid">' + cells + '</div></section>';
+      };
+      document.getElementById('irCalendar').innerHTML = IR_CALENDAR_LINES.map(line =>
+        '<section class="ir-line"><h4>Line ' + line + '</h4><div class="ir-line-months">' +
+        irCalendarMonths().map(first => monthHtml(first, line)).join('') + '</div></section>').join('');
+      document.getElementById('irCalendarNote').textContent = [
+        unreadable ? unreadable + ' record(s) have a PKG Lot ID that does not follow the lot rule and are not on the calendar.' : '',
+        otherLines ? otherLines + ' record(s) are from a line other than Line 4 or 5 and are not on the calendar.' : ''
+      ].filter(Boolean).join(' ');
     }
 
     function renderIrRecords(records) {
@@ -3181,11 +3302,12 @@
     function renderIrTable() {
       const tbody = document.getElementById('irTableBody');
       const filter = document.getElementById('irDayFilter');
+      const [selectedKey, selectedLine] = irSelectedDay.split('|');
       const records = irSelectedDay
-        ? irRecordsCache.filter(record => irLotsOf(record.pkgLotId).some(item => item.decoded && item.decoded.key === irSelectedDay))
+        ? irRecordsCache.filter(record => irLotsOf(record.pkgLotId).some(item => item.decoded && item.decoded.key === selectedKey && item.decoded.line === selectedLine))
         : irRecordsCache;
       filter.hidden = !irSelectedDay;
-      filter.innerHTML = irSelectedDay ? 'Lot date ' + escapeText(irSelectedDay) + ': ' + records.length + ' record(s) <button type="button" class="secondary-button">Show all</button>' : '';
+      filter.innerHTML = irSelectedDay ? 'Line ' + escapeText(selectedLine) + ', lot date ' + escapeText(selectedKey) + ': ' + records.length + ' record(s) <button type="button" class="secondary-button">Show all</button>' : '';
       if (!records.length) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No IR records yet.</td></tr>';
         return;
@@ -3307,7 +3429,8 @@
     updateConductiveMeasurementMode();
 
     function switchProcess(process) {
-      currentProcess = ['before_hpcd', 'formation', 'degas', 'temperature', 'maintenance', 'conductive', 'startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector', 'startup_resealing', 'ip_dsf', 'ir'].includes(process) ? process : 'formation';
+      setSummaryMode(false);
+      currentProcess =['before_hpcd', 'formation', 'degas', 'temperature', 'maintenance', 'conductive', 'startup_hpcd', 'startup_jig', 'startup_degas', 'startup_cdc', 'startup_eol', 'startup_selector', 'startup_resealing', 'ip_dsf', 'ir'].includes(process) ? process : 'formation';
       const isIr = currentProcess === 'ir';
       const isBeforeHpcd = currentProcess === 'before_hpcd';
       const isDegas = currentProcess === 'degas';
@@ -3453,6 +3576,10 @@
 
     document.querySelectorAll('.process-category-toggle').forEach(toggle => {
       toggle.addEventListener('click', () => {
+        if (toggle.dataset.summary) {
+          showSummary();
+          return;
+        }
         if (toggle.dataset.process) {
           switchProcess(toggle.dataset.process);
           return;
@@ -5478,8 +5605,110 @@
     document.getElementById('temperaturePanels').addEventListener('pointermove', showTemperatureTooltip);
     document.getElementById('temperaturePanels').addEventListener('pointerout', hideTemperatureTooltip);
 
-    // Initialize the default process and load its data.
+    // ---- Summary: today's status of every check ----
+    const SUMMARY_MARK = Object.freeze({ ok: '✓', bad: '✕', idle: '○', info: '–' });
+    const summaryNavButton = document.querySelector('[data-summary]');
+    let summaryRequest = 0;
+
+    function setSummaryMode(on) {
+      document.querySelector('.main-content').classList.toggle('summary-mode', on);
+      summaryNavButton.classList.toggle('active', on);
+      summaryNavButton.setAttribute('aria-expanded', String(on));
+    }
+
+    function showSummary() {
+      setSummaryMode(true);
+      document.querySelectorAll('.process-button, .process-category-direct:not([data-summary])').forEach(button => button.classList.remove('active'));
+      document.querySelectorAll('.process-group').forEach(group => {
+        group.classList.toggle('open', group.classList.contains('summary-nav-group'));
+        group.querySelector('.process-category-toggle').setAttribute('aria-expanded', String(group.classList.contains('summary-nav-group')));
+      });
+      loadSummary();
+    }
+
+    async function loadSummary() {
+      const request = ++summaryRequest;
+      const refresh = document.getElementById('summaryRefresh');
+      refresh.disabled = true;
+      try {
+        const response = await fetch('/api/summary', { cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok || data.result !== 'success') throw new Error(data.message || 'Summary could not be loaded.');
+        if (request === summaryRequest) renderSummary(data);
+      } catch (error) {
+        if (request === summaryRequest) {
+          document.getElementById('summaryBody').innerHTML = '<div class="summary-error">' + escapeText(error.message) + '</div>';
+          document.getElementById('summaryUpdated').textContent = 'Not updated';
+        }
+      } finally {
+        refresh.disabled = false;
+      }
+    }
+
+    function summaryTime(value, data) {
+      if (!value) return '';
+      const at = new Date(value);
+      const day = at.toLocaleDateString('en-CA', { timeZone: data.timeZone });
+      return day === data.today
+        ? at.toLocaleTimeString('en-GB', { timeZone: data.timeZone, hour: '2-digit', minute: '2-digit' })
+        : at.toLocaleDateString('en-US', { timeZone: data.timeZone, month: '2-digit', day: '2-digit' });
+    }
+
+    function renderSummary(data) {
+      const all = data.groups.flatMap(group => group.items.map(item => ({ ...item, group: group.name })));
+      const count = status => all.filter(item => item.status === status).length;
+      const bad = count('bad');
+      const idle = count('idle');
+      const ok = count('ok');
+      const checked = all.filter(item => item.status !== 'info').length;
+      const headline = bad ? '<em>' + bad + (bad === 1 ? ' problem needs' : ' problems need') + '</em> action now'
+        : idle ? 'No problems so far today' : 'All checks are OK today';
+      const subline = (idle ? idle + ' of ' + checked + ' checks have no record today. ' : '') + ok + ' of ' + checked + ' checks are OK.';
+      const reviewSince = data.reviews.oldest ? ', oldest from ' + summaryTime(data.reviews.oldest, data) : '';
+      const row = item => '<button type="button" class="summary-row ' + item.status + '" data-summary-process="' + escapeText(item.process) + '">' +
+        '<span class="mk" aria-hidden="true">' + SUMMARY_MARK[item.status] + '</span><span class="nm">' + escapeText(item.name) + '</span>' +
+        '<span class="tm">' + escapeText(summaryTime(item.last, data)) + '</span><span class="why">' + escapeText(item.detail) + '</span></button>';
+      const queueItem = item => '<div class="summary-q ' + item.status + '"><span class="bar"></span><div><div class="what">' + escapeText(item.name) +
+        (item.group === item.name ? '' : ' <span class="where">' + escapeText(item.group) + '</span>') + '</div><div class="why">' + escapeText(item.detail) + '</div>' +
+        '<button type="button" data-summary-process="' + escapeText(item.process) + '">Open records</button></div><span class="since">' + escapeText(summaryTime(item.last, data)) + '</span></div>';
+      const problems = all.filter(item => item.status === 'bad');
+      const missing = all.filter(item => item.status === 'idle');
+
+      document.getElementById('summaryBody').innerHTML =
+        '<section class="summary-verdict"><div><h3>' + headline + '</h3><p>' + subline + '</p></div><div class="summary-counters">' +
+        '<div class="summary-counter' + (bad ? ' bad' : '') + '"><b>' + bad + '</b><span>Problem</span></div>' +
+        '<div class="summary-counter"><b>' + idle + '</b><span>No record today</span></div>' +
+        '<div class="summary-counter"><b>' + ok + '</b><span>OK</span></div>' +
+        '<div class="summary-counter"><b>' + data.reviews.pending + '</b><span>Waiting for review</span></div></div></section>' +
+        '<div class="summary-strip">' + data.groups.map(group => '<div class="grp" style="flex:' + group.items.length + ' 1 0">' +
+          group.items.map(item => '<span class="seg ' + item.status + '" title="' + escapeText(group.name + ': ' + item.name) + '"></span>').join('') + '</div>').join('') + '</div>' +
+        '<div class="summary-strip-labels">' + data.groups.map(group => '<span style="flex:' + group.items.length + ' 1 0">' + escapeText(group.name) + '</span>').join('') + '</div>' +
+        '<div class="summary-main"><div class="summary-board">' + data.groups.map(group => {
+          const groupOk = group.items.filter(item => item.status === 'ok').length;
+          const groupChecked = group.items.filter(item => item.status !== 'info').length;
+          const score = groupChecked
+            ? '<b class="' + (group.items.some(item => item.status === 'bad') ? 'bad' : '') + '">' + groupOk + '</b> / ' + groupChecked + ' OK'
+            : 'As needed';
+          return '<section class="summary-group"><div class="summary-group-head"><h4>' + escapeText(group.name) + '</h4><span>' + score + '</span></div>' +
+            group.items.map(row).join('') + '</section>';
+        }).join('') + '</div>' +
+        '<aside class="summary-queue"><h4>Needs action <span>' + (problems.length + missing.length) + ' items</span></h4>' +
+        (problems.length ? problems.map(queueItem).join('') : '<div class="summary-empty">✓ No problems today</div>') +
+        (missing.length ? '<div class="summary-sep">No record today</div>' + missing.map(queueItem).join('') : '') +
+        '<div class="summary-review"><div><b>' + data.reviews.pending + '</b><span>records waiting for review (7 days)' + escapeText(reviewSince) + '</span></div></div></aside></div>';
+      document.getElementById('summaryUpdated').textContent = 'Today ' + data.today + ', updated ' +
+        new Date().toLocaleTimeString('en-GB', { timeZone: data.timeZone, hour: '2-digit', minute: '2-digit' });
+    }
+
+    document.getElementById('summaryRefresh').addEventListener('click', loadSummary);
+    document.getElementById('summaryView').addEventListener('click', event => {
+      const target = event.target.closest('[data-summary-process]');
+      if (target) switchProcess(target.dataset.summaryProcess);
+    });
+
+    // Initialize the default process (sets up the forms), then open the Summary as the start page.
     switchProcess(currentProcess);
+    showSummary();
     // ---- Reviewer sign-in and record review ----
     // Part leaders, engineers and supervisors sign in to confirm or correct records; operators never sign in.
     const ROLE_LABELS = Object.freeze({ part_leader: 'Part leader', engineer: 'Engineer', supervisor: 'Supervisor', admin: 'Administrator' });

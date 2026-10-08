@@ -100,4 +100,17 @@ await post({ process: 'startup_jig', ...teams, lines: ['3-1'], checkCompleted: '
 const after = await get('startup_jig', 'records');
 assert.equal(after.data.length, before.data.length);
 console.log('PASS validation and rollback');
+const summary = await (await fetch(base + '/api/summary')).json();
+const statusOf = name => summary.groups.flatMap(group => group.items).find(item => item.name === name)?.status;
+assert.equal(summary.result, 'success');
+assert.deepEqual(summary.groups.map(group => group.name), ['Appearance', 'Temperature', 'Maintenance', 'Start-up', 'IP check sheet', 'IR']);
+assert.equal(statusOf('Before HPCD'), 'ok');
+assert.equal(statusOf('Jig Formation'), 'bad');
+assert.equal(statusOf('HTA'), 'bad');
+assert.equal(statusOf('SHA'), 'idle');
+assert.equal(statusOf('EOL Tape/Knife'), 'info');
+assert.equal(statusOf('Resealing Machine'), 'ok');
+assert.equal(statusOf('IR'), 'bad');
+assert.ok(summary.reviews.pending > 0);
+console.log('PASS summary statuses');
 console.log('All 15 form types passed.');

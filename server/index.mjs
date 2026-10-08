@@ -9,6 +9,7 @@ import { readInspection, readPhoto } from './read.mjs';
 import { SESSION_COOKIE, REVIEWER_ROLES, publicUser, signUp, logIn, logOut, sessionUser, changePassword,
   disableInactiveAccounts, listUsers, manageUser, sessionCookie } from './auth.mjs';
 import { reviewDetail, submitReview } from './reviews.mjs';
+import { readSummary } from './summary.mjs';
 
 const root = fileURLToPath(new URL('../public/', import.meta.url));
 const host = process.env.FORMATION_HOST || '127.0.0.1';
@@ -199,6 +200,10 @@ const server = http.createServer(async (request, response) => {
       const input = await readJson(request);
       const result = await saveInspection(pool, input, clientIpOf(request));
       sendJson(response, 201, { result: 'success', process: input.process, ...result });
+      return;
+    }
+    if (url.pathname === '/api/summary' && request.method === 'GET') {
+      sendJson(response, 200, { result: 'success', ...(await readSummary(pool)) });
       return;
     }
     if (url.pathname === '/api/inspections' && request.method === 'GET') {
