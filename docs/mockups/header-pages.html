@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>헤더별 페이지 시안</title>
+<style>
+  :root {
+    --bg: #f4f6f8; --surface: #fff; --line: #dfe4ea; --line-strong: #c4ccd6;
+    --ink: #121a26; --text: #2b3645; --muted: #6a7686; --faint: #9aa4b1;
+    --accent: #2454d8; --accent-tint: #eaf0ff;
+    --ok: #1f7a4d; --ok-tint: #e6f2ec; --bad: #c0352f; --bad-tint: #fbe9e8; --idle: #5c6878; --idle-tint: #edf0f3;
+    --warn: #a85d06; --warn-tint: #fbf0e0;
+    --seq1: #e8eef9; --seq2: #c5d4f0; --seq3: #8eaae0; --seq4: #4f78cc; --seq5: #24489c;
+    --r: 4px;
+    --font: Bahnschrift, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 var(--font); font-variant-numeric: tabular-nums; }
+  .switcher { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 16px; background: #121a26; color: #fff; }
+  .switcher b { margin-right: 6px; }
+  .switcher button { min-height: 40px; padding: 4px 14px; border: 1px solid #3c4a5e; border-radius: var(--r); background: transparent; color: #dbe2ea; font: 600 14px var(--font); cursor: pointer; }
+  .switcher button.on { background: #fff; color: #121a26; border-color: #fff; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 16px 16px 48px; }
+  .note { margin-bottom: 18px; padding: 12px 16px; border-left: 4px solid var(--accent); background: var(--accent-tint); border-radius: var(--r); color: #1c3a8a; font-size: 14px; }
+  .note strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 4px; }
+  .note ul { margin: 4px 0 0; padding-left: 18px; }
+  .page { display: none; }
+  .page.on { display: block; }
+
+  /* Page frame shared by every header */
+  .ph { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line-strong); margin-bottom: 14px; }
+  .ph .eyebrow { font-size: 13px; color: var(--muted); }
+  .ph h2 { margin: 2px 0 0; font-size: 24px; color: var(--ink); letter-spacing: -0.01em; }
+  .ph .actions { display: flex; gap: 8px; }
+  .btn { min-height: 44px; padding: 0 16px; border-radius: var(--r); border: 1px solid var(--line-strong); background: #fff; color: var(--ink); font: 600 14px var(--font); white-space: nowrap; cursor: pointer; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .seg { display: inline-flex; max-width: 100%; overflow-x: auto; border: 1px solid var(--line-strong); border-radius: var(--r); margin-bottom: 14px; }
+  .seg span { white-space: nowrap; }
+  .seg span { padding: 8px 14px; font-weight: 600; font-size: 14px; color: var(--muted); background: #fff; border-left: 1px solid var(--line-strong); min-height: 40px; display: inline-flex; align-items: center; }
+  .seg span:first-child { border-left: 0; }
+  .seg span.on { background: var(--ink); color: #fff; }
+  .today { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: var(--r); background: #fff; margin-bottom: 18px; }
+  .today div { padding: 12px 16px; border-left: 1px solid var(--line); }
+  .today div:first-child { border-left: 0; }
+  .today b { display: block; font-size: 26px; line-height: 1.1; color: var(--ink); }
+  .today b.bad { color: var(--bad); }
+  .today span { font-size: 13px; color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; }
+  .grid-wide { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; }
+  .panel { min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--r); }
+  .panel > h3 { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0; padding: 12px 16px 10px; font-size: 16px; color: var(--ink); border-bottom: 1px solid var(--line); }
+  .panel > h3 small { font-size: 13px; font-weight: 500; color: var(--muted); }
+  .pad { padding: 14px 16px; }
+  .why { margin: 8px 0 18px; padding: 10px 14px; border: 1px dashed var(--line-strong); border-radius: var(--r); background: #fbfcfd; font-size: 13.5px; color: var(--text); }
+  .why b { color: var(--ink); }
+
+  /* Tables */
+  table.t { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .t th { padding: 8px 10px; font-size: 12px; font-weight: 600; color: var(--muted); text-align: left; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+  .t td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .t tr.bad td { background: var(--bad-tint); }
+  .t tr.bad td:first-child { box-shadow: inset 3px 0 0 var(--bad); }
+  .t .num { text-align: right; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 3px; font-size: 12px; font-weight: 700; }
+  .pill.ok { color: var(--ok); background: var(--ok-tint); }
+  .pill.bad { color: #fff; background: var(--bad); }
+  .pill.idle { color: var(--idle); background: var(--idle-tint); }
+  .pill.pend { color: var(--warn); background: var(--warn-tint); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  .chip { min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 18px; font-size: 13px; font-weight: 600; color: var(--muted); background: #fff; }
+  .chip.on { border-color: var(--ink); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .scroll { overflow-x: auto; }
+
+  /* Horizontal bars */
+  .hbar { display: grid; grid-template-columns: 120px minmax(0, 1fr) 36px; gap: 8px; align-items: center; padding: 5px 0; font-size: 14px; }
+  .hbar i { display: block; height: 14px; border-radius: 0 4px 4px 0; background: var(--seq4); }
+  .hbar .v { text-align: right; font-weight: 700; color: var(--ink); }
+
+  /* Heat matrix */
+  table.heat { border-collapse: separate; border-spacing: 2px; font-size: 12px; }
+  .heat th { color: var(--muted); font-weight: 600; padding: 2px 4px; white-space: nowrap; }
+  .heat td { width: 30px; height: 26px; text-align: center; border-radius: 3px; background: var(--seq1); color: var(--ink); font-weight: 700; }
+  .heat td.h0 { background: #f3f5f8; color: transparent; }
+  .heat td.h1 { background: var(--seq2); }
+  .heat td.h2 { background: var(--seq3); }
+  .heat td.h3 { background: var(--seq4); color: #fff; }
+  .heat td.h4 { background: var(--seq5); color: #fff; }
+
+  /* Temperature tiles */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .tile { background: #fff; border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px 8px; cursor: pointer; }
+  .tile.sel { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .tile.bad { background: var(--bad-tint); border-color: #f0c4c1; }
+  .tile.idle { background: var(--idle-tint); }
+  .tile .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .tile .nm { font-weight: 700; color: var(--ink); }
+  .tile .sp { font-size: 12px; color: var(--muted); }
+  .tile .val { font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .tile.bad .val { color: var(--bad); }
+  .tile .st { font-size: 12px; color: var(--muted); }
+  .tile.bad .st { color: var(--bad); font-weight: 600; }
+  .tile svg { display: block; width: 100%; height: 34px; margin-top: 4px; }
+
+  /* Status matrix (start-up, IP coverage) */
+  table.sm { border-collapse: separate; border-spacing: 3px; width: 100%; min-width: 640px; }
+  .sm th { font-size: 12px; color: var(--muted); font-weight: 600; padding: 2px 4px; text-align: center; }
+  .sm th.row { text-align: left; font-size: 14px; color: var(--ink); white-space: nowrap; padding-right: 10px; }
+  .sm td { height: 32px; border-radius: 3px; text-align: center; font-weight: 700; font-size: 13px; }
+  .sm td.ok { background: var(--ok-tint); color: var(--ok); }
+  .sm td.bad { background: var(--bad); color: #fff; }
+  .sm td.idle { background: var(--idle-tint); color: var(--idle); }
+  .sm td.na { color: #c6ccd5; }
+  .sm td.now { box-shadow: inset 0 0 0 2px var(--accent); }
+
+  /* Check sheet card */
+  .sheet { border-top: 1px solid var(--line); padding: 12px 16px; }
+  .sheet:first-of-type { border-top: 0; }
+  .sheet .hd { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+  .sheet .hd b { color: var(--ink); }
+  .sheet .hd span:not(.pill) { font-size: 13px; color: var(--muted); }
+  .sheet .items { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .sheet .flag { margin-top: 8px; padding: 8px 10px; border-left: 3px solid var(--bad); background: var(--bad-tint); font-size: 14px; }
+  .sheet .flag b { color: var(--bad); }
+
+  /* IP range bars */
+  .rb { display: grid; grid-template-columns: 150px minmax(0, 1fr) 64px; gap: 10px; align-items: center; padding: 6px 0; font-size: 13.5px; border-top: 1px solid var(--line); }
+  .rb:first-child { border-top: 0; }
+  .rb .track { position: relative; height: 18px; }
+  .rb .track .band { position: absolute; top: 6px; height: 6px; left: 20%; right: 20%; background: var(--ok-tint); border: 1px solid #b9dcc8; border-radius: 3px; }
+  .rb .track .dot { position: absolute; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); border: 2px solid #fff; box-shadow: 0 0 0 1px var(--ink); transform: translateX(-50%); }
+  .rb .track .dot.bad { background: var(--bad); box-shadow: 0 0 0 1px var(--bad); }
+  .rb .v { text-align: right; font-weight: 700; color: var(--ink); }
+  .rb .v.bad { color: var(--bad); }
+
+  /* IR channel heat */
+  .chgrid { display: grid; grid-template-columns: 60px repeat(18, minmax(0, 1fr)); gap: 2px; font-size: 11px; }
+  .chgrid span { height: 26px; display: grid; place-items: center; border-radius: 3px; font-weight: 700; }
+  .chgrid .lab { color: var(--muted); font-weight: 600; justify-content: start; }
+  .chgrid .hdr { color: var(--muted); font-weight: 600; height: 18px; }
+
+  .mini-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+  .mini-cal span { min-height: 46px; padding: 3px 4px; border: 1px solid var(--line); border-radius: 3px; background: #f8f9fb; font-size: 11px; color: var(--muted); font-weight: 700; display: flex; flex-direction: column; gap: 2px; }
+  .mini-cal span.bad { border-color: var(--bad); }
+  .mini-cal i { font-style: normal; display: block; padding: 0 3px; border-radius: 2px; font-size: 10.5px; }
+  .mini-cal i.ok { background: var(--ok-tint); color: var(--ok); }
+  .mini-cal i.ng { background: var(--bad); color: #fff; }
+
+  @media (max-width: 900px) {
+    .grid2, .grid-wide { grid-template-columns: 1fr; }
+    .today { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .today div:nth-child(3) { border-left: 0; }
+    .today div:nth-child(n+3) { border-top: 1px solid var(--line); }
+    .hbar { grid-template-columns: 96px minmax(0, 1fr) 30px; }
+    .rb { grid-template-columns: 110px minmax(0, 1fr) 56px; }
+  }
+</style>
+</head>
+<body>
+<nav class="switcher" id="switcher"><b>헤더별 시안</b></nav>
+<div class="wrap" id="wrap"></div>
+
+<script>
+// Sample data for the mockups only.
+const h = (tag, cls, html) => '<' + tag + (cls ? ' class="' + cls + '"' : '') + '>' + html + '</' + tag + '>';
+const header = (eyebrow, title, newLabel) => '<div class="ph"><div><div class="eyebrow">' + eyebrow + '</div><h2>' + title + '</h2></div><div class="actions"><button class="btn">↻ Refresh</button><button class="btn primary">+ ' + newLabel + '</button></div></div>';
+const today = cells => '<div class="today">' + cells.map(([v, l, bad]) => '<div><b' + (bad ? ' class="bad"' : '') + '>' + v + '</b><span>' + l + '</span></div>').join('') + '</div>';
+const why = (text) => '<div class="why"><b>바뀐 점:</b> ' + text + '</div>';
+const DAYS7 = ['10/01', '10/02', '10/03', '10/04', '10/05', '10/06', '10/07'];
+const DAYS14 = ['09/24', '09/25', '09/26', '09/27', '09/28', '09/29', '09/30', ...DAYS7];
+const MARK = { ok: '✓', bad: '✕', idle: '○', na: '–' };
+const spark = (values, lo, hi, min, max) => {
+  const w = 180, hgt = 34, x = i => i / (values.length - 1) * w, y = v => hgt - (v - min) / (max - min) * hgt;
+  return '<svg viewBox="0 0 ' + w + ' ' + hgt + '" preserveAspectRatio="none"><rect x="0" y="' + y(hi) + '" width="' + w + '" height="' + (y(lo) - y(hi)) + '" fill="#e6f2ec"/>' +
+    '<polyline fill="none" stroke="#4f78cc" stroke-width="2" vector-effect="non-scaling-stroke" points="' + values.map((v, i) => x(i) + ',' + y(v)).join(' ') + '"/>' +
+    values.map((v, i) => (v < lo || v > hi) ? '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3" fill="#c0352f"/>' : '').join('') + '</svg>';
+};
+
+const pages = [];
+
+// ---------- Common principles ----------
+pages.push(['공통 원칙', () =>
+  '<div class="note"><strong>모든 헤더에 같이 적용하는 구조</strong><ul>' +
+  '<li><b>맨 위 숫자 4칸</b>: "Current Process"(제목 반복)를 빼고, 그 헤더의 <b>오늘 상태</b>를 보여 줌. Summary와 같은 기준이라 숫자가 서로 맞음.</li>' +
+  '<li><b>같은 그룹 안의 페이지</b>(Before HPCD / Jig Formation / Degas 등)는 페이지 위의 탭으로 바로 이동. 왼쪽 메뉴를 다시 열 필요 없음.</li>' +
+  '<li><b>순서</b>: 오늘 상태 → 어디가 문제인지 보여 주는 그림 1~2개 → 기록 표. 그림은 각 헤더 데이터에 맞게 다름.</li>' +
+  '<li><b>기록 표</b>: 문제 행만 빨간 배경. "문제만 보기" 칩 추가. 검토 대기는 작은 꼬리표.</li>' +
+  '<li><b>글꼴·색</b>: Summary와 같은 Bahnschrift, 숫자 고정폭. 빨강은 문제, 회색은 기록 없음에만 사용. 차트는 파란 계열 한 가지만 사용.</li>' +
+  '<li><b>지금 있는 문제</b>: Start-up 페이지의 Total Records가 "—"로 비어 있음. 새 구조에서 같이 고침.</li></ul></div>' +
+  '<div class="panel"><h3>페이지 뼈대 <small>모든 헤더 공통</small></h3><div class="pad">' +
+  header('Operations / Group', 'Page title', 'New record') +
+  '<div class="seg"><span class="on">Page A</span><span>Page B</span><span>Page C</span></div>' +
+  today([['12', 'Checks today'], ['1', 'Problems today', true], ['3.4%', '7-day rate'], ['21:57', 'Last record, 2A']]) +
+  '<div class="grid2"><div class="panel"><h3>Where is the problem <small>헤더마다 다름</small></h3><div class="pad muted" style="height:90px;color:var(--muted)">그림 1</div></div><div class="panel"><h3>Trend <small>최근 7~14일</small></h3><div class="pad" style="height:90px;color:var(--muted)">그림 2</div></div></div>' +
+  '<div class="panel"><h3>Records</h3><div class="chips"><span class="chip on">All</span><span class="chip">Problems only</span><span class="chip">Waiting for review</span></div><div class="pad" style="color:var(--muted)">표</div></div>' +
+  '</div></div>']);
+
+// ---------- Appearance ----------
+pages.push(['Appearance', () => {
+  const defects = [['Scratch', 9], ['Dent', 6], ['Contamination', 4], ['Wrinkles', 2], ['Lead bending', 1], ['Unsealing pouch', 1], ['Others', 0]];
+  const max = 9;
+  const lines = ['3-1', '3-2', '4-1', '4-2', '4-3', '5-1', '5-2'];
+  const heat = { '4-2': { 17: 4, 16: 1 }, '4-1': { 3: 1, 9: 2 }, '5-1': { 12: 1 }, '3-2': { 5: 1 } };
+  const lvl = n => n >= 4 ? 'h4' : n >= 3 ? 'h3' : n === 2 ? 'h2' : n === 1 ? 'h1' : 'h0';
+  return header('Operations / Appearance', 'Jig Formation inspection', 'New inspection') +
+    '<div class="seg"><span>Before HPCD</span><span class="on">Jig Formation</span><span>Degas</span></div>' +
+    today([['3', 'Checks today'], ['1', 'Defects today', true], ['4.2%', 'Defect rate, last 7 days'], ['21:57', 'Last record, 2A']]) +
+    why('결함 맵(셀 그림)이 페이지 대부분을 차지하던 구조를 바꿔, <b>"어떤 결함이 / 어느 지그에서"</b>를 먼저 보여 줍니다. 셀 위치 맵은 아래로 내려 접어 둡니다.') +
+    '<div class="grid2">' +
+    '<div class="panel"><h3>Defects by type <small>last 7 days, 23 defects</small></h3><div class="pad">' +
+      defects.map(([n, v]) => '<div class="hbar"><span>' + n + '</span><span><i style="width:' + (v / max * 100) + '%"></i></span><span class="v">' + v + '</span></div>').join('') + '</div></div>' +
+    '<div class="panel"><h3>Where: Jig line × Hot jig <small>last 7 days</small></h3><div class="pad scroll"><table class="heat"><tr><th></th>' +
+      Array.from({ length: 18 }, (_, i) => '<th>' + (i + 1) + '</th>').join('') + '</tr>' +
+      lines.map(l => '<tr><th>' + l + '</th>' + Array.from({ length: 18 }, (_, i) => { const n = (heat[l] || {})[i + 1] || 0; return '<td class="' + lvl(n) + '" title="' + l + ' Jig ' + (i + 1) + ': ' + n + '">' + (n || '') + '</td>'; }).join('') + '</tr>').join('') +
+      '</table><div style="font-size:12.5px;color:var(--muted);margin-top:6px">진할수록 결함이 많음. 4-2 라인 Hot jig 17에 4건 몰림.</div></div></div>' +
+    '</div>' +
+    '<div class="panel" style="margin-bottom:18px"><h3>Defect positions on cell <small>접기/펼치기, 지금의 결함 맵</small></h3><div class="pad" style="color:var(--muted)">▸ 기존 셀 그림 + 점 표시 (기본은 접힘)</div></div>' +
+    '<div class="panel"><h3>Records <small>newest first</small></h3><div class="chips"><span class="chip">All 3</span><span class="chip on">Defects only 1</span><span class="chip">Waiting for review 3</span><span class="chip">Today ▾</span></div><div class="scroll"><table class="t"><tr><th>Time</th><th>Team</th><th>Name</th><th>Tray ID</th><th>Cell / CH</th><th>Jig</th><th>Defect</th><th>Comment</th><th>Photo</th><th>Review</th></tr>' +
+      '<tr class="bad"><td>10/07 21:57</td><td>2A</td><td>Dummy</td><td><b>DUMMYB3</b></td><td>C07 / 7</td><td>4-2 · 17</td><td><span class="pill bad">Scratch</span></td><td>Dummy</td><td>📷</td><td><span class="pill pend">Pending</span></td></tr>' +
+      '<tr><td>10/07 21:57</td><td>2A</td><td>Dummy</td><td><b>DUMMYB2</b></td><td>-</td><td>-</td><td><span class="pill ok">All OK</span></td><td></td><td></td><td><span class="pill pend">Pending</span></td></tr>' +
+      '</table></div></div>';
+}]);
+
+// ---------- Temperature ----------
+pages.push(['Temperature', () => {
+  const areas = [
+    ['HTA', '60 ± 3', '60.0', 'ok', 'All 8 probes in spec', [60.1, 60.3, 59.8, 60.2, 60.0, 60.4, 60.0], 57, 63, 55, 65],
+    ['CDC', '29 ± 3', '28.8 – 29.4', 'ok', '7 probes, in spec', [29.1, 29.3, 28.9, 29.0, 29.4, 29.2, 29.1], 26, 32, 24, 34],
+    ['PLT', '23 ± 3', '23.4 – 23.9', 'ok', 'East, West in spec', [23.0, 23.5, 24.1, 25.2, 24.0, 23.6, 23.7], 20, 26, 18, 28],
+    ['DGS', '23 ± 3', '23.1', 'ok', 'Line 4-1', [22.8, 23.0, 23.4, 23.1, 22.9, 23.2, 23.1], 20, 26, 18, 28],
+    ['EOL', '23 ± 3', '27.2', 'bad', 'Line 5-1 out of spec', [23.4, 23.9, 24.6, 25.1, 25.8, 26.4, 27.2], 20, 26, 18, 28],
+    ['JIG', '23 ± 3', '23.5', 'ok', 'Line 4, Floor 1', [23.1, 23.3, 23.0, 23.6, 23.4, 23.2, 23.5], 20, 26, 18, 28],
+    ['PRA', '23 ± 3', '22.8 – 23.2', 'ok', 'East, West in spec', [22.9, 23.1, 23.0, 22.7, 23.2, 22.9, 23.0], 20, 26, 18, 28],
+    ['RTA', '23 ± 3', '23.3 – 23.6', 'ok', 'East, West in spec', [23.2, 23.4, 23.6, 23.1, 23.5, 23.3, 23.4], 20, 26, 18, 28],
+    ['SHA', '23 ± 3', '—', 'idle', 'No reading today (last 10/06)', [23.0, 23.2, 23.1, 22.9, 23.3, 23.1, 23.1], 20, 26, 18, 28]
+  ];
+  const eol = areas[4];
+  const big = (() => {
+    const v = eol[5], lo = eol[6], hi = eol[7], min = eol[8], max = eol[9], w = 640, hg = 200, pl = 34, pb = 22;
+    const x = i => pl + i / (v.length - 1) * (w - pl - 10), y = t => 8 + (max - t) / (max - min) * (hg - pb - 8);
+    let g = '';
+    for (let t = min; t <= max; t += 2) g += '<line x1="' + pl + '" x2="' + w + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="#eef1f4"/><text x="' + (pl - 6) + '" y="' + (y(t) + 4) + '" font-size="11" text-anchor="end" fill="#6a7686">' + t + '</text>';
+    return '<svg viewBox="0 0 ' + w + ' ' + hg + '" style="width:100%;height:auto;display:block">' + g +
+      '<rect x="' + pl + '" y="' + y(hi) + '" width="' + (w - pl) + '" height="' + (y(lo) - y(hi)) + '" fill="#e6f2ec" opacity=".8"/>' +
+      '<text x="' + (w - 4) + '" y="' + (y(hi) - 4) + '" font-size="11" text-anchor="end" fill="#1f7a4d">spec 20 to 26 °C</text>' +
+      '<polyline fill="none" stroke="#4f78cc" stroke-width="2" points="' + v.map((t, i) => x(i) + ',' + y(t)).join(' ') + '"/>' +
+      v.map((t, i) => '<circle cx="' + x(i) + '" cy="' + y(t) + '" r="' + (t > hi ? 5 : 3.5) + '" fill="' + (t > hi ? '#c0352f' : '#4f78cc') + '" stroke="#fff" stroke-width="2"><title>' + DAYS7[i] + ': ' + t + ' °C</title></circle>').join('') +
+      DAYS7.map((d, i) => '<text x="' + x(i) + '" y="' + (hg - 4) + '" font-size="11" text-anchor="middle" fill="#6a7686">' + d + '</text>').join('') + '</svg>';
+  })();
+  return header('Operations / Temperature', 'Area temperature', 'New reading') +
+    today([['8 / 9', 'Areas read today'], ['1', 'Out of spec today', true], ['1', 'No reading today'], ['21:57', 'Last reading, 2A']]) +
+    why('9개 구역의 차트+표를 전부 세로로 쌓아 <b>약 6,000px</b>이던 페이지를, 위에 <b>구역 타일 9개</b>(오늘 값 + 7일 미니 추이)로 한 화면에 담았습니다. 타일을 누르면 그 구역만 아래에 큰 차트와 기록이 열립니다.') +
+    '<div class="tiles">' + areas.map((a, i) => '<div class="tile ' + a[3] + (i === 4 ? ' sel' : '') + '"><div class="top"><span class="nm">' + a[0] + '</span><span class="sp">' + a[1] + ' °C</span></div><div class="val">' + a[2] + (a[2] !== '—' ? '<small style="font-size:13px;font-weight:500;color:var(--muted)"> °C</small>' : '') + '</div><div class="st">' + (a[3] === 'bad' ? '✕ ' : a[3] === 'idle' ? '○ ' : '✓ ') + a[4] + '</div>' + spark(a[5], a[6], a[7], a[8], a[9]) + '</div>').join('') + '</div>' +
+    '<div class="grid-wide"><div class="panel"><h3>EOL <small>last 7 days, highest reading per day</small></h3><div class="pad">' + big + '</div></div>' +
+    '<div class="panel"><h3>EOL readings <small>7 days</small></h3><div class="scroll"><table class="t"><tr><th>Time</th><th>Line</th><th class="num">°C</th><th>In spec</th></tr>' +
+      [['10/07 21:57', '5-1', '27.2', 0], ['10/06 20:10', '5-1', '26.4', 1], ['10/05 19:52', '5-1', '25.8', 1], ['10/04 20:05', '4-1', '25.1', 1], ['10/03 19:40', '4-2', '24.6', 1]].map(r =>
+        '<tr' + (r[3] ? '' : ' class="bad"') + '><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="num"><b>' + r[2] + '</b></td><td>' + (r[3] ? '<span class="pill ok">Yes</span>' : '<span class="pill bad">No</span>') + '</td></tr>').join('') +
+      '</table></div><div class="pad" style="font-size:13px;color:var(--muted)">5일째 계속 올라가는 중 (23.4 → 27.2 °C). 스펙 안이어도 추세가 보임.</div></div></div>';
+}]);
+
+// ---------- Maintenance ----------
+pages.push(['Maintenance', () => {
+  const tape = [['EOL 4-1', [1, 12, 0, 21]], ['EOL 4-2', [3, 30, 2, 18]], ['EOL 5-1', [2, 9, 5, 40]], ['EOL 5-2', [6, 25, 1, 11]]];
+  const age = d => d <= 3 ? 'h1' : d <= 10 ? 'h2' : d <= 25 ? 'h3' : 'h4';
+  const rubber = { 'Degas IR': ['1A', '1B', '1C', '1D', '2A', '2B', '2C', '2D'], 'EOL IR': ['1A', '1B', '1C', '1D'], 'EOL IV': ['1A', '1B', '2A', '2B'] };
+  const days = (seed, i) => ((seed * 7 + i * 5) % 23) + 1;
+  return header('Operations / Maintenance', 'EOL Tape/Knife maintenance', 'New maintenance') +
+    '<div class="seg"><span class="on">EOL Tape/Knife</span><span>Conductive Rubber</span></div>' +
+    today([['1', 'Records today'], ['EOL 4-1 Knife', 'Last: replaced'], ['40 days', 'Oldest: 5-1 Knife replace'], ['21:57', 'Last record, 2A']]) +
+    why('기록 표 하나뿐이던 페이지에 <b>라인 × 설비 "마지막 작업 후 며칠"</b> 표를 추가했습니다. 오래된 칸일수록 진하게 보여서 어디를 챙겨야 할지 바로 보입니다. 기준 일수(며칠 넘으면 경고)는 정해 주시면 빨간색으로 바꿀 수 있습니다.') +
+    '<div class="grid2"><div class="panel"><h3>Days since last work <small>EOL Tape/Knife</small></h3><div class="pad scroll"><table class="heat" style="width:100%"><tr><th></th><th>Tape clean</th><th>Tape replace</th><th>Knife clean</th><th>Knife replace</th></tr>' +
+      tape.map(([l, v]) => '<tr><th style="text-align:left">' + l + '</th>' + v.map(d => '<td class="' + age(d) + '" style="width:auto;height:34px">' + d + 'd</td>').join('') + '</tr>').join('') +
+      '</table><div style="font-size:12.5px;color:var(--muted);margin-top:6px">숫자 = 마지막 작업 후 지난 일수. 진할수록 오래됨.</div></div></div>' +
+    '<div class="panel"><h3>Conductive Rubber <small>같은 방식, 탭 전환 시</small></h3><div class="pad scroll">' +
+      Object.entries(rubber).map(([mode, units], m) => '<div style="font-size:13px;font-weight:700;color:var(--ink);margin:6px 0 2px">' + mode + '</div><table class="heat"><tr><th></th>' + units.map(u => '<th>' + u + '</th>').join('') + '</tr>' +
+        ['4-1', '4-2', '5-1', '5-2'].map((l, li) => '<tr><th>' + l + '</th>' + units.map((u, ui) => { const d = days(m + li, ui); return '<td class="' + age(d) + '">' + d + '</td>'; }).join('') + '</tr>').join('') + '</table>').join('') +
+      '</div></div></div>' +
+    '<div class="panel"><h3>Maintenance log</h3><div class="chips"><span class="chip on">All lines</span><span class="chip">EOL 4-1</span><span class="chip">EOL 4-2</span><span class="chip">EOL 5-1</span><span class="chip">EOL 5-2</span></div><div class="scroll"><table class="t"><tr><th>Time</th><th>Team</th><th>Name</th><th>Line</th><th>Target</th><th>Action</th><th>Taping line</th><th>Review</th></tr>' +
+      '<tr><td>10/07 21:57</td><td>2A</td><td>Dummy</td><td>EOL 4-1</td><td>Knife</td><td>Replace</td><td>Both</td><td><span class="pill pend">Pending</span></td></tr></table></div></div>';
+}]);
+
+// ---------- Start-up ----------
+pages.push(['Start-up', () => {
+  const sheets = [['HPCD', 'ooooooo'], ['Jig', 'ooooooo'], ['Degas', 'oooooxo'], ['CDC', 'ooooooo'], ['EOL', 'ooiooo o'.replace(' ', '')], ['Selector', 'oooiooi'], ['Resealing', 'ooooooo']];
+  const st = { o: 'ok', x: 'bad', i: 'idle' };
+  return header('Operations / Start-up', 'Start-up check sheets', 'New check sheet') +
+    '<div class="seg"><span class="on">All sheets</span><span>HPCD</span><span>Jig</span><span>Degas</span><span>CDC</span><span>EOL</span><span>Selector</span><span>Resealing</span></div>' +
+    today([['6 / 7', 'Sheets done today'], ['0', 'Flagged items today'], ['Selector', 'Not submitted today'], ['21:57', 'Last sheet, 2A']]) +
+    why('7개 체크시트가 따로따로 페이지였고, 점검 항목 하나가 표 한 줄을 차지했습니다. <b>"All sheets"</b> 탭을 새로 만들어 7개 시트의 7일 현황을 한 표로 보고, 기록은 <b>시트 1장 = 카드 1개</b>로 묶었습니다. Pass 항목은 작은 칩, 문제 항목만 펼쳐서 코멘트를 보여 줍니다.') +
+    '<div class="panel" style="margin-bottom:18px"><h3>Last 7 days <small>each cell = sheets submitted that day</small></h3><div class="pad scroll"><table class="sm"><tr><th></th>' + DAYS7.map(d => '<th>' + d + '</th>').join('') + '</tr>' +
+      sheets.map(([n, s]) => '<tr><th class="row">' + n + '</th>' + s.split('').map((c, i) => '<td class="' + st[c] + (i === 6 ? ' now' : '') + '">' + MARK[st[c]] + '</td>').join('') + '</tr>').join('') +
+      '</table><div style="font-size:12.5px;color:var(--muted);margin-top:6px">✓ 모두 Pass · ✕ Flagged/Incomplete/No 있음 · ○ 제출 없음 · 파란 테두리 = 오늘</div></div></div>' +
+    '<div class="panel"><h3>Recent sheets</h3><div class="chips"><span class="chip on">All</span><span class="chip">Problems only</span><span class="chip">Waiting for review</span></div>' +
+      '<div class="sheet"><div class="hd"><b>Degas</b><span>10/06 19:20 · 1B · Line 4-2 · Shift</span><span class="pill bad">1 flagged</span><span class="pill pend">Pending</span></div>' +
+        '<div class="items"><span class="pill ok">✓ Vacuum gauge</span><span class="pill ok">✓ Seal bar clean</span><span class="pill ok">✓ Safety cover</span><span class="pill ok">✓ Air pressure</span></div>' +
+        '<div class="flag"><b>✕ Cutter blade · Flagged</b><br>Chipped edge on blade 2, replacement requested</div></div>' +
+      '<div class="sheet"><div class="hd"><b>HPCD</b><span>10/07 21:57 · 2A · Line 4-1 · Shift</span><span class="pill ok">All passed</span><span class="pill pend">Pending</span></div>' +
+        '<div class="items"><span class="pill ok">✓ Check completed / Overall</span></div></div>' +
+      '<div class="sheet"><div class="hd"><b>Resealing Machine</b><span>10/07 21:57 · Shift 2A · Normal run</span><span class="pill ok">Inspected</span><span class="pill ok">Cleaned</span></div></div>' +
+    '</div>';
+}]);
+
+// ---------- IP check sheet ----------
+pages.push(['IP check sheet', () => {
+  const cov = [['EOL #4-1', '-o-o-o-o-o-o-o'], ['EOL #4-2', 'o-o-o-o-o-o-o-'], ['EOL #5-1', '-o-o-o-o-o-oxx'.slice(0, 14)], ['EOL #5-2', 'o-o-o-o-o-o-i-']];
+  const s = { o: 'ok', x: 'bad', i: 'idle', '-': 'na' };
+  const pts = [['2nd Wing Press · a', '0.4 – 0.5', 0.46, 0.4, 0.5], ['2nd Wing Press · b', '2 – 2.5', 2.31, 2, 2.5], ['2nd Wing Press · c', '120 – 122', 121.2, 120, 122],
+    ['90° Folding · a', '> 0.5', 0.62, 0.5, 0.8], ['3rd Wing Press A · a', '0.8 – 1.0', 0.93, 0.8, 1.0], ['3rd Wing Press A · c', '0.4 – 0.5', 0.53, 0.4, 0.5]];
+  return header('IP check sheet / DSF', 'DSF daily IP check', 'New IP check') +
+    today([['EOL #5-1', 'Checked today'], ['1', 'Points out of range today', true], ['13 / 14', 'Days checked, last 14'], ['21:57', 'Last check']]) +
+    why('공정 그림 4장이 화면 위를 크게 차지하던 것을 작은 참고 그림으로 줄이고, <b>라인 × 날짜 점검 현황</b>(하루 한쪽 라인 점검 규칙이 지켜지는지)과 <b>최근 측정값의 스펙 위치</b>를 먼저 보여 줍니다.') +
+    '<div class="panel" style="margin-bottom:18px"><h3>Which line was checked <small>last 14 days</small></h3><div class="pad scroll"><table class="sm"><tr><th></th>' + DAYS14.map(d => '<th>' + d.slice(3) + '</th>').join('') + '</tr>' +
+      cov.map(([l, c]) => '<tr><th class="row">' + l + '</th>' + c.padEnd(14, '-').split('').map((ch, i) => '<td class="' + s[ch] + (i === 13 ? ' now' : '') + '">' + MARK[s[ch]] + '</td>').join('') + '</tr>').join('') +
+      '</table><div style="font-size:12.5px;color:var(--muted);margin-top:6px">✓ 점검, 모두 스펙 안 · ✕ 스펙 밖 있음 · ○ 순서인데 점검 없음 · – 그날 순서 아님</div></div></div>' +
+    '<div class="grid-wide"><div class="panel"><h3>Latest check: EOL #5-1 <small>10/07 21:57, (+) side</small></h3><div class="pad">' +
+      pts.map(([n, t, v, lo, hi]) => { const span = hi - lo, min = lo - span * 0.6, max = hi + span * 0.6, pos = Math.max(2, Math.min(98, (v - min) / (max - min) * 100)), bad = v < lo || v > hi;
+        return '<div class="rb"><span>' + n + '<br><small style="color:var(--muted)">' + t + '</small></span><span class="track"><span class="band"></span><span class="dot' + (bad ? ' bad' : '') + '" style="left:' + pos + '%"></span></span><span class="v' + (bad ? ' bad' : '') + '">' + v + '</span></div>'; }).join('') +
+      '<div style="font-size:12.5px;color:var(--muted);margin-top:6px">초록 띠 = 스펙 범위. 점이 띠 밖이면 빨강.</div></div></div>' +
+    '<div class="panel"><h3>Reference <small>작게</small></h3><div class="pad" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+      ['2nd Wing Press', '90° Folding', '3rd Wing Press', '270° Folding'].map(n => '<div style="border:1px solid var(--line);border-radius:4px;height:84px;display:grid;place-items:center;font-size:12px;color:var(--muted)">' + n + '<br>(그림)</div>').join('') + '</div></div></div>' +
+    '<div class="panel"><h3>Measurement history <small>지금 표 유지, 스펙 밖 값만 빨간 칸</small></h3><div class="pad" style="color:var(--muted)">기존 공정별 A/B/C 표</div></div>';
+}]);
+
+// ---------- IR ----------
+pages.push(['IR', () => {
+  const ng1 = [0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ng2 = [1, 0, 0, 0, 0, 0, 3, 4, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1];
+  const lvl = n => n >= 4 ? 'var(--seq5);color:#fff' : n === 3 ? 'var(--seq4);color:#fff' : n === 2 ? 'var(--seq3)' : n === 1 ? 'var(--seq2)' : '#f3f5f8;color:transparent';
+  const cal = (label, cells) => '<div><div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px">' + label + '</div><div class="mini-cal">' + cells.map(([d, ok, ng]) => '<span class="' + (ng ? 'bad' : '') + '">' + d + (ok ? '<i class="ok">OK ' + ok + '</i>' : '') + (ng ? '<i class="ng">NG ' + ng + '</i>' : '') + '</span>').join('') + '</div></div>';
+  return header('Operations / IR', 'Cell IR check', 'New IR check') +
+    today([['5', 'Checks today'], ['2', 'Checks with NG today', true], ['3', 'NG channels today'], ['21:28', 'Last check, 1B']]) +
+    why('확정한 <b>Line 4 / Line 5 달력은 그대로</b> 둡니다. 여기에 <b>트레이 × 채널별 NG 횟수</b>를 추가했습니다. 같은 채널에서 NG가 반복되면 셀 문제가 아니라 <b>설비(채널) 문제</b>일 가능성이 높아서 바로 보이게 했습니다.') +
+    '<div class="grid2"><div class="panel"><h3>Lot calendar <small>지금 형태 유지 (일부만 표시)</small></h3><div class="pad" style="display:grid;gap:12px">' +
+      cal('Line 4 · FJ', [['FJ01', 1, 2], ['FJ02', 2, 0], ['FJ03', 0, 0], ['FJ04', 0, 0], ['FJ05', 1, 1], ['FJ06', 0, 0], ['FJ07', 0, 0]]) +
+      cal('Line 5 · FJ', [['FJ01', 0, 2], ['FJ02', 1, 1], ['FJ03', 1, 0], ['FJ04', 2, 2], ['FJ05', 1, 0], ['FJ06', 1, 0], ['FJ07', 0, 0]]) +
+    '</div></div>' +
+    '<div class="panel"><h3>NG by channel <small>last 30 days, all lines</small></h3><div class="pad"><div class="chgrid"><span></span>' + Array.from({ length: 18 }, (_, i) => '<span class="hdr">' + (i + 1) + '</span>').join('') +
+      '<span class="lab">Tray 1</span>' + ng1.map((n, i) => '<span style="background:' + lvl(n) + '" title="Tray 1 CH ' + (i + 1) + ': ' + n + ' NG">' + (n || '') + '</span>').join('') +
+      '<span class="lab">Tray 2</span>' + ng2.map((n, i) => '<span style="background:' + lvl(n) + '" title="Tray 2 CH ' + (i + 1) + ': ' + n + ' NG">' + (n || '') + '</span>').join('') +
+      '</div><div style="font-size:12.5px;color:var(--muted);margin-top:8px">Tray 2의 CH 7, CH 8에 NG가 몰림 (7건). 채널 점검 권장.</div></div></div></div>' +
+    '<div class="panel"><h3>IR records</h3><div class="chips"><span class="chip on">All</span><span class="chip">NG only</span><span class="chip">Line 4</span><span class="chip">Line 5</span><span class="chip">Waiting for review</span></div><div class="pad" style="color:var(--muted)">지금 표 유지 (트레이별 18채널 칩)</div></div>';
+}]);
+
+const wrap = document.getElementById('wrap');
+const sw = document.getElementById('switcher');
+wrap.innerHTML = pages.map(([name, fn], i) => '<section class="page" id="p' + i + '">' + fn() + '</section>').join('');
+pages.forEach(([name], i) => {
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.onclick = () => show(i);
+  sw.appendChild(b);
+});
+function show(i) {
+  document.querySelectorAll('.page').forEach((p, j) => p.classList.toggle('on', j === i));
+  sw.querySelectorAll('button').forEach((b, j) => b.classList.toggle('on', j === i));
+  history.replaceState(null, '', '#' + i);
+  window.scrollTo(0, 0);
+}
+show(Number((location.hash || '#0').slice(1)) || 0);
+</script>
+</body>
+</html>

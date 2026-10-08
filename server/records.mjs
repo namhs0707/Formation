@@ -30,6 +30,7 @@ export const TEMPERATURE_AREAS = {
   temp_sha: { fields: [...fieldKeys('shaEast', ['1','2','3','4','5']), ...fieldKeys('shaWest', ['1','2','3','4','5'])] }
 };
 export const TEAMS = ['1A', '1B', '2A', '2B'];
+export const HPCD_LINES = ['3', '4', '5', '6'];
 export const DEFECTS = ['All OK', 'Dent', 'Contamination', 'Scratch', 'Lead bending', 'Wrinkles', 'Unsealing pouch', 'Others'];
 function invalid(message) { const error = new Error(message); error.status = 400; throw error; }
 function required(value, label, max = 200) {
@@ -74,13 +75,14 @@ async function saveAppearance(client, input) {
   const jigLine = input.process === 'formation' && !allOk ? required(input.jigLine, 'Jig line', 16) : null;
   const hotJig = input.process === 'formation' && !allOk ? numeric(input.hotJig, 'Hot jig') : null;
   const degasLine = input.process === 'degas' && !allOk ? required(input.degasLine, 'Degas line', 16) : null;
+  const hpcdLine = input.process === 'before_hpcd' && !allOk ? choice(String(input.hpcdLine ?? ''), HPCD_LINES, 'HPCD line') : null;
   let defectMap;
   try { defectMap = JSON.parse(input.defectMap || '[]'); } catch { invalid('Invalid defect map.'); }
   if (!Array.isArray(defectMap)) invalid('Invalid defect map.');
   const rows = await client.query(
-    'INSERT INTO formation.appearance_inspections (process, team, operator_name, tray_id, cell_id, channel, jig_line, hot_jig, degas_line, defect_types, comment, defect_map) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb) RETURNING id',
+    'INSERT INTO formation.appearance_inspections (process, team, operator_name, tray_id, cell_id, channel, jig_line, hot_jig, degas_line, hpcd_line, defect_types, comment, defect_map) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb) RETURNING id',
     [input.process, teamOf(input), required(input.operatorName, 'Name', 120), tray, cell, channel,
-      jigLine, hotJig, degasLine, defects, optional(input.comment), JSON.stringify(defectMap)]
+      jigLine, hotJig, degasLine, hpcdLine, defects, optional(input.comment), JSON.stringify(defectMap)]
   );
   const id = rows.rows[0].id;
   if (input.defectPhotoData) {

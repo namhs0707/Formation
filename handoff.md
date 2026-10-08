@@ -10,15 +10,16 @@
 | `C:\Users\heeseong_n\Desktop\Formation-vm-server` (git worktree) | `feature/vm-server` | **운영 대상 VM/PostgreSQL 버전.** 앞으로의 작업은 여기서 |
 | `C:\Users\heeseong_n\Desktop\Formation-VM-이전` | — | VM으로 옮길 파일 모음 (ZIP, 설치 파일, `설치순서.txt`, 환경확인 스크립트) |
 
-- 커밋은 모두 로컬에만 있고 **push하지 않았습니다.** 원격은 개인 GitHub(`namhs0707/Formation`, 공개 여부 미확인)입니다.
+- 원격은 개인 GitHub(`namhs0707/Formation`, 공개 여부 미확인)입니다. 2026-10-07에 `main`을 VM 버전으로 맞춰 push했습니다(`main` = `feature/vm-server`). Google Drive 버전은 `feature/gdrive-backend`로 보관만 하고, 팀 공유용 Apps Script 웹앱 배포는 내렸습니다.
+- 이 PC 테스트용 DB는 `formation_ir_demo`(지우지 않음). `Start-Formation.cmd` = 포트 3002 + 이 DB.
 - worktree의 `node_modules`는 원래 프로젝트 `node_modules`를 가리키는 **링크(junction)**입니다. PowerShell `Remove-Item -Recurse`로 지우면 원본까지 삭제될 수 있으니 탐색기에서 링크만 지우세요.
 - 두 브랜치의 화면 파일은 각자 `index.html`과 `public/formation.html`이 같아야 합니다. 하나를 고치면 다른 하나로 복사하세요. Sheets 브랜치는 `Code.gs`와 `apps-script/Code.js`도 같아야 합니다.
 
-`feature/vm-server` 최근 커밋:
+`feature/vm-server` 최근 커밋 (2026-10-07):
+- 헤더 페이지 개편, Start-up·IP 메뉴 통합, Appearance 개편, Before HPCD 라인 (이번 커밋)
+- `0e54a39` Summary 첫 화면, IR 달력(로트 코드, Line 4/5)
+- `2cd5d07` IR 점검 양식
 - `9838711` 검토자 로그인·계정 관리·기록 검토 화면
-- `3962f3a` 검토자 계정과 기록 검토 API
-- `f8c5b5e` 모든 제출 기록에 제출 기기 IP 저장
-- `04eb914` Sheets 화면 기능을 VM 버전에 반영 (Temperature DB 지원 포함)
 
 ## 2. 회사 VM 환경 (확인된 사실)
 
@@ -41,6 +42,8 @@
 - DSF Daily IP: Line 드롭다운(`EOL #4-1` 등), 대시보드(이미지 4장 + 점검별 1행 표, 스펙 아웃 강조).
 - **IR** (메뉴 단독 버튼, process `ir`): Team, 이름, 위치(Degas / Shipping Aging), PKG Lot ID, Tray 1·2 붙여넣기(첫 줄 Tray ID + 채널 1~18이 OK 또는 숫자). 숫자가 100 미만이면 NG. 서버가 판정을 다시 계산합니다. 테이블은 `ir_checks`, `ir_values`(OK는 NULL)이며 검토·수정도 지원합니다. `record_reviews`의 record_type 제약은 스키마를 적용할 때마다 다시 만들어지므로, 기존 DB도 `apply-schema.ps1`만 실행하면 됩니다.
 - **Summary** (앱 첫 화면, 메뉴 맨 위): `GET /api/summary`(`server/summary.mjs`)가 오늘(공장 시간대) 점검 상태를 계산합니다. 불량·스펙 아웃·NG·Flagged/Incomplete/No → Problem, 오늘 기록 없음 → No record today, EOL Tape/Knife와 Conductive Rubber는 수시 정비라 마지막 기록만 표시. 검토 대기는 최근 7일 미확인 건수. 판정 기준은 화면 하단 "How status is decided"에도 있습니다.
+- **헤더 페이지 개편** (Temperature, Maintenance, Start-up, IR. IP 화면은 기존 유지): 맨 위 숫자 4칸을 그 페이지의 오늘 상태로 바꿈(`setKpiStrip`). Maintenance는 그룹 탭(`#pageTabs`). Temperature는 구역 타일 9개 + 선택한 구역만 차트/표. Maintenance·Conductive는 라인·설비·유닛별 "마지막 작업 후 일수" 표. **Start-up은 메뉴 버튼 하나**로 묶음: 시트 7개 타일(오늘 상태·마지막 제출·7일 칸)로 고르고, 기록은 시트 1장 = 카드 1개(문제 항목만 펼침). 신규 등록 폼 맨 위에서 시트를 고르면 그 시트 항목이 나옴(내부 process는 시트별 `startup_*` 그대로). Maintenance 일수 표와 Start-up 타일은 `GET /api/status?view=startup|maintenance|conductive`(`server/status.mjs`, 검토 수정 반영)를 씁니다. IR은 트레이×채널 NG 횟수(30일)와 NG/Line 필터 추가. IP check sheet도 메뉴 버튼 하나(하위 메뉴 없음). 글꼴은 앱 전체 Bahnschrift.
+- **Appearance 개편 + Before HPCD 라인**: 그룹 탭(Before HPCD / Jig Formation / Degas), 오늘 상태 4칸(+일별 결함 막대), 날짜·라인 필터를 맵 위 한 줄로. 맵 카드는 세 탭 모두 왼쪽 셀 맵(크기 고정, Before HPCD 그림 비율) + 오른쪽 위치(Jig Formation은 Jig line × Hot jig 표, 칸 크기 같고 결함 수만큼 진하게 / Before HPCD·Degas는 라인별 결함 수). Defect type은 맵 아래 흐린 가로 막대 한 줄. 기록은 결함 행 빨간 배경 + "Defects only / Waiting for review" 필터. **Before HPCD 라인(3/4/5/6)**: `appearance_inspections.hpcd_line` 새 컬럼(스키마 재적용 필요, `apply-schema.ps1`), 결함이 있을 때 필수(Degas line과 같은 방식), 검토 수정 가능. 예전 기록은 라인이 없어 "No line"으로 셉니다.
 - **제출 기기 IP(`client_ip`)**: 모든 부모 테이블에 저장. 거래 단위 설정값을 컬럼 기본값으로 씀. 로컬 IIS(127.0.0.1)가 보낸 `X-Forwarded-For`만 신뢰.
 - **검토자 임시 로그인** (`server/auth.mjs`)
   - 계정 신청 → 관리자가 역할(part_leader / engineer / supervisor / admin)을 정해 승인. ID는 자유 형식.
@@ -97,6 +100,11 @@
 5. 기존 Google Sheets 기록을 DB로 가져오기. 할지 말지 사용자가 아직 정하지 않았고, 테이블의 `source_key`는 중복 방지용으로 준비되어 있습니다.
 6. 상시 실행: VM 재부팅 시 자동 시작(작업 스케줄러 또는 서비스).
 7. 업데이트 편의: 화면에 버전 표시, VM 업데이트 스크립트 하나로 묶기. 제안만 하고 아직 미정입니다.
+8. **IP, IR 화면 개편 (보류, 나중에 이어서)**: 시안은 `docs/mockups/header-pages.html` (브라우저로 열고 위쪽 탭 "IP check sheet", "IR").
+   - IP 시안: 라인 × 날짜 점검 현황(하루 한쪽 라인 규칙), 최근 측정값의 스펙 위치 막대, 공정 그림은 작게. 아직 반영 안 함. 휴대폰에서 IP 표가 가로로 넘치는 문제도 원래부터 있음.
+   - IR 시안: 로트 달력 유지 + 트레이×채널 NG 횟수. 채널 NG 표와 필터는 반영했고, 나머지 배치는 시안 기준으로 다시 검토.
+   - 같은 파일의 다른 탭(공통 원칙, Appearance, Temperature, Maintenance, Start-up)은 이미 반영했거나 다른 안으로 바뀐 예전 시안입니다.
+   - 참고: Hot jig 입력은 16 이상도 저장됨(위치 표는 1~15). 실제 범위가 15까지면 입력 단계에서 막는 것을 검토.
 
 ## 6. 테스트 방법
 
@@ -104,7 +112,7 @@
   - 이 PC의 PostgreSQL 18에 **임시 DB**를 만듭니다.
   - 스키마 2회, 스모크 테스트, 관리자 생성, 서버 실행, `server/test-api.mjs`, `server/test-auth.mjs`를 차례로 돌린 뒤 임시 DB를 삭제합니다.
   - 실제 `formation_inspection` DB는 건드리지 않습니다. 이 PC의 DB 계정 정보는 `%LOCALAPPDATA%\FormationInspection\postgres-local-credentials.json`(Windows 암호화)에 있습니다.
-  - 2026-10-06에 전부 통과했습니다.
+  - 2026-10-07에 전부 통과했습니다(Summary, status 화면, Before HPCD 라인 검사 포함).
 - 화면 테스트는 Playwright로 임시 스크립트를 만들어 진행했습니다(저장소에는 없음).
   - 로그인과 승인을 화면에서 시험하려면 서버를 `FORMATION_ALLOW_HTTP_LOGIN=1`로 띄웁니다.
   - 표 안의 배지는 `button.review-badge[data-review-type]`, 계정 메뉴는 `.account-menu summary`입니다.

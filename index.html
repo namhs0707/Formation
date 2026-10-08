@@ -30,7 +30,7 @@
       --shadow-md: 0 4px 12px rgba(15, 23, 42, .08);
     }
     body {
-      font-family: Inter, 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      font-family: Bahnschrift, Inter, 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
       font-size: var(--text-base);
       line-height: var(--leading);
       background-color: var(--bg);
@@ -1228,7 +1228,7 @@
     .ip-group .process-options { background: #f0fdfa; border-color: #99f6e4; }
     .ip-group .process-category-toggle { color: #0f766e; }
     .ip-group .process-category-icon { background: #ccfbf1; }
-    .ip-group .process-button.active { color: #0f766e; background: #ccfbf1; box-shadow: inset 0 0 0 1px #5eead4; }
+    .ip-group .process-category-direct.active { color: #0f766e; background: #ccfbf1; }
     .form-card.ip-check-form { max-width: 900px; }
     .ip-fields { display: none; }
     .ip-fields.open { display: block; }
@@ -1645,6 +1645,183 @@
       .summary-strip-labels { display: none; }
       .summary-strip { margin-bottom: 18px; }
     }
+    /* Header pages: group tabs, status views and record cards */
+    .page-tabs { display: flex; width: fit-content; max-width: 100%; overflow-x: auto; margin: 0 0 14px; border: 1px solid #c4ccd6; border-radius: 4px; background: #fff; }
+    .page-tabs[hidden] { display: none; }
+    .page-tabs button { flex: none; width: auto; min-height: 42px; margin: 0; padding: 0 16px; border: 0; border-left: 1px solid #c4ccd6; border-radius: 0; background: #fff; box-shadow: none; color: var(--muted); font-family: inherit; font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+    .page-tabs button:first-child { border-left: 0; }
+    .page-tabs button:hover { background: #f4f6f8; transform: none; box-shadow: none; }
+    .page-tabs button[aria-current="page"] { background: var(--ink); color: #fff; }
+    .status-card { margin-bottom: 18px; }
+    .status-card, .history-card { min-width: 0; max-width: 100%; }
+    .table-scroll { overflow-x: auto; }
+    .age-table, .sheet-matrix { border-collapse: separate; border-spacing: 3px; font-variant-numeric: tabular-nums; }
+    .age-table th, .sheet-matrix th { height: auto; padding: 2px 8px; border: 0; background: none; color: var(--muted); font-size: 12.5px; font-weight: 600; text-align: center; white-space: nowrap; }
+    .age-table tbody th, .sheet-matrix tbody th { text-align: left; color: var(--ink); font-size: 14px; }
+    .age-table td { min-width: 56px; height: 34px; padding: 0 6px; border: 0; border-radius: 3px; text-align: center; font-size: 13px; font-weight: 700; color: #121a26; }
+    .age-cell.none { background: #f3f5f8; color: #9aa4b1; font-weight: 500; }
+    .age-cell.d1 { background: #e8eef9; }
+    .age-cell.d2 { background: #c5d4f0; }
+    .age-cell.d3 { background: #8eaae0; }
+    .age-cell.d4 { background: #4f78cc; color: #fff; }
+    .age-blocks { display: flex; flex-wrap: wrap; gap: 12px 32px; }
+    .age-block { min-width: 0; max-width: 100%; }
+    .age-block h4 { margin: 0 0 4px; font-size: 14px; color: var(--ink); }
+    .sheet-matrix { width: 100%; min-width: 560px; }
+    .sheet-matrix tbody tr { cursor: pointer; }
+    .sheet-matrix tbody tr.current th { color: var(--primary); box-shadow: inset 3px 0 0 var(--primary); }
+    .sheet-matrix tbody tr:hover th { text-decoration: underline; }
+    .sheet-cell { height: 32px; padding: 0; border: 0; border-radius: 3px; text-align: center; font-size: 13px; font-weight: 700; }
+    .sheet-cell.ok { background: #e6f2ec; color: #1f7a4d; }
+    .sheet-cell.bad { background: #c0352f; color: #fff; }
+    .sheet-cell.idle { background: #edf0f3; color: #5c6878; }
+    .sheet-cell.now { box-shadow: inset 0 0 0 2px var(--primary); }
+    .sheet-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+    .sheet-tile { display: flex; flex-direction: column; align-items: stretch; gap: 3px; width: 100%; min-height: 0; margin: 0; padding: 10px 12px; border: 1px solid #dfe4ea; border-radius: 4px; background: #fff; box-shadow: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .sheet-tile:hover { transform: none; box-shadow: none; border-color: #c4ccd6; }
+    .sheet-tile[aria-pressed="true"] { outline: 2px solid var(--primary); outline-offset: -1px; background: #fff; color: inherit; }
+    .sheet-tile.bad, .sheet-tile.bad[aria-pressed="true"] { background: #fbe9e8; border-color: #f0c4c1; }
+    .sheet-tile.idle, .sheet-tile.idle[aria-pressed="true"] { background: #edf0f3; }
+    .sheet-tile-name { font-size: 16px; font-weight: 700; color: var(--ink); }
+    .sheet-tile-note { font-size: 13px; font-weight: 600; color: #1f7a4d; }
+    .sheet-tile.bad .sheet-tile-note { color: #c0352f; }
+    .sheet-tile.idle .sheet-tile-note { color: #5c6878; }
+    .sheet-tile-last { font-size: 12.5px; color: var(--muted); }
+    .sheet-tile-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-top: 4px; }
+    .sheet-tile-days i { height: 20px; display: grid; place-items: center; border-radius: 2px; font-style: normal; font-size: 11px; font-weight: 700; }
+    .sheet-tile-days i.ok { background: #e6f2ec; color: #1f7a4d; }
+    .sheet-tile-days i.bad { background: #c0352f; color: #fff; }
+    .sheet-tile-days i.idle { background: rgba(92, 104, 120, .12); color: #5c6878; }
+    .sheet-tile-days i.now { box-shadow: inset 0 0 0 2px var(--primary); }
+    .startup-sheet-picker[hidden] { display: none; }
+    .startup-sheet-picker .picker-label { display: block; margin-bottom: 6px; color: var(--label); font-weight: 700; }
+    .sheet-picker-options { display: flex; flex-wrap: wrap; gap: 6px; }
+    .sheet-picker-options button { width: auto; min-height: 44px; margin: 0; padding: 0 14px; border: 1px solid #c4ccd6; border-radius: 4px; background: #fff; box-shadow: none; color: var(--ink); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .sheet-picker-options button:hover { transform: none; box-shadow: none; background: #f4f6f8; }
+    .sheet-picker-options button[aria-pressed="true"] { border-color: var(--primary); background: var(--primary); color: #fff; }
+    .record-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+    .record-chips button { width: auto; min-height: 36px; margin: 0; padding: 0 14px; border: 1px solid #c4ccd6; border-radius: 18px; background: #fff; box-shadow: none; color: var(--muted); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .record-chips button:hover { transform: none; box-shadow: none; background: #f4f6f8; }
+    .record-chips button[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+    .startup-cards { border-top: 1px solid #dfe4ea; }
+    .sheet-card { padding: 12px 4px; border-bottom: 1px solid #dfe4ea; }
+    .sheet-card.problem { padding-left: 12px; box-shadow: inset 3px 0 0 #c0352f; }
+    .sheet-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+    .sheet-card-meta { color: var(--ink); font-weight: 600; }
+    .sheet-tag { display: inline-flex; padding: 1px 8px; border-radius: 3px; font-size: 12px; font-weight: 700; }
+    .sheet-tag.ok { background: #e6f2ec; color: #1f7a4d; }
+    .sheet-tag.bad { background: #c0352f; color: #fff; }
+    .sheet-card-items { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .sheet-item { padding: 1px 8px; border-radius: 3px; font-size: 12.5px; font-weight: 600; }
+    .sheet-item.ok { background: #e6f2ec; color: #1f7a4d; }
+    .sheet-item.na { background: #edf0f3; color: #5c6878; }
+    .sheet-issue { margin-top: 8px; padding: 8px 10px; border-left: 3px solid #c0352f; background: #fbe9e8; font-size: 14px; }
+    .sheet-issue b { color: #c0352f; }
+    .sheet-empty { padding: 16px 4px; }
+    .temp-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .temp-tile { display: block; width: 100%; min-height: 0; margin: 0; padding: 10px 12px 8px; border: 1px solid #dfe4ea; border-radius: 4px; background: #fff; box-shadow: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .temp-tile:hover { transform: none; box-shadow: none; border-color: #c4ccd6; }
+    .temp-tile[aria-pressed="true"] { outline: 2px solid var(--primary); outline-offset: -1px; }
+    .temp-tile.bad { background: #fbe9e8; border-color: #f0c4c1; }
+    .temp-tile.idle { background: #edf0f3; }
+    .temp-tile > span { display: block; }
+    .temp-tile .temp-tile-top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+    .temp-tile-name { font-weight: 700; color: var(--ink); }
+    .temp-tile-spec { font-size: 12px; color: var(--muted); }
+    .temp-tile-value { font-size: 24px; font-weight: 700; line-height: 1.2; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .temp-tile-value small { font-size: 13px; font-weight: 500; color: var(--muted); }
+    .temp-tile.bad .temp-tile-value, .temp-tile.bad .temp-tile-note { color: #c0352f; }
+    .temp-tile-note { font-size: 12.5px; color: var(--muted); }
+    .temp-tile svg { display: block; width: 100%; height: 34px; margin-top: 4px; }
+    .ir-channel { margin: 4px 0 14px; padding: 12px 14px; border: 1px solid #dfe4ea; border-radius: 4px; background: #fff; }
+    .ir-channel h4 { margin: 0 0 8px; font-size: 15px; color: var(--ink); }
+    .ir-channel-grid { display: grid; grid-template-columns: 56px repeat(18, minmax(18px, 1fr)); gap: 2px; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .ir-channel-grid span { height: 24px; display: grid; place-items: center; border-radius: 3px; font-weight: 700; }
+    .ir-channel-grid .lab { place-items: center start; color: var(--muted); font-weight: 600; }
+    .ir-channel-grid .hdr { height: 16px; color: var(--muted); font-weight: 600; }
+    .ir-channel-grid .c0 { background: #f3f5f8; color: transparent; }
+    .ir-channel-grid .c1 { background: #c5d4f0; }
+    .ir-channel-grid .c2 { background: #8eaae0; }
+    .ir-channel-grid .c3 { background: #4f78cc; color: #fff; }
+    .ir-channel-grid .c4 { background: #24489c; color: #fff; }
+    .ir-channel p { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+    @media (max-width: 767px) {
+      .sheet-matrix, .age-table { display: table; }
+      .sheet-matrix thead, .age-table thead { display: table-header-group; }
+      .sheet-matrix tbody, .age-table tbody { display: table-row-group; }
+      .sheet-matrix tr, .age-table tr { display: table-row; margin: 0; padding: 0; border: 0; box-shadow: none; background: none; }
+      .sheet-matrix th, .sheet-matrix td, .age-table th, .age-table td { display: table-cell; }
+      .sheet-matrix td::before, .age-table td::before { content: none; }
+      .sheet-matrix td, .age-table td { width: auto; min-width: 40px; }
+      .temp-tiles, .sheet-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sheet-tile-days i { height: 16px; font-size: 9px; }
+      .temp-tile-value { font-size: 19px; }
+      .ir-channel { overflow-x: auto; }
+      .ir-channel-grid { min-width: 520px; }
+    }
+    /* Appearance: filter bar, cell map on the left, where it happened on the right */
+    .appearance-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; margin: 0 0 14px; padding: 12px 18px; background: #fff; border: 1px solid var(--border-subtle); border-radius: 8px; }
+    .appearance-filters .form-group { min-width: 150px; margin: 0; }
+    .appearance-filters label { font-size: 13px; }
+    .appearance-filters input, .appearance-filters select { height: 42px; min-height: 42px; margin: 0; padding: 0 10px; font-size: 14px; }
+    .appearance-filters .input-help { margin-left: auto; align-self: center; }
+    #weeklyMapCard { max-width: none; margin: 0 0 18px; }
+    #weeklyMapCard .weekly-map-body { padding: 0; }
+    .appearance-map-layout { display: grid; grid-template-columns: 596px minmax(0, 1fr); }
+    .appearance-map-layout > section { min-width: 0; padding: 16px 18px; }
+    .appearance-map-layout > section + section { border-left: 1px solid var(--border-subtle); }
+    .map-sub { margin: 0 0 10px; color: var(--ink); font-size: 14px; font-weight: 700; }
+    /* Same cell map size on every tab (the Before HPCD picture's proportions). */
+    #weeklyMapCard .weekly-map-canvas { width: 100%; max-width: 560px; aspect-ratio: 425 / 411; margin: 0; border: 1px solid var(--border-subtle); border-radius: 6px; }
+    #weeklyMapCard .weekly-map-canvas img { width: 100%; height: 100%; object-fit: fill; }
+    #weeklyMapCard .jig-equipment-panel { display: none; padding: 0; background: none; border: 0; }
+    #weeklyMapCard.show-equipment-map .jig-equipment-panel { display: block; }
+    #weeklyMapCard .jig-equipment-header h4 { font-size: 14px; letter-spacing: 0; }
+    #weeklyMapCard .jig-equipment-header p { font-size: 12px; }
+    #weeklyMapCard .jig-equipment-grid { grid-template-columns: 36px repeat(15, minmax(0, 1fr)); gap: 3px; }
+    #weeklyMapCard .jig-equipment-corner, #weeklyMapCard .jig-equipment-column { font-size: 11px; }
+    #weeklyMapCard .jig-equipment-row-label { font-size: 12px; color: var(--ink); }
+    #weeklyMapCard .jig-equipment-cell { min-height: 28px; border-color: var(--border-subtle); border-radius: 4px; font-size: 12px; }
+    #weeklyMapCard .jig-equipment-cell.has-records { padding-bottom: 6px; color: var(--ink); }
+    #weeklyMapCard .jig-equipment-cell.count-1 { background: #dbe5f7; border-color: #b7cbef; }
+    #weeklyMapCard .jig-equipment-cell.count-2 { background: #b7cbef; border-color: #8eaae0; }
+    #weeklyMapCard .jig-equipment-cell.count-3 { background: #8eaae0; border-color: #6d8fd6; }
+    #weeklyMapCard .jig-equipment-dots { left: 0; right: 0; bottom: 3px; justify-content: center; }
+    #weeklyMapCard .jig-equipment-dot { width: 5px; height: 5px; }
+    .line-defect-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) 28px; gap: 8px; align-items: center; min-height: 30px; font-size: 14px; }
+    .line-defect-track i { display: block; height: 10px; min-width: 2px; border-radius: 0 3px 3px 0; background: #5c6878; }
+    .line-defect-row b { text-align: right; color: var(--ink); }
+    .line-defect-note { margin: 8px 0 0; color: var(--muted); font-size: 12.5px; }
+    .defect-type-strip { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 14px; padding: 12px 18px 14px; border-top: 1px solid var(--border-subtle); }
+    .defect-type-strip .strip-label { color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .defect-type-strip .strip-bar { display: flex; gap: 2px; height: 6px; overflow: hidden; border-radius: 3px; background: #eef1f4; }
+    .defect-type-strip .strip-bar i { display: block; opacity: .45; }
+    .defect-type-strip .strip-legend { grid-column: 2; display: flex; flex-wrap: wrap; gap: 2px 14px; color: var(--muted); font-size: 12.5px; }
+    .defect-type-strip .strip-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .defect-type-strip .strip-legend i { width: 8px; height: 8px; border-radius: 50%; opacity: .6; }
+    .defect-type-strip .strip-legend b { color: var(--text); font-weight: 600; }
+    .defect-type-strip .strip-empty { color: var(--muted); font-size: 13px; }
+    .kpi-card .kpi-trend { display: flex; align-items: flex-end; gap: 3px; height: 24px; margin-top: 6px; }
+    .kpi-card .kpi-trend i { flex: 1; max-width: 14px; min-height: 2px; border-radius: 2px 2px 0 0; background: #c5d4f0; }
+    .kpi-card .kpi-trend i.today { background: #4f78cc; }
+    #dataTableBody tr.defect-row td { background: #fbe9e8; }
+    #dataTableBody tr.defect-row td:first-child { box-shadow: inset 3px 0 0 #c0352f; }
+    .defect-tag { display: inline-flex; align-items: center; gap: 6px; margin-right: 8px; color: var(--ink); font-weight: 600; white-space: nowrap; }
+    .defect-tag i { width: 10px; height: 10px; border-radius: 50%; }
+    .defect-ok { color: #1f7a4d; font-weight: 600; }
+    @media (max-width: 1100px) {
+      .appearance-map-layout { grid-template-columns: 1fr; }
+      .appearance-map-layout > section + section { border-left: 0; border-top: 1px solid var(--border-subtle); }
+      #weeklyMapCard .weekly-map-canvas { margin: 0 auto; }
+      .appearance-filters .input-help { margin-left: 0; }
+    }
+    @media (max-width: 767px) {
+      #weeklyMapCard .jig-equipment-panel { overflow-x: auto; }
+      #weeklyMapCard .jig-equipment-grid { min-width: 520px; }
+      .defect-type-strip { grid-template-columns: 1fr; }
+      .defect-type-strip .strip-legend { grid-column: 1; }
+      .appearance-filters .form-group { min-width: calc(50% - 7px); }
+    }
   </style>
 </head>
 <body>
@@ -1697,26 +1874,14 @@
         </div>
       </div>
       <div class="process-group startup-group">
-        <button type="button" class="process-category process-category-toggle" data-category="startup" aria-expanded="false">
-          <span class="process-category-icon">✓</span><span>Start-up</span><span class="process-category-chevron">⌄</span>
+        <button type="button" class="process-category process-category-toggle process-category-direct" data-category="startup" data-process-prefix="startup_" aria-expanded="false">
+          <span class="process-category-icon">✓</span><span>Start-up</span>
         </button>
-        <div class="process-options">
-          <button type="button" class="process-button" data-process="startup_hpcd">HPCD Check Sheet</button>
-          <button type="button" class="process-button" data-process="startup_jig">Jig Check Sheet</button>
-          <button type="button" class="process-button" data-process="startup_degas">Degas Check Sheet</button>
-          <button type="button" class="process-button" data-process="startup_cdc">CDC Check Sheet</button>
-          <button type="button" class="process-button" data-process="startup_eol">EOL Check Sheet</button>
-          <button type="button" class="process-button" data-process="startup_selector">Selector Check Sheet</button>
-          <button type="button" class="process-button" data-process="startup_resealing">Resealing Machine</button>
-        </div>
       </div>
       <div class="process-group ip-group">
-        <button type="button" class="process-category process-category-toggle" data-category="ip" aria-expanded="false">
-          <span class="process-category-icon">IP</span><span>IP check sheet</span><span class="process-category-chevron">⌄</span>
+        <button type="button" class="process-category process-category-toggle process-category-direct" data-category="ip" data-process="ip_dsf" aria-expanded="false">
+          <span class="process-category-icon">IP</span><span>IP check sheet</span>
         </button>
-        <div class="process-options">
-          <button type="button" class="process-button" data-process="ip_dsf">DSF Daily IP</button>
-        </div>
       </div>
       <div class="process-group ir-group">
         <button type="button" class="process-category process-category-toggle process-category-direct" data-category="ir" data-process="ir" aria-expanded="false">
@@ -1750,12 +1915,22 @@
     </div>
   </div>
 
+  <nav class="page-tabs" id="pageTabs" aria-label="Pages in this group" hidden></nav>
+
   <section class="kpi-grid" aria-label="Process summary">
-    <article class="kpi-card" data-tone="primary"><div class="kpi-label">Current Process</div><div class="kpi-value" id="kpiProcess">Jig Formation</div></article>
-    <article class="kpi-card"><div class="kpi-label">Total Records</div><div class="kpi-value" id="kpiRecords">—</div></article>
+    <article class="kpi-card" data-tone="primary"><div class="kpi-label" id="kpiProcessLabel">Current Process</div><div class="kpi-value" id="kpiProcess">Jig Formation</div></article>
+    <article class="kpi-card"><div class="kpi-label" id="kpiRecordsLabel">Total Records</div><div class="kpi-value" id="kpiRecords">—</div></article>
     <article class="kpi-card" id="kpiQualityCard"><div class="kpi-label" id="kpiQualityLabel">Defect Rate</div><div class="kpi-value" id="kpiQuality">—</div></article>
-    <article class="kpi-card"><div class="kpi-label">Latest Update</div><div class="kpi-value" id="kpiLatest">—</div></article>
+    <article class="kpi-card"><div class="kpi-label" id="kpiLatestLabel">Latest Update</div><div class="kpi-value" id="kpiLatest">—</div></article>
   </section>
+
+  <div class="appearance-filters" id="appearanceFilters" aria-label="Defect map filters">
+    <div class="form-group"><label for="weeklyStartDate">Start date</label><input type="date" id="weeklyStartDate" required></div>
+    <div class="form-group"><label for="weeklyEndDate">End date</label><input type="date" id="weeklyEndDate" required></div>
+    <div class="form-group" id="weeklyLineFilterGroup"><label for="weeklyLineFilter" id="weeklyLineFilterLabel">Jig line</label><select id="weeklyLineFilter"><option value="">All Lines</option></select></div>
+    <div class="form-group" id="weeklyHotJigFilterGroup"><label for="weeklyHotJigFilter">Hot jig</label><select id="weeklyHotJigFilter"><option value="">All Hot Jigs</option></select></div>
+    <small class="input-help" id="weeklyMapDescription">Applies to the map and defect counts below.</small>
+  </div>
 
   <section class="card weekly-map-card open show-equipment-map" id="weeklyMapCard">
     <button type="button" class="weekly-map-toggle" id="weeklyMapToggle" aria-expanded="true" aria-controls="weeklyMapBody">
@@ -1763,34 +1938,26 @@
       <span class="weekly-map-toggle-meta"><span class="weekly-map-count" id="weeklyMapCount">0 points</span><span class="weekly-map-chevron">⌄</span></span>
     </button>
     <div class="weekly-map-body" id="weeklyMapBody">
-      <div class="weekly-map-header">
-        <small class="input-help" id="weeklyMapDescription">Combined Jig Formation defect locations for the selected date range.</small>
-      </div>
-      <div class="weekly-map-layout">
-        <aside class="map-filter-panel" aria-label="Defect map filters">
-          <h4 class="map-panel-title">Filters</h4>
-          <div class="form-group"><label for="weeklyStartDate">Start Date</label><input type="date" id="weeklyStartDate" required></div>
-          <div class="form-group"><label for="weeklyEndDate">End Date</label><input type="date" id="weeklyEndDate" required></div>
-          <div class="form-group" id="weeklyLineFilterGroup"><label for="weeklyLineFilter" id="weeklyLineFilterLabel">Jig Line</label><select id="weeklyLineFilter"><option value="">All Lines</option></select></div>
-          <div class="form-group" id="weeklyHotJigFilterGroup"><label for="weeklyHotJigFilter">Hot Jig</label><select id="weeklyHotJigFilter"><option value="">All Hot Jigs</option></select></div>
-        </aside>
-        <div class="map-canvas weekly-map-canvas">
-          <img class="process-map-image" src="jig-formation-defect-map.jpg" alt="Seven-day accumulated defect map">
-          <div class="map-markers" id="weeklyMapMarkers"></div>
-        </div>
-        <section class="jig-equipment-panel" id="jigEquipmentPanel" aria-label="Jig line and hot jig equipment location map">
-          <div class="jig-equipment-header">
-            <div><h4>Equipment Location</h4><p>Jig Line × Hot Jig occurrence map</p></div>
-            <span class="jig-equipment-count" id="jigEquipmentCount">0 records</span>
+      <div class="appearance-map-layout">
+        <section class="map-cell-panel">
+          <p class="map-sub">Position on the cell</p>
+          <div class="map-canvas weekly-map-canvas">
+            <img class="process-map-image" src="jig-formation-defect-map.jpg" alt="Accumulated defect map">
+            <div class="map-markers" id="weeklyMapMarkers"></div>
           </div>
-          <div class="jig-equipment-axis">Hot Jig</div>
-          <div class="jig-equipment-grid" id="jigEquipmentGrid"></div>
         </section>
-        <aside class="map-legend-panel" aria-label="Defect type color legend">
-          <h4 class="map-panel-title">Defect Type</h4>
-          <div class="map-legend" id="weeklyMapLegend"></div>
-        </aside>
+        <section class="map-where-panel">
+          <section class="jig-equipment-panel" id="jigEquipmentPanel" aria-label="Jig line and hot jig equipment location map">
+            <div class="jig-equipment-header">
+              <div><h4>Where: Jig line × Hot jig</h4><p>Darker = more defects. Tap a box to see its photos.</p></div>
+              <span class="jig-equipment-count" id="jigEquipmentCount">0 records</span>
+            </div>
+            <div class="jig-equipment-grid" id="jigEquipmentGrid"></div>
+          </section>
+          <div class="line-defect-panel" id="lineDefectPanel" hidden></div>
+        </section>
       </div>
+      <div class="defect-type-strip" id="weeklyMapLegend"></div>
     </div>
   </section>
 
@@ -1801,6 +1968,12 @@
       <button type="button" class="form-modal-close" id="formModalClose" aria-label="Close inspection form">×</button>
       <h3 id="formTitle">New Jig Formation Inspection</h3>
       <form id="inspectionForm">
+        <div class="form-group startup-sheet-picker" id="startupSheetPicker" hidden>
+          <span class="picker-label">Check sheet <span aria-hidden="true">*</span></span>
+          <div class="sheet-picker-options" role="group" aria-label="Check sheet">
+            <button type="button" data-sheet="startup_hpcd">HPCD</button><button type="button" data-sheet="startup_jig">Jig</button><button type="button" data-sheet="startup_degas">Degas</button><button type="button" data-sheet="startup_cdc">CDC</button><button type="button" data-sheet="startup_eol">EOL</button><button type="button" data-sheet="startup_selector">Selector</button><button type="button" data-sheet="startup_resealing">Resealing Machine</button>
+          </div>
+        </div>
         <div class="form-group">
           <label for="team" id="teamLabel">Team</label>
           <select id="team" required>
@@ -2208,6 +2381,13 @@
             <label class="unit-option jig-line-option"><input type="radio" name="jigLine" value="6-2" required><span>6-2</span></label>
             <label class="unit-option jig-line-option"><input type="radio" name="jigLine" value="6-3" required><span>6-3</span></label>
           </div>
+          <select id="hpcdProcessLine" style="display:none">
+            <option value="">Select HPCD line</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
           <select id="degasProcessLine" style="display:none">
             <option value="">Select Degas line</option>
             <option value="4-1">4-1</option>
@@ -2259,9 +2439,10 @@
     <!-- Inspection history -->
     <div class="card history-card" id="historyCard">
       <div class="history-card-header">
-        <h3 style="margin: 0;">Defect Gallery & Records</h3>
+        <h3 style="margin: 0;">Records</h3>
         <div class="history-actions"><span class="last-sync">Not synced</span><button type="button" class="btn-secondary" onclick="loadData()">Refresh data</button></div>
       </div>
+      <div class="record-chips" id="appearanceChips"><button type="button" data-chip="all" aria-pressed="true">All</button><button type="button" data-chip="defects" aria-pressed="false">Defects only</button><button type="button" data-chip="review" aria-pressed="false">Waiting for review</button></div>
       
       <div class="table-container">
         <table>
@@ -2287,6 +2468,10 @@
         </table>
       </div>
       <div class="records-pagination"><button type="button" id="loadMoreRecordsBtn" style="display:none;">Load More</button></div>
+    </div>
+    <div class="card status-card" id="maintenanceStatusCard" style="display:none;">
+      <div class="history-card-header"><h3 style="margin:0;" id="maintenanceStatusTitle">Days since last work</h3><span class="input-help">Number = days since the last record. Darker = longer ago. – = no record yet.</span></div>
+      <div id="maintenanceStatusBody"><p class="input-help">Loading…</p></div>
     </div>
     <div class="card history-card" id="maintenanceHistoryCard" style="display:none;">
       <div class="history-card-header">
@@ -2314,11 +2499,17 @@
       </div>
       <div class="records-pagination"><button type="button" id="conductiveLoadMoreBtn" style="display:none;">Load More</button></div>
     </div>
+    <div class="card status-card" id="startupOverviewCard" style="display:none;">
+      <div class="history-card-header"><h3 style="margin:0;">Check sheets</h3><span class="input-help">Tap a sheet to see its records. Squares = last 7 days, today on the right: ✓ passed · ✕ issues · ○ none.</span></div>
+      <div class="sheet-tiles" id="startupOverviewBody"><p class="input-help">Loading…</p></div>
+    </div>
     <div class="card history-card" id="startupHistoryCard" style="display:none;">
       <div class="history-card-header">
         <h3 style="margin:0;" id="startupHistoryTitle">Jig Start-up Check Sheets</h3>
         <div class="history-actions"><span class="last-sync">Not synced</span><button type="button" class="btn-secondary" onclick="loadData()">Refresh data</button></div>
       </div>
+      <div class="record-chips" id="startupChips"><button type="button" data-chip="all" aria-pressed="true">All</button><button type="button" data-chip="problems" aria-pressed="false">Problems only</button><button type="button" data-chip="review" aria-pressed="false">Waiting for review</button></div>
+      <div class="startup-cards" id="startupCards"></div>
       <div class="table-container">
         <table class="startup-history-table" id="startupHistoryTable">
           <thead><tr><th>Date</th><th>Team</th><th class="startup-operator-column" style="display:none;">First and Last Name</th><th class="startup-selector-column" style="display:none;">Selector</th><th id="startupScopeHeader">Line</th><th class="startup-cdc-column" style="display:none;">Floor #</th><th>Check completed</th><th>Frequency</th><th>Category</th><th>Item</th><th>Status</th><th>Comment</th></tr></thead>
@@ -2340,7 +2531,9 @@
       <div class="ir-calendar-legend"><span><i class="ok"></i>OK 2 = 2 checks all OK</span><span><i class="ng"></i>NG 1 = 1 check with NG</span></div>
       <div class="ir-calendar" id="irCalendar"></div>
       <div class="ir-calendar-note" id="irCalendarNote"></div>
+      <div class="ir-channel" id="irChannel"></div>
       <div class="ir-day-filter" id="irDayFilter" hidden></div>
+      <div class="record-chips" id="irChips"><button type="button" data-chip="all" aria-pressed="true">All</button><button type="button" data-chip="ng" aria-pressed="false">NG only</button><button type="button" data-chip="line4" aria-pressed="false">Line 4</button><button type="button" data-chip="line5" aria-pressed="false">Line 5</button></div>
       <div class="table-container">
         <table class="ir-records-table">
           <thead><tr><th>Date</th><th>Team</th><th>First and Last Name</th><th>Where</th><th>PKG Lot ID</th><th>Tray 1</th><th>Tray 2</th><th>Result</th></tr></thead>
@@ -2352,12 +2545,13 @@
       <div class="hta-chart-filter temperature-filter" aria-label="Temperature filters">
         <div class="form-group"><label for="temperatureStartDate">Start Date</label><input type="date" id="temperatureStartDate" required></div>
         <div class="form-group"><label for="temperatureEndDate">End Date</label><input type="date" id="temperatureEndDate" required></div>
-        <fieldset class="temperature-view-areas">
+        <fieldset class="temperature-view-areas" hidden>
           <legend>Areas</legend>
           <div class="temperature-view-options" id="temperatureViewOptions"></div>
         </fieldset>
         <small class="input-help" id="temperatureRangeSummary">Showing the most recent 7 days.</small>
       </div>
+      <div class="temp-tiles" id="temperatureTiles"></div>
       <div id="temperaturePanels"></div>
     </section>
   </div>
@@ -3095,38 +3289,13 @@
         });
         return;
       }
-      const tbody = document.getElementById('startupTableBody');
-      const isDegasStartup = currentProcess === 'startup_degas';
-      const isCdcStartup = currentProcess === 'startup_cdc';
-      const isEolStartup = currentProcess === 'startup_eol';
-      const isSelectorStartup = currentProcess === 'startup_selector';
-      const needsOperator = isDegasStartup || isCdcStartup || isEolStartup || isSelectorStartup;
-      tbody.innerHTML = '';
-      if (!records.length) {
-        tbody.innerHTML = '<tr><td colspan="' + (9 + Number(needsOperator) + Number(isCdcStartup) + Number(isSelectorStartup)) + '" style="text-align:center;">No start-up check sheets yet.</td></tr>';
-        return;
-      }
-      records.slice().reverse().forEach(record => {
-        const statusClass = ['Pass', 'Completed'].includes(record.status) ? 'done' : record.status === 'Flagged' ? 'issue' : record.status === 'N/A' ? 'na' : 'pending';
-        const parts = String(record.item || '').split(' / ');
-        const startupDisplay = STARTUP_ITEM_DISPLAY[currentProcess]?.get(String(record.item || ''));
-        const tr = document.createElement('tr');
-        const cell = (label, value) => '<td data-label="' + label + '">' + escapeText(value || '-') + '</td>';
-        tr.innerHTML =
-          dateCellHtml('Date', formatRecordDate(record.date), record.review) +
-          cell('Team', record.team) +
-          (needsOperator ? cell('First and Last Name', record.operatorName) : '') +
-          (isSelectorStartup ? cell('Selector', record.selectorType) : '') +
-          cell('Line', record.line) +
-          (isCdcStartup ? cell('Floor #', record.floor) : '') +
-          cell('Check completed', record.checkCompleted) +
-          cell('Frequency', record.frequency) +
-          cell('Category', startupDisplay ? startupDisplay.category : parts[0]) +
-          cell('Item', startupDisplay ? startupDisplay.item : parts[1] || record.item) +
-          '<td data-label="Status"><span class="startup-status-badge ' + statusClass + '">' + escapeText(record.status) + '</span></td>' +
-          cell('Comment', record.comment);
-        tbody.appendChild(tr);
+      const checks = new Map();
+      records.forEach(record => {
+        if (!checks.has(record.checkId)) checks.set(record.checkId, { head: record, items: [] });
+        checks.get(record.checkId).items.push(record);
       });
+      startupCardData = Array.from(checks.values()).reverse();
+      renderStartupCards();
     }
 
     // ---- Cell IR check ----
@@ -3277,10 +3446,18 @@
       irRecordsCache = records;
       const hasNg = record => record.values.some(entry => entry.result === 'NG');
       const ngChecks = records.filter(hasNg).length;
-      document.getElementById('kpiRecords').textContent = String(records.length);
-      document.getElementById('kpiQuality').textContent = records.length ? String(ngChecks) : '—';
-      document.getElementById('kpiQualityCard').dataset.tone = records.length ? (ngChecks ? 'danger' : 'success') : '';
-      document.getElementById('kpiLatest').textContent = records.length ? formatRecordDate(records[records.length - 1].date) : 'No records';
+      const todayKey = toDateInputValue(new Date());
+      const todays = records.filter(record => { const date = parseRecordDate(record.date); return date && toDateInputValue(date) === todayKey; });
+      const ngToday = todays.filter(hasNg).length;
+      const ngChannels = new Set(todays.flatMap(record => record.values.filter(entry => entry.result === 'NG').map(entry => entry.tray + '-' + entry.channel)));
+      setKpiStrip([
+        ['Checks today', String(todays.length)],
+        ['Checks with NG today', String(ngToday), ngToday ? 'danger' : ''],
+        ['NG channels today', String(ngChannels.size)],
+        ['Last check', records.length ? formatRecordDate(records[records.length - 1].date) : 'No records']
+      ]);
+      document.getElementById('kpiQuality').title = ngChecks + ' of ' + records.length + ' loaded checks have NG';
+      renderIrChannels(records);
       renderIrCalendar(records);
       renderIrTable();
     }
@@ -3303,9 +3480,10 @@
       const tbody = document.getElementById('irTableBody');
       const filter = document.getElementById('irDayFilter');
       const [selectedKey, selectedLine] = irSelectedDay.split('|');
-      const records = irSelectedDay
+      const records = (irSelectedDay
         ? irRecordsCache.filter(record => irLotsOf(record.pkgLotId).some(item => item.decoded && item.decoded.key === selectedKey && item.decoded.line === selectedLine))
-        : irRecordsCache;
+        : irRecordsCache).filter(record => irChipFilter === 'ng' ? record.values.some(entry => entry.result === 'NG')
+          : irChipFilter.startsWith('line') ? irLotsOf(record.pkgLotId).some(item => item.decoded && item.decoded.line === irChipFilter.slice(4)) : true);
       filter.hidden = !irSelectedDay;
       filter.innerHTML = irSelectedDay ? 'Line ' + escapeText(selectedLine) + ', lot date ' + escapeText(selectedKey) + ': ' + records.length + ' record(s) <button type="button" class="secondary-button">Show all</button>' : '';
       if (!records.length) {
@@ -3443,7 +3621,8 @@
       const appearanceLabel = getAppearanceProcessLabel(currentProcess);
 
       document.querySelectorAll('.process-button, .process-category-direct').forEach(button => {
-        button.classList.toggle('active', button.dataset.process === currentProcess);
+        button.classList.toggle('active', button.dataset.process === currentProcess ||
+          (Boolean(button.dataset.processPrefix) && currentProcess.startsWith(button.dataset.processPrefix)));
       });
       document.getElementById('pageTitle').textContent =
         isIr ? 'Cell IR Check' : isStartupCheck ? startupConfig.title : isConductive ? 'Conductive Rubber Maintenance' : isMaintenance ? 'EOL Tape/Knife Maintenance' : isTemperature ? 'Area Temperature Monitoring' : `${appearanceLabel} Inspection`;
@@ -3455,13 +3634,27 @@
       document.getElementById('kpiQuality').textContent = '—';
       document.getElementById('kpiQualityCard').dataset.tone = '';
       document.getElementById('kpiLatest').textContent = '—';
+      if (isAppearance) document.getElementById('pageTitle').textContent = 'Appearance Inspection';
+      appearanceChipFilter = 'all';
+      document.querySelectorAll('#appearanceChips [data-chip]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.chip === 'all')));
+      if (currentProcess.startsWith('startup_')) {
+        lastStartupProcess = currentProcess;
+        document.getElementById('pageTitle').textContent = 'Start-up Check Sheets';
+        document.getElementById('pageEyebrow').textContent = 'Operations / Start-up';
+      }
+      const sheetPicker = document.getElementById('startupSheetPicker');
+      sheetPicker.hidden = !currentProcess.startsWith('startup_');
+      sheetPicker.querySelectorAll('[data-sheet]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.sheet === currentProcess)));
+      resetKpiLabels();
+      renderPageTabs();
       document.getElementById('formTitle').textContent =
         isIr ? 'New IR Check' : isStartupCheck ? startupConfig.formTitle : isConductive ? 'New Conductive Rubber Record' : isMaintenance ? 'New EOL Tape/Knife Maintenance' : isTemperature ? 'New Temperature Reading' : `New ${appearanceLabel} Inspection`;
       document.getElementById('lineLabel').textContent =
-        isDegas ? 'Degas line' : 'Jig line';
-      document.getElementById('lineLabel').htmlFor = isDegas ? 'degasProcessLine' : 'processLine';
+        isDegas ? 'Degas line' : isBeforeHpcd ? 'HPCD line' : 'Jig line';
+      document.getElementById('lineLabel').htmlFor = isDegas ? 'degasProcessLine' : isBeforeHpcd ? 'hpcdProcessLine' : 'processLine';
       document.getElementById('lineHeader').textContent =
-        isDegas ? 'Degas line' : 'Jig line';
+        isDegas ? 'Degas line' : isBeforeHpcd ? 'HPCD line' : 'Jig line';
+      document.getElementById('hpcdProcessLine').style.display = isBeforeHpcd ? '' : 'none';
       document.getElementById('processLine').style.display = currentProcess === 'formation' ? '' : 'none';
       document.getElementById('degasProcessLine').style.display = isDegas ? '' : 'none';
       document.querySelectorAll('.process-inspection-field').forEach(field => {
@@ -3517,11 +3710,12 @@
       document.getElementById('trayId').required = isAppearance;
       setJigLineRequired(currentProcess === 'formation');
       document.getElementById('degasProcessLine').required = isDegas;
+      document.getElementById('hpcdProcessLine').required = isBeforeHpcd;
       document.querySelectorAll('input[name="defectType"]').forEach(input => { input.disabled = !isAppearance; });
-      document.getElementById('appearanceLineGroup').style.display = isBeforeHpcd || !isAppearance ? 'none' : '';
+      document.getElementById('appearanceLineGroup').style.display = !isAppearance ? 'none' : '';
       document.getElementById('hotJigGroup').style.display = isBeforeHpcd || isDegas || !isAppearance ? 'none' : '';
       document.getElementById('defectMapGroup').style.display = isAppearance ? '' : 'none';
-      document.getElementById('lineHeader').style.display = isBeforeHpcd ? 'none' : '';
+      document.getElementById('lineHeader').style.display = '';
       document.getElementById('hotJigHeader').style.display = isBeforeHpcd || isDegas ? 'none' : '';
       const defectHeader = document.getElementById('defectHeader');
       if (isBeforeHpcd) document.getElementById('cellIdHeader').before(defectHeader);
@@ -3533,8 +3727,13 @@
       document.getElementById('conductiveHistoryCard').style.display = isConductive ? '' : 'none';
       document.getElementById('startupHistoryCard').style.display = isStartupCheck ? '' : 'none';
       document.getElementById('irHistoryCard').style.display = isIr ? '' : 'none';
+      const isStartupSheet = currentProcess.startsWith('startup_');
+      document.getElementById('maintenanceStatusCard').style.display = isMaintenance || isConductive ? '' : 'none';
+      document.getElementById('startupOverviewCard').style.display = isStartupSheet ? '' : 'none';
+      document.getElementById('startupCards').style.display = isStartupSheet && !isResealingStartup ? '' : 'none';
+      document.getElementById('startupChips').style.display = isStartupSheet && !isResealingStartup ? '' : 'none';
       document.getElementById('startupHistoryTitle').textContent = isStartupCheck ? startupConfig.historyTitle : 'Start-up Check Sheets';
-      document.getElementById('startupHistoryTable').style.display = isResealingStartup || isIpCheck ? 'none' : '';
+      document.getElementById('startupHistoryTable').style.display = 'none';
       document.getElementById('ipDashboard').style.display = isIpCheck ? '' : 'none';
       document.getElementById('startupHistoryTable').closest('.table-container').style.display = isIpCheck ? 'none' : '';
       document.getElementById('resealingHistoryTable').style.display = isResealingStartup ? '' : 'none';
@@ -3543,12 +3742,13 @@
       document.querySelectorAll('.startup-selector-column').forEach(column => { column.style.display = isSelectorStartup ? '' : 'none'; });
       document.querySelectorAll('.startup-cdc-column').forEach(column => { column.style.display = isCdcStartup ? '' : 'none'; });
       document.getElementById('weeklyMapCard').style.display = isAppearance ? '' : 'none';
+      document.getElementById('appearanceFilters').style.display = isAppearance ? '' : 'none';
+      document.getElementById('appearanceChips').style.display = isAppearance ? '' : 'none';
       document.getElementById('weeklyMapCard').classList.toggle('show-equipment-map', currentProcess === 'formation');
-      document.querySelector('.weekly-map-layout').classList.toggle('compact-map-layout', currentProcess !== 'formation');
       document.getElementById('weeklyMapTitle').textContent = `${appearanceLabel} Defect Map`;
       document.getElementById('defectMapLabel').textContent = `${appearanceLabel} Defect Map`;
-      document.getElementById('weeklyLineFilterLabel').textContent = isDegas ? 'Degas Line' : 'Jig Line';
-      document.getElementById('weeklyLineFilterGroup').style.display = isBeforeHpcd ? 'none' : '';
+      document.getElementById('weeklyLineFilterLabel').textContent = isDegas ? 'Degas line' : isBeforeHpcd ? 'HPCD line' : 'Jig line';
+      document.getElementById('weeklyLineFilterGroup').style.display = '';
       document.getElementById('weeklyHotJigFilterGroup').style.display = isBeforeHpcd || isDegas ? 'none' : '';
       const mapImage = isDegas ? 'degas-defect-map.jpg' : 'jig-formation-defect-map.jpg';
       document.querySelectorAll('.process-map-image').forEach(image => { image.src = mapImage; });
@@ -3560,12 +3760,15 @@
       setWeeklyMapOpen(true);
       document.getElementById('chartDashboard').style.display = isTemperature ? 'block' : 'none';
       openFormBtn.textContent = isIr ? '＋ New IR Check' : isStartupCheck ? `＋ New ${startupConfig.title.replace(' Start-up Check Sheet', ' Check Sheet')}` : isConductive ? '＋ New Record' : isMaintenance ? '＋ New Maintenance' : isTemperature ? '＋ New Reading' : 'New Inspection';
+      if (currentProcess.startsWith('startup_')) openFormBtn.textContent = '＋ New Check Sheet';
       document.getElementById('submitBtn').textContent = isIr ? 'Submit IR Check' : isStartupCheck ? startupConfig.submitLabel : isConductive ? 'Submit Record' : isMaintenance ? 'Submit Maintenance' : isTemperature ? 'Submit Readings' : 'Submit Inspection';
       document.getElementById('submitAndAddCellBtn').style.display = isAppearance ? '' : 'none';
-      const activeButton = document.querySelector(`.process-button[data-process="${currentProcess}"], .process-category-direct[data-process="${currentProcess}"]`);
+      const activeButton = document.querySelector(`.process-button[data-process="${currentProcess}"], .process-category-direct[data-process="${currentProcess}"]`) ||
+        (currentProcess.startsWith('startup_') ? document.querySelector('[data-process-prefix="startup_"]') : null);
       if (activeButton) {
         document.querySelectorAll('.process-group').forEach(group => {
-          const isActiveGroup = group === activeButton.closest('.process-group');
+          // On phones the menu is a drop-down over the page, so it stays closed after a page change.
+          const isActiveGroup = group === activeButton.closest('.process-group') && !window.matchMedia('(max-width: 767px)').matches;
           group.classList.toggle('open', isActiveGroup);
           group.querySelector('.process-category-toggle').setAttribute('aria-expanded', String(isActiveGroup));
         });
@@ -3578,6 +3781,10 @@
       toggle.addEventListener('click', () => {
         if (toggle.dataset.summary) {
           showSummary();
+          return;
+        }
+        if (toggle.dataset.processPrefix) {
+          switchProcess(lastStartupProcess);
           return;
         }
         if (toggle.dataset.process) {
@@ -3888,7 +4095,7 @@
       const isAllOk = isAppearance && selectedDefects.length === 1 && selectedDefects[0] === 'All OK';
 
       if (isAllOk && clearAllOkDetails) {
-        ['cellId', 'channel', 'degasProcessLine', 'hotJig', 'comment'].forEach(id => {
+        ['cellId', 'channel', 'degasProcessLine', 'hpcdProcessLine', 'hotJig', 'comment'].forEach(id => {
           document.getElementById(id).value = '';
         });
         clearJigLineSelection();
@@ -3901,7 +4108,7 @@
         field.style.display = !isAppearance || isAllOk ? 'none' : '';
       });
       if (isAppearance && !isAllOk) {
-        document.getElementById('appearanceLineGroup').style.display = isBeforeHpcd ? 'none' : '';
+        document.getElementById('appearanceLineGroup').style.display = '';
         document.getElementById('hotJigGroup').style.display = isBeforeHpcd || isDegas ? 'none' : '';
       }
 
@@ -3910,6 +4117,7 @@
       });
       setJigLineRequired(currentProcess === 'formation' && !isAllOk);
       document.getElementById('degasProcessLine').required = isDegas && !isAllOk;
+      document.getElementById('hpcdProcessLine').required = isBeforeHpcd && !isAllOk;
       hotJigInput.required = currentProcess === 'formation' && !isAllOk;
       document.getElementById('submitAndAddCellBtn').style.display = isAppearance && !isAllOk ? '' : 'none';
     }
@@ -4272,7 +4480,9 @@
         defectPhotoData: uploadPhoto ? uploadPhoto.data : '',
         defectMap: JSON.stringify(defectMapPoints)
       };
-      if (currentProcess === 'degas') {
+      if (currentProcess === 'before_hpcd') {
+        payload.hpcdLine = isAllOk ? '' : document.getElementById('hpcdProcessLine').value;
+      } else if (currentProcess === 'degas') {
         payload.degasLine = isAllOk ? '' : document.getElementById('degasProcessLine').value;
       } else if (currentProcess === 'formation') {
         payload.jigLine = isAllOk ? '' : getSelectedJigLine();
@@ -4611,12 +4821,13 @@
       });
       document.getElementById('weeklyMapDescription').textContent =
         `Combined ${getAppearanceProcessLabel(currentProcess)} defect locations from ${range.startLabel} to ${range.endLabel}.`;
-      const lineKey = currentProcess === 'before_hpcd' ? '' : currentProcess === 'degas' ? 'degasLine' : 'jigLine';
-      const lineValues = lineKey ? recentRecords.map(record => record[lineKey]) : [];
+      const lineKey = currentProcess === 'before_hpcd' ? 'hpcdLine' : currentProcess === 'degas' ? 'degasLine' : 'jigLine';
+      const lineValues = (APPEARANCE_LINE_SETS[currentProcess]?.lines || []).concat(recentRecords.map(record => record[lineKey]));
       const hotJigValues = currentProcess === 'formation' ? recentRecords.map(record => record.hotJig) : [];
       updateMapFilterOptions('weeklyLineFilter', currentProcess === 'formation' ? FORMATION_LINES.concat(lineValues) : lineValues, 'All Lines');
       updateMapFilterOptions('weeklyHotJigFilter', currentProcess === 'formation' ? FORMATION_HOT_JIGS.concat(hotJigValues) : hotJigValues, 'All Hot Jigs');
       applyWeeklyMapFilters();
+      renderAppearanceKpis(processRecords);
     }
 
     function getRecordDefectTypes(value) {
@@ -4669,7 +4880,7 @@
           const item = grouped.get(`${line}|${hotJig}`);
           const cell = document.createElement('button');
           cell.type = 'button';
-          cell.className = `jig-equipment-cell${item ? ' has-records' : ''}${item && item.photos.length ? ' has-photos' : ''}${groupStart ? ' group-start' : ''}${selectedLine === line && selectedHotJig === hotJig ? ' is-selected' : ''}${selectedHotJig && selectedHotJig !== hotJig ? ' is-muted' : ''}`;
+          cell.className = `jig-equipment-cell${item ? ' has-records count-' + Math.min(3, item.count) : ''}${item && item.photos.length ? ' has-photos' : ''}${groupStart ? ' group-start' : ''}${selectedLine === line && selectedHotJig === hotJig ? ' is-selected' : ''}${selectedHotJig && selectedHotJig !== hotJig ? ' is-muted' : ''}`;
           cell.setAttribute('aria-label', `${line}, Hot Jig ${hotJig}${item ? `, ${item.count} records${item.photos.length ? ', click to view photos' : ''}` : ', no records'}`);
           if (item) {
             cell.textContent = item.count;
@@ -4740,8 +4951,8 @@
         const date = parseRecordDate(record.date);
         if (!date || date < range.start || date > range.end) return;
         dateFilteredRecords.push(record);
-        const recordLine = currentProcess === 'before_hpcd' ? '' : currentProcess === 'degas' ? record.degasLine : record.jigLine;
-        if (currentProcess !== 'before_hpcd' && line && String(recordLine || '') !== line) return;
+        const recordLine = currentProcess === 'before_hpcd' ? record.hpcdLine : currentProcess === 'degas' ? record.degasLine : record.jigLine;
+        if (line && String(recordLine || '') !== line) return;
         if (currentProcess === 'formation' && hotJig && String(record.hotJig || '') !== hotJig) return;
         const defectType = normalizeDefectType(record.defect);
         normalizeMapPoints(record.defectMap).forEach(point => {
@@ -4757,19 +4968,19 @@
         });
       });
       if (currentProcess === 'formation') renderJigEquipmentMap(dateFilteredRecords, line, hotJig);
+      renderLineDefectPanel(dateFilteredRecords);
       renderWeeklyPhotoMarkers(points);
       document.getElementById('weeklyMapCount').textContent = `${points.length} point${points.length === 1 ? '' : 's'}`;
       const counts = points.reduce((result, point) => {
         result[point.defectType] = (result[point.defectType] || 0) + 1;
         return result;
       }, {});
-      document.getElementById('weeklyMapLegend').innerHTML = Object.entries(DEFECT_COLORS).map(([label, color]) => `
-        <div class="map-legend-item">
-          <span class="map-legend-swatch" style="background:${color}"></span>
-          <span>${label}</span>
-          <span class="map-legend-count">${counts[label] || 0}</span>
-        </div>
-      `).join('');
+      // Defect type is a quiet strip under the map so the map stays the focus.
+      const present = Object.keys(DEFECT_COLORS).filter(label => label !== 'All OK' && counts[label]);
+      document.getElementById('weeklyMapLegend').innerHTML = '<span class="strip-label">Defect type</span>' + (present.length
+        ? '<div class="strip-bar">' + present.map(label => '<i title="' + escapeText(label + ': ' + counts[label]) + '" style="flex:' + counts[label] + ';background:' + DEFECT_COLORS[label] + '"></i>').join('') + '</div>' +
+          '<div class="strip-legend">' + present.map(label => '<span><i style="background:' + DEFECT_COLORS[label] + '"></i>' + escapeText(label) + ' <b>' + counts[label] + '</b></span>').join('') + '</div>'
+        : '<span class="strip-empty">No defect points in this range.</span>');
     }
 
     function toDateInputValue(date) {
@@ -4917,6 +5128,7 @@
       if (isAppearanceProcess(process)) {
         renderWeeklyDefectMap(response.rangeData || []);
       }
+      if (process === 'maintenance' || process === 'conductive') loadMaintenanceStatus(process, records);
     }
 
     function updateSummaryFromApi(summary, process) {
@@ -4956,10 +5168,22 @@
     function appendRecordBadgeCell(row, label, value) {
       const cell = document.createElement('td');
       cell.dataset.label = label;
-      const badge = document.createElement('span');
-      badge.className = value === 'All OK' ? 'badge-ok' : 'badge-defect';
-      badge.textContent = value == null || value === '' ? '-' : String(value);
-      cell.appendChild(badge);
+      const types = getRecordDefectTypes(value);
+      if (!types.length) {
+        const ok = document.createElement('span');
+        ok.className = value ? 'defect-ok' : '';
+        ok.textContent = value == null || value === '' ? '-' : String(value);
+        cell.appendChild(ok);
+      } else {
+        types.forEach(type => {
+          const tag = document.createElement('span');
+          tag.className = 'defect-tag';
+          const dot = document.createElement('i');
+          dot.style.background = DEFECT_COLORS[type] || DEFECT_COLORS.Others;
+          tag.append(dot, document.createTextNode(type));
+          cell.appendChild(tag);
+        });
+      }
       row.appendChild(cell);
     }
 
@@ -5058,7 +5282,7 @@
         return;
       }
       const isBeforeHpcd = process === 'before_hpcd';
-      const columnCount = isBeforeHpcd ? 10 : process === 'degas' ? 11 : 12;
+      const columnCount = isBeforeHpcd ? 11 : process === 'degas' ? 11 : 12;
       if (!records.length && !append) {
         renderTableEmptyState(tbody, columnCount, 'No inspection records found.');
         return;
@@ -5066,6 +5290,10 @@
       records.forEach(item => {
         const row = document.createElement('tr');
         const lineValue = process === 'degas' ? item.degasLine : item.jigLine;
+        const hasDefect = getRecordDefectTypes(item.defect).length > 0;
+        row.classList.toggle('defect-row', hasDefect);
+        row.dataset.defect = hasDefect ? '1' : '0';
+        row.dataset.pending = item.review && item.review.status !== 'confirmed' ? '1' : '0';
         addReviewBadge(appendRecordCell(row, 'Date / Time', formatRecordDate(item.date)), item.review);
         appendRecordCell(row, 'Team', item.team, 'col-team');
         appendRecordCell(row, 'Operator', item.operatorName, 'col-operator');
@@ -5077,6 +5305,7 @@
         if (isBeforeHpcd) appendRecordBadgeCell(row, 'Defect', item.defect);
         appendRecordCell(row, 'Cell ID', item.cellId);
         appendRecordCell(row, 'Channel', item.channel);
+        if (isBeforeHpcd) appendRecordCell(row, 'HPCD line', item.hpcdLine);
         if (!isBeforeHpcd) {
           appendRecordCell(row, process === 'degas' ? 'Degas line' : 'Jig line', lineValue);
           if (process === 'formation') appendRecordCell(row, 'Hot jig', item.hotJig);
@@ -5087,6 +5316,7 @@
         appendRecordMapCell(row, item.defectMap, item.defect);
         tbody.appendChild(row);
       });
+      applyAppearanceChip();
     }
 
     function updateLoadMoreButton() {
@@ -5143,12 +5373,18 @@
         updateSyncLabels('Loading PostgreSQL records...', false);
         refreshButton.disabled = true;
         try {
+          const statusRequest = requestedProcess.startsWith('startup_') ? fetchJsonWithRetry('/api/status?view=startup').catch(() => null) : null;
           const response = await fetchJsonWithRetry(buildApiUrl({
             process: requestedProcess, action: 'records'
           }));
           if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
           if (requestedProcess === 'ir') renderIrRecords(response.data || []);
           else renderStartupRecords(response.data || []);
+          if (statusRequest) {
+            const status = await statusRequest;
+            if (requestId !== loadRequestId || requestedProcess !== currentProcess) return;
+            renderStartupOverview(status, response.data || []);
+          }
           systemStatus.textContent = 'System Online';
           systemStatus.className = 'system-status';
           updateSyncLabels('Loaded from PostgreSQL', false);
@@ -5189,7 +5425,7 @@
         refreshButton.disabled = true;
         refreshButton.textContent = '↻ Refreshing…';
       }
-      const columnCount = requestedProcess === 'conductive' ? 9 : requestedProcess === 'maintenance' ? 7 : requestedProcess === 'before_hpcd' ? 10 : requestedProcess === 'degas' ? 11 : 12;
+      const columnCount = requestedProcess === 'conductive' ? 9 : requestedProcess === 'maintenance' ? 7 : requestedProcess === 'before_hpcd' ? 11 : requestedProcess === 'degas' ? 11 : 12;
       const cacheKey = getDashboardCacheKey(requestedProcess);
       const cached = dashboardCache.get(cacheKey);
 
@@ -5427,7 +5663,7 @@
         temperatureRecords = {};
         temperatureCacheRange = rangeKey;
       }
-      const missing = getSelectedTemperatureViewAreas().filter(area => !temperatureRecords[area.process]);
+      const missing = TEMPERATURE_AREAS.filter(area => !temperatureRecords[area.process]);
       if (missing.length) {
         document.getElementById('temperaturePanels').innerHTML = '<div class="chart-empty">Loading temperature data...</div>';
         const responses = await Promise.all(missing.map(area => fetchJsonWithRetry(buildApiUrl({
@@ -5447,40 +5683,90 @@
 
     function renderTemperatureDashboard() {
       const range = getTemperatureDateRange();
-      const areas = getSelectedTemperatureViewAreas();
+      const todayKey = toDateInputValue(new Date());
       let total = 0;
-      let outOfSpec = 0;
       let latest = null;
       temperatureCharts.clear();
-      const panels = areas.map(area => {
-        const records = (temperatureRecords[area.process] || []).slice().sort((a, b) =>
-          (parseRecordDate(a.date)?.getTime() || 0) - (parseRecordDate(b.date)?.getTime() || 0));
+      const sorted = new Map(TEMPERATURE_AREAS.map(area => [area.process, (temperatureRecords[area.process] || []).slice().sort((a, b) =>
+        (parseRecordDate(a.date)?.getTime() || 0) - (parseRecordDate(b.date)?.getTime() || 0))]));
+      const tiles = TEMPERATURE_AREAS.map(area => {
+        const records = sorted.get(area.process);
         total += records.length;
         records.forEach(record => {
-          if (isTemperatureOutOfSpec(area, record)) outOfSpec += 1;
           const date = parseRecordDate(record.date);
           if (date && (!latest || date > latest.date)) latest = { date, label: record.date };
         });
-        const header = '<div class="temperature-panel-header"><h3>' + escapeText(area.label + ' (' + area.spec.label + ')') + '</h3><span class="input-help">' +
-          records.length + ' reading' + (records.length === 1 ? '' : 's') + '</span></div>';
-        if (!records.length) {
-          return '<article class="card temperature-panel">' + header + '<p class="input-help">No readings in this date range.</p></article>';
-        }
-        const charts = area.groups.map((group, index) => {
-          const chartId = area.process + '-' + index;
-          return '<article class="chart-card"><h3>' + escapeText(group.title) + '</h3>' + buildTemperatureChart(chartId, records, area, group) + '</article>';
-        }).join('');
-        return '<article class="card temperature-panel">' + header + '<div class="chart-grid">' + charts + '</div>' +
-          buildTemperatureTable(area, records) + '</article>';
+        return temperatureTile(area, records, todayKey, range);
       });
-      document.getElementById('temperaturePanels').innerHTML = panels.join('') ||
-        '<div class="chart-empty">Select at least one area to show its charts.</div>';
+      if (!TEMPERATURE_AREA_BY_PROCESS.has(temperatureSelectedArea)) {
+        temperatureSelectedArea = (tiles.find(tile => tile.status === 'bad') || tiles.find(tile => tile.count) || tiles[0]).process;
+      }
+      document.getElementById('temperatureTiles').innerHTML = tiles.map(tile =>
+        tile.html.replace('aria-pressed="false"', 'aria-pressed="' + String(tile.process === temperatureSelectedArea) + '"')).join('');
+      const area = TEMPERATURE_AREA_BY_PROCESS.get(temperatureSelectedArea);
+      const records = sorted.get(area.process);
+      const header = '<div class="temperature-panel-header"><h3>' + escapeText(area.label + ' (' + area.spec.label + ')') + '</h3><span class="input-help">' +
+        records.length + ' reading' + (records.length === 1 ? '' : 's') + ' in this date range</span></div>';
+      document.getElementById('temperaturePanels').innerHTML = !records.length
+        ? '<article class="card temperature-panel">' + header + '<p class="input-help">No readings in this date range.</p></article>'
+        : '<article class="card temperature-panel">' + header + '<div class="chart-grid">' + area.groups.map((group, index) =>
+            '<article class="chart-card"><h3>' + escapeText(group.title) + '</h3>' + buildTemperatureChart(area.process + '-' + index, records, area, group) + '</article>').join('') +
+          '</div>' + buildTemperatureTable(area, records) + '</article>';
       document.getElementById('temperatureRangeSummary').textContent =
-        range.startLabel + ' to ' + range.endLabel + ' · ' + total + ' reading' + (total === 1 ? '' : 's');
-      document.getElementById('kpiRecords').textContent = total.toLocaleString();
-      document.getElementById('kpiQuality').textContent = String(outOfSpec);
-      document.getElementById('kpiQualityCard').dataset.tone = total ? (outOfSpec ? 'danger' : 'success') : '';
-      document.getElementById('kpiLatest').textContent = latest ? formatRecordDate(latest.label) : 'No records';
+        range.startLabel + ' to ' + range.endLabel + ' · ' + total + ' reading' + (total === 1 ? '' : 's') + ' in all areas. Tap an area to see its charts.';
+      const read = tiles.filter(tile => tile.status !== 'idle').length;
+      const out = tiles.filter(tile => tile.status === 'bad').length;
+      setKpiStrip([
+        ['Areas read today', read + ' / ' + tiles.length],
+        ['Areas out of spec today', String(out), out ? 'danger' : ''],
+        ['Areas with no reading today', String(tiles.length - read)],
+        ['Last reading', latest ? formatRecordDate(latest.label) : 'No records']
+      ]);
+    }
+
+    function temperatureValues(area, record) {
+      return getTemperatureAreaFields(area).map(field => record[field.key]).filter(hasTemperatureValue).map(Number).filter(Number.isFinite);
+    }
+
+    // One tile per area: latest reading, today's status, and a small trend of the reading farthest from target.
+    function temperatureTile(area, records, todayKey, range) {
+      const dayOf = record => { const date = parseRecordDate(record.date); return date ? toDateInputValue(date) : ''; };
+      const todays = records.filter(record => dayOf(record) === todayKey);
+      const out = todays.filter(record => isTemperatureOutOfSpec(area, record)).length;
+      const status = out ? 'bad' : todays.length ? 'ok' : 'idle';
+      const last = records[records.length - 1];
+      const values = last ? temperatureValues(area, last) : [];
+      const low = values.length ? Math.min(...values) : null;
+      const high = values.length ? Math.max(...values) : null;
+      const value = low === null ? '—' : (low === high ? low.toFixed(1) : low.toFixed(1) + ' – ' + high.toFixed(1)) + '<small> °C</small>';
+      const note = out ? '✕ ' + out + ' out of spec today'
+        : todays.length ? '✓ ' + todays.length + ' reading' + (todays.length === 1 ? '' : 's') + ' today'
+        : '○ No reading today' + (last ? ' (last ' + escapeText(formatRecordDate(last.date).slice(0, 5)) + ')' : '');
+      const points = records.map(record => {
+        const list = temperatureValues(area, record);
+        const time = parseRecordDate(record.date)?.getTime();
+        if (!list.length || !Number.isFinite(time)) return null;
+        return { time, value: list.reduce((a, b) => Math.abs(b - area.spec.target) > Math.abs(a - area.spec.target) ? b : a) };
+      }).filter(Boolean);
+      const width = 180, height = 34;
+      const minValue = Math.min(area.spec.min - 1, ...points.map(point => point.value));
+      const maxValue = Math.max(area.spec.max + 1, ...points.map(point => point.value));
+      const start = range.start.getTime(), end = range.end.getTime();
+      const x = time => ((time - start) / Math.max(1, end - start) * width).toFixed(1);
+      const y = level => ((maxValue - level) / (maxValue - minValue) * height).toFixed(1);
+      const outOfSpec = point => point.value < area.spec.min || point.value > area.spec.max;
+      const spark = '<svg viewBox="0 0 ' + width + ' ' + height + '" preserveAspectRatio="none" aria-hidden="true">' +
+        '<rect x="0" y="' + y(area.spec.max) + '" width="' + width + '" height="' + (y(area.spec.min) - y(area.spec.max)) + '" fill="#e6f2ec"/>' +
+        (points.length > 1 ? '<polyline fill="none" stroke="#4f78cc" stroke-width="2" vector-effect="non-scaling-stroke" points="' +
+          points.map(point => x(point.time) + ',' + y(point.value)).join(' ') + '"/>' : '') +
+        points.filter(point => outOfSpec(point) || points.length === 1).map(point =>
+          '<circle cx="' + x(point.time) + '" cy="' + y(point.value) + '" r="3" fill="' + (outOfSpec(point) ? '#c0352f' : '#4f78cc') + '"/>').join('') + '</svg>';
+      return {
+        process: area.process, status, count: records.length,
+        html: '<button type="button" class="temp-tile ' + status + '" data-temp-area="' + area.process + '" aria-pressed="false">' +
+          '<span class="temp-tile-top"><span class="temp-tile-name">' + escapeText(area.label) + '</span><span class="temp-tile-spec">' + escapeText(area.spec.label) + '</span></span>' +
+          '<span class="temp-tile-value">' + value + '</span><span class="temp-tile-note">' + note + '</span>' + spark + '</button>'
+      };
     }
 
     function buildTemperatureTable(area, records) {
@@ -5604,6 +5890,293 @@
     });
     document.getElementById('temperaturePanels').addEventListener('pointermove', showTemperatureTooltip);
     document.getElementById('temperaturePanels').addEventListener('pointerout', hideTemperatureTooltip);
+
+    // ---- Appearance: today's status, defects by line and record filters ----
+    // Lines shown beside the cell map for the processes without a jig grid. Records saved before the
+    // HPCD line existed have no line and are counted as "No line".
+    const APPEARANCE_LINE_SETS = Object.freeze({
+      before_hpcd: { key: 'hpcdLine', label: 'HPCD line', prefix: 'Line ', lines: ['3', '4', '5', '6'] },
+      degas: { key: 'degasLine', label: 'Degas line', prefix: '', lines: ['4-1', '4-2', '5-1', '5-2'] }
+    });
+
+    function renderLineDefectPanel(records) {
+      const panel = document.getElementById('lineDefectPanel');
+      const set = APPEARANCE_LINE_SETS[currentProcess];
+      panel.hidden = !set;
+      if (!set) return;
+      const counts = new Map(set.lines.map(line => [line, 0]));
+      let noLine = 0;
+      records.filter(record => getRecordDefectTypes(record.defect).length).forEach(record => {
+        const line = String(record[set.key] || '').trim();
+        if (counts.has(line)) counts.set(line, counts.get(line) + 1);
+        else noLine += 1;
+      });
+      const rows = Array.from(counts.entries()).concat(noLine ? [['', noLine]] : []);
+      const max = Math.max(1, ...rows.map(([, count]) => count));
+      panel.innerHTML = '<p class="map-sub">Defects by ' + escapeText(set.label) + '</p>' + rows.map(([line, count]) =>
+        '<div class="line-defect-row"><span>' + (line ? escapeText(set.prefix + line) : 'No line') + '</span>' +
+        '<span class="line-defect-track"><i style="width:' + (count / max * 100) + '%"></i></span><b>' + count + '</b></div>').join('') +
+        '<p class="line-defect-note">Defect records in the date range' + (noLine ? '. "No line" = saved before the line was recorded.' : '.') + '</p>';
+    }
+
+    // Today's status from the date-range records; the small bars are checks with defects per day.
+    function renderAppearanceKpis(records) {
+      const range = getWeeklyDateRange();
+      const todayKey = toDateInputValue(new Date());
+      const dayOf = record => { const date = parseRecordDate(record.date); return date ? toDateInputValue(date) : ''; };
+      const hasDefect = record => getRecordDefectTypes(record.defect).length > 0;
+      const inRange = records.filter(record => { const day = dayOf(record); return day && day >= range.startLabel && day <= range.endLabel; });
+      const includesToday = todayKey >= range.startLabel && todayKey <= range.endLabel;
+      const today = inRange.filter(record => dayOf(record) === todayKey);
+      const todayDefects = today.filter(hasDefect).length;
+      const latest = inRange.reduce((found, record) => {
+        const date = parseRecordDate(record.date);
+        return date && (!found || date > found.date) ? { date, record } : found;
+      }, null);
+      setKpiStrip([
+        ['Checks today', includesToday ? String(today.length) : '—'],
+        ['Checks with defects today', includesToday ? String(todayDefects) : '—', todayDefects ? 'danger' : ''],
+        ['Defect rate in date range', inRange.length ? (inRange.filter(hasDefect).length * 100 / inRange.length).toFixed(1) + '%' : '—'],
+        ['Last inspection', latest ? formatRecordDate(latest.record.date) : 'No records']
+      ]);
+      const days = [];
+      for (const day = new Date(range.start); day <= range.end && days.length < 400; day.setDate(day.getDate() + 1)) days.push(toDateInputValue(day));
+      const shown = days.slice(-14);
+      const perDay = shown.map(day => inRange.filter(record => dayOf(record) === day && hasDefect(record)).length);
+      const max = Math.max(1, ...perDay);
+      const card = document.getElementById('kpiQuality').closest('.kpi-card');
+      let trend = document.getElementById('kpiTrend');
+      if (!trend) {
+        trend = document.createElement('div');
+        trend.id = 'kpiTrend';
+        trend.className = 'kpi-trend';
+        card.appendChild(trend);
+      }
+      trend.title = 'Checks with defects per day, ' + shown[0] + ' to ' + shown[shown.length - 1];
+      trend.innerHTML = perDay.map((count, index) => '<i class="' + (shown[index] === todayKey ? 'today' : '') + '" title="' + shown[index] + ': ' + count +
+        '" style="height:' + Math.max(2, count / max * 22) + 'px"></i>').join('');
+    }
+
+    let appearanceChipFilter = 'all';
+    function applyAppearanceChip() {
+      document.querySelectorAll('#dataTableBody tr[data-defect]').forEach(row => {
+        row.hidden = appearanceChipFilter === 'defects' ? row.dataset.defect !== '1' : appearanceChipFilter === 'review' ? row.dataset.pending !== '1' : false;
+      });
+    }
+    bindChips('appearanceChips', value => { appearanceChipFilter = value; applyAppearanceChip(); });
+
+    // ---- Header pages: today's status strip, group tabs and status views ----
+    const KPI_SLOTS = [['kpiProcessLabel', 'kpiProcess'], ['kpiRecordsLabel', 'kpiRecords'], ['kpiQualityLabel', 'kpiQuality'], ['kpiLatestLabel', 'kpiLatest']];
+    function resetKpiLabels() {
+      document.getElementById('kpiProcessLabel').textContent = 'Current Process';
+      document.getElementById('kpiRecordsLabel').textContent = 'Total Records';
+      document.getElementById('kpiLatestLabel').textContent = 'Latest Update';
+      document.getElementById('kpiTrend')?.remove();
+      KPI_SLOTS.forEach(([, valueId], index) => {
+        document.getElementById(valueId).title = '';
+        document.getElementById(valueId).closest('.kpi-card').dataset.tone = index === 0 ? 'primary' : '';
+      });
+    }
+    // Today's status for a page: four [label, value, tone] cells in place of the generic counters.
+    function setKpiStrip(cells) {
+      cells.forEach(([label, value, tone], index) => {
+        const [labelId, valueId] = KPI_SLOTS[index];
+        document.getElementById(labelId).textContent = label;
+        const element = document.getElementById(valueId);
+        element.textContent = value;
+        element.closest('.kpi-card').dataset.tone = tone || '';
+      });
+    }
+
+    const PAGE_TAB_GROUPS = [
+      [['before_hpcd', 'Before HPCD'], ['formation', 'Jig Formation'], ['degas', 'Degas']],
+      [['maintenance', 'EOL Tape/Knife'], ['conductive', 'Conductive Rubber']]
+    ];
+    function renderPageTabs() {
+      const nav = document.getElementById('pageTabs');
+      const group = PAGE_TAB_GROUPS.find(tabs => tabs.some(([process]) => process === currentProcess));
+      nav.hidden = !group;
+      nav.innerHTML = group ? group.map(([process, label]) => '<button type="button" data-tab-process="' + process + '"' +
+        (process === currentProcess ? ' aria-current="page"' : '') + '>' + escapeText(label) + '</button>').join('') : '';
+    }
+    document.getElementById('pageTabs').addEventListener('click', event => {
+      const button = event.target.closest('[data-tab-process]');
+      if (button && button.dataset.tabProcess !== currentProcess) switchProcess(button.dataset.tabProcess);
+    });
+
+    function bindChips(id, onChange) {
+      const container = document.getElementById(id);
+      container.addEventListener('click', event => {
+        const button = event.target.closest('[data-chip]');
+        if (!button) return;
+        container.querySelectorAll('[data-chip]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+        onChange(button.dataset.chip);
+      });
+    }
+
+    const isRecordToday = record => { const date = parseRecordDate(record.date); return Boolean(date) && toDateInputValue(date) === toDateInputValue(new Date()); };
+
+    // Temperature: a tile per area picks which area's charts and records are shown.
+    let temperatureSelectedArea = '';
+    document.getElementById('temperatureTiles').addEventListener('click', event => {
+      const tile = event.target.closest('[data-temp-area]');
+      if (!tile) return;
+      temperatureSelectedArea = tile.dataset.tempArea;
+      renderTemperatureDashboard();
+    });
+
+    // Maintenance and Conductive Rubber: days since the last work on each line, equipment or unit.
+    async function loadMaintenanceStatus(process, records) {
+      const body = document.getElementById('maintenanceStatusBody');
+      try {
+        const data = await fetchJsonWithRetry('/api/status?view=' + (process === 'conductive' ? 'conductive' : 'maintenance'));
+        if (currentProcess !== process) return;
+        if (data.result !== 'success') throw new Error(data.message || 'Status could not be loaded.');
+        renderMaintenanceStatus(process, data, records);
+      } catch (error) {
+        if (currentProcess === process) body.innerHTML = '<p class="input-help" style="color:#b91c1c">Status could not be loaded: ' + escapeText(error.message) + '</p>';
+      }
+    }
+
+    function ageCell(cell, title) {
+      const level = cell.days == null ? 'none' : cell.days <= 3 ? 'd1' : cell.days <= 10 ? 'd2' : cell.days <= 25 ? 'd3' : 'd4';
+      const detail = cell.last ? 'last ' + formatRecordDate(cell.last) + (cell.action ? ', ' + cell.action : '') : 'no record yet';
+      return '<td class="age-cell ' + level + '" title="' + escapeText(title + ': ' + detail) + '">' + (cell.days == null ? '–' : cell.days + 'd') + '</td>';
+    }
+
+    function renderMaintenanceStatus(process, data, records) {
+      let oldest = null;
+      const cell = (entry, title) => {
+        if (entry.days != null && (!oldest || entry.days > oldest.days)) oldest = { days: entry.days, title };
+        return ageCell(entry, title);
+      };
+      const table = (head, rows) => '<div class="table-scroll"><table class="age-table"><thead><tr><th></th>' +
+        head.map(name => '<th>' + escapeText(name) + '</th>').join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+      let html;
+      if (process === 'conductive') {
+        html = '<div class="age-blocks">' + data.modes.map(mode => '<div class="age-block"><h4>' + escapeText(mode.mode) + '</h4>' +
+          table(mode.units, mode.lines.map(line => '<tr><th>' + escapeText(line.line) + '</th>' +
+            line.cells.map((entry, index) => cell(entry, mode.mode + ' ' + line.line + ' unit ' + mode.units[index])).join('') + '</tr>').join('')) +
+          '</div>').join('') + '</div>';
+      } else {
+        const names = data.columns.map(column => column.equipment + ' ' + column.maintenance.toLowerCase());
+        html = table(names, data.lines.map(line => '<tr><th>' + escapeText(line.line) + '</th>' +
+          line.cells.map((entry, index) => cell(entry, line.line + ' ' + names[index])).join('') + '</tr>').join(''));
+      }
+      document.getElementById('maintenanceStatusTitle').textContent = process === 'conductive' ? 'Days since last work, by unit' : 'Days since last work';
+      document.getElementById('maintenanceStatusBody').innerHTML = html;
+      const last = records[0];
+      setKpiStrip([
+        ['Records today', String(records.filter(isRecordToday).length)],
+        [!last ? 'Last work' : 'Last work: ' + String(process === 'conductive' ? last.action : last.maintenance || '').toLowerCase(),
+          !last ? 'No records' : process === 'conductive' ? last.rubberProcess + ' ' + last.measurement + ' ' + last.line : last.line + ' ' + last.equipment],
+        [oldest ? 'Longest wait: ' + oldest.title : 'Longest wait', oldest ? oldest.days + ' days' : '—'],
+        ['Last record', last ? formatRecordDate(last.date) : 'No records']
+      ]);
+    }
+
+    // Start-up: 7-day overview of all sheets, and each submitted sheet as one card.
+    let startupCardData = [];
+    let startupCardFilter = 'all';
+    const STARTUP_ISSUE_STATUSES = ['Flagged', 'Incomplete', 'No'];
+    function startupCheckHasIssue(check) {
+      return check.head.checkCompleted === 'No' || check.items.some(item => STARTUP_ISSUE_STATUSES.includes(item.status));
+    }
+
+    function startupCardHtml(check) {
+      const head = check.head;
+      const display = STARTUP_ITEM_DISPLAY[currentProcess];
+      const label = item => {
+        const shown = display?.get(String(item.item || ''));
+        return shown ? shown.category + ' / ' + shown.item : String(item.item || '');
+      };
+      const issues = check.items.filter(item => STARTUP_ISSUE_STATUSES.includes(item.status));
+      const meta = [formatRecordDate(head.date), head.team, head.operatorName, head.selectorType,
+        head.line ? 'Line ' + head.line : '', head.floor ? 'Floor ' + head.floor : '', head.frequency].filter(Boolean).join(' · ');
+      return '<article class="sheet-card' + (startupCheckHasIssue(check) ? ' problem' : '') + '"><div class="sheet-card-head"><span class="sheet-card-meta">' + escapeText(meta) + '</span>' +
+        (head.checkCompleted === 'No' ? '<span class="sheet-tag bad">Not completed</span>' : '') +
+        (issues.length ? '<span class="sheet-tag bad">' + issues.length + ' flagged</span>' : head.checkCompleted === 'No' ? '' : '<span class="sheet-tag ok">All passed</span>') +
+        reviewBadge(head.review) + '</div>' +
+        '<div class="sheet-card-items">' + check.items.filter(item => !STARTUP_ISSUE_STATUSES.includes(item.status)).map(item =>
+          '<span class="sheet-item ' + (item.status === 'N/A' ? 'na' : 'ok') + '">' + (item.status === 'N/A' ? 'N/A ' : '✓ ') + escapeText(label(item)) + '</span>').join('') + '</div>' +
+        issues.map(item => '<div class="sheet-issue"><b>✕ ' + escapeText(label(item)) + ' · ' + escapeText(item.status) + '</b>' +
+          (item.comment ? '<br>' + escapeText(item.comment) : '') + '</div>').join('') + '</article>';
+    }
+
+    function renderStartupCards() {
+      const list = startupCardData.filter(check => startupCardFilter === 'problems' ? startupCheckHasIssue(check)
+        : startupCardFilter === 'review' ? Boolean(check.head.review) && check.head.review.status !== 'confirmed' : true);
+      document.getElementById('startupCards').innerHTML = list.length ? list.slice(0, 200).map(startupCardHtml).join('')
+        : '<p class="input-help sheet-empty">' + (startupCardData.length ? 'No sheets match this filter.' : 'No start-up check sheets yet.') + '</p>';
+    }
+    bindChips('startupChips', value => { startupCardFilter = value; renderStartupCards(); });
+
+    // Start-up is one page: a tile per check sheet picks whose records are shown, like the temperature areas.
+    let lastStartupProcess = 'startup_hpcd';
+    function renderStartupOverview(status, records) {
+      const body = document.getElementById('startupOverviewBody');
+      if (!status || status.result !== 'success') {
+        body.innerHTML = '<p class="input-help">The sheet overview could not be loaded.</p>';
+        return;
+      }
+      const last = status.days.length - 1;
+      const stateOf = entry => entry.issues ? 'bad' : entry.sheets ? 'ok' : 'idle';
+      body.innerHTML = status.sheets.map(sheet => {
+        const today = sheet.days[last];
+        const note = today.issues ? '✕ ' + today.issues + ' with issues today'
+          : today.sheets ? '✓ ' + today.sheets + ' sheet' + (today.sheets === 1 ? '' : 's') + ' today' : '○ Not submitted today';
+        const days = sheet.days.map((entry, index) => '<i class="' + stateOf(entry) + (index === last ? ' now' : '') + '" title="' +
+          escapeText(entry.day + ': ' + entry.sheets + ' sheet(s)' + (entry.issues ? ', ' + entry.issues + ' with issues' : '')) + '">' +
+          ({ ok: '✓', bad: '✕', idle: '○' })[stateOf(entry)] + '</i>').join('');
+        return '<button type="button" class="sheet-tile ' + stateOf(today) + '" data-tab-process="' + sheet.process + '" aria-pressed="' + String(sheet.process === currentProcess) + '">' +
+          '<span class="sheet-tile-name">' + escapeText(sheet.name) + '</span><span class="sheet-tile-note">' + note + '</span>' +
+          '<span class="sheet-tile-last">Last: ' + (sheet.last ? escapeText(formatRecordDate(sheet.last)) : 'no sheet yet') + '</span>' +
+          '<span class="sheet-tile-days">' + days + '</span></button>';
+      }).join('');
+      const done = status.sheets.filter(sheet => sheet.days[last].sheets).length;
+      const issues = status.sheets.reduce((sum, sheet) => sum + sheet.days[last].issues, 0);
+      const missing = status.sheets.filter(sheet => !sheet.days[last].sheets).map(sheet => sheet.name);
+      const latest = records.length ? records[records.length - 1] : null;
+      setKpiStrip([
+        ['Sheets done today', done + ' / ' + status.sheets.length],
+        ['Sheets with issues today', String(issues), issues ? 'danger' : ''],
+        ['Not submitted today', missing.length ? missing.join(', ') : 'None'],
+        ['Last ' + getStartupConfig().kpi + ' sheet', latest ? formatRecordDate(latest.date) : 'No records']
+      ]);
+    }
+    document.getElementById('startupOverviewBody').addEventListener('click', event => {
+      const tile = event.target.closest('[data-tab-process]');
+      if (tile && tile.dataset.tabProcess !== currentProcess) switchProcess(tile.dataset.tabProcess);
+    });
+    document.getElementById('startupSheetPicker').addEventListener('click', event => {
+      const button = event.target.closest('[data-sheet]');
+      if (!button || button.dataset.sheet === currentProcess) return;
+      switchProcess(button.dataset.sheet);
+      openForm();
+    });
+
+    // IR: NG count per tray channel over the last 30 days; NG that repeats on one channel points to the fixture.
+    let irChipFilter = 'all';
+    bindChips('irChips', value => { irChipFilter = value; renderIrTable(); });
+    function renderIrChannels(records) {
+      const since = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const counts = [Array(IR_CHANNELS).fill(0), Array(IR_CHANNELS).fill(0)];
+      records.forEach(record => {
+        const date = parseRecordDate(record.date);
+        if (!date || date.getTime() < since) return;
+        record.values.forEach(entry => { if (entry.result === 'NG') counts[entry.tray - 1][entry.channel - 1] += 1; });
+      });
+      const max = Math.max(1, ...counts.flat());
+      const level = count => !count ? 0 : Math.max(1, Math.min(4, Math.ceil(count / max * 4)));
+      const top = counts.flatMap((row, tray) => row.map((count, channel) => ({ count, label: 'Tray ' + (tray + 1) + ' CH ' + (channel + 1) })))
+        .filter(item => item.count).sort((a, b) => b.count - a.count).slice(0, 3);
+      document.getElementById('irChannel').innerHTML = '<h4>NG by channel, last 30 days</h4><div class="ir-channel-grid"><span></span>' +
+        Array.from({ length: IR_CHANNELS }, (_, index) => '<span class="hdr">' + (index + 1) + '</span>').join('') +
+        counts.map((row, tray) => '<span class="lab">Tray ' + (tray + 1) + '</span>' + row.map((count, channel) =>
+          '<span class="c' + level(count) + '" title="Tray ' + (tray + 1) + ' CH ' + (channel + 1) + ': ' + count + ' NG">' + (count || '') + '</span>').join('')).join('') +
+        '</div><p>' + (top.length ? 'Most NG: ' + top.map(item => escapeText(item.label) + ' (' + item.count + ')').join(', ') +
+          '. NG that keeps coming back on the same channel points to the fixture rather than the cells.' : 'No NG in the last 30 days.') + '</p>';
+    }
 
     // ---- Summary: today's status of every check ----
     const SUMMARY_MARK = Object.freeze({ ok: '✓', bad: '✕', idle: '○', info: '–' });

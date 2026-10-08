@@ -20,6 +20,7 @@ async function get(processName, action = 'bootstrap') {
 }
 const cases = [
   { process: 'before_hpcd', ...teams, trayId: 'TEST001', defect: ['All OK'], defectMap: '[]' },
+  { process: 'before_hpcd', ...teams, trayId: 'TEST011', cellId: 'CELL11', channel: 3, hpcdLine: '5', defect: ['Dent'], comment: '', defectMap: '[]' },
   { process: 'formation', ...teams, trayId: 'TEST002', cellId: 'CELL1', channel: 1,
     jigLine: '3-1', hotJig: 1, defect: ['Scratch'], comment: 'Test photo',
     defectMap: '[{"x":0.5,"y":0.5}]', defectPhotoName: 'test.png',
@@ -99,12 +100,17 @@ await post({ process: 'startup_jig', ...teams, lines: ['3-1'], checkCompleted: '
   items: [{ item: 'Overall', status: 'No', comment: '' }] }, 400);
 const after = await get('startup_jig', 'records');
 assert.equal(after.data.length, before.data.length);
+const hpcdSaved = (await get('before_hpcd', 'records')).data.find(record => record.trayId === 'TEST011');
+assert.equal(hpcdSaved.hpcdLine, '5');
+await post({ process: 'before_hpcd', ...teams, trayId: 'TEST012', cellId: 'C', channel: 1, defect: ['Dent'], defectMap: '[]' }, 400);
+await post({ process: 'before_hpcd', ...teams, trayId: 'TEST012', cellId: 'C', channel: 1, hpcdLine: '7', defect: ['Dent'], defectMap: '[]' }, 400);
+console.log('PASS before HPCD line saved, required for defects and limited to 3-6');
 console.log('PASS validation and rollback');
 const summary = await (await fetch(base + '/api/summary')).json();
 const statusOf = name => summary.groups.flatMap(group => group.items).find(item => item.name === name)?.status;
 assert.equal(summary.result, 'success');
 assert.deepEqual(summary.groups.map(group => group.name), ['Appearance', 'Temperature', 'Maintenance', 'Start-up', 'IP check sheet', 'IR']);
-assert.equal(statusOf('Before HPCD'), 'ok');
+assert.equal(statusOf('Before HPCD'), 'bad', 'the before HPCD test record with Dent is a problem today');
 assert.equal(statusOf('Jig Formation'), 'bad');
 assert.equal(statusOf('HTA'), 'bad');
 assert.equal(statusOf('SHA'), 'idle');
@@ -113,4 +119,19 @@ assert.equal(statusOf('Resealing Machine'), 'ok');
 assert.equal(statusOf('IR'), 'bad');
 assert.ok(summary.reviews.pending > 0);
 console.log('PASS summary statuses');
+const statusOfView = async view => (await fetch(base + '/api/status?view=' + view)).json();
+const startupView = await statusOfView('startup');
+assert.equal(startupView.sheets.length, 7);
+assert.equal(startupView.days.at(-1), startupView.today);
+const jigToday = startupView.sheets.find(sheet => sheet.process === 'startup_jig').days.at(-1);
+assert.ok(jigToday.sheets >= 1 && jigToday.issues >= 1, 'jig sheet with "No" counts as an issue today');
+assert.equal(startupView.sheets.find(sheet => sheet.process === 'startup_resealing').days.at(-1).issues, 0);
+const tapeView = await statusOfView('maintenance');
+assert.equal(tapeView.lines.find(line => line.line === 'EOL 4-1').cells[0].days, 0, 'EOL 4-1 tape cleaning was done today');
+assert.equal(tapeView.lines.find(line => line.line === 'EOL 5-2').cells[0].days, null);
+const rubberView = await statusOfView('conductive');
+const eolIv = rubberView.modes.find(mode => mode.mode === 'EOL IV');
+assert.equal(eolIv.lines.find(line => line.line === '4-1').cells[eolIv.units.indexOf('2A')].days, 0);
+assert.equal((await fetch(base + '/api/status?view=nope')).status, 400);
+console.log('PASS start-up and maintenance status views');
 console.log('All 15 form types passed.');

@@ -28,7 +28,7 @@ function appearanceRecord(row) {
   return {
     id: row.id, date: row.date, team: row.team, operatorName: row.operatorName,
     trayId: row.trayId, cellId: row.cellId, channel: row.channel,
-    jigLine: row.jigLine, hotJig: row.hotJig, degasLine: row.degasLine,
+    jigLine: row.jigLine, hotJig: row.hotJig, degasLine: row.degasLine, hpcdLine: row.hpcdLine,
     defect: row.defects.join(', '), comment: row.comment,
     defectPhoto: row.defectPhoto, defectMap: JSON.stringify(row.defectMap || [])
   };
@@ -36,7 +36,7 @@ function appearanceRecord(row) {
 const appearanceSelect = [
   'a.id, a.recorded_at AS date, a.team, a.operator_name AS "operatorName",',
   'a.tray_id AS "trayId", a.cell_id AS "cellId", a.channel,',
-  'a.jig_line AS "jigLine", a.hot_jig AS "hotJig", a.degas_line AS "degasLine",',
+  'a.jig_line AS "jigLine", a.hot_jig AS "hotJig", a.degas_line AS "degasLine", a.hpcd_line AS "hpcdLine",',
   'a.defect_types AS defects, a.comment, a.defect_map AS "defectMap",',
   'CASE WHEN p.inspection_id IS NOT NULL THEN \'/api/photos/\' || a.id ELSE a.legacy_photo_url END AS "defectPhoto"',
   'FROM formation.appearance_inspections a',
@@ -106,14 +106,14 @@ async function rangeRecords(pool, process, params) {
   );
   return rows.rows;
 }
-async function startupRecords(pool, process) {
+export async function startupRecords(pool, process) {
   const rows = await pool.query(
     'SELECT c.id AS "checkId", i.position, c.recorded_at AS date, c.team, c.operator_name AS "operatorName", c.selector_type AS "selectorType", array_to_string(c.line_values, \', \') AS line, c.cdc_line AS "cdcLine", c.cdc_floor AS floor, c.check_completed AS "checkCompleted", c.frequency, i.item, i.status, i.comment FROM (SELECT * FROM formation.startup_checks WHERE process = $1 ORDER BY recorded_at DESC, id DESC LIMIT 1000) c JOIN formation.startup_check_items i ON i.check_id = c.id ORDER BY c.recorded_at ASC, c.id ASC, i.position ASC',
     [process]
   );
   return rows.rows.map(row => ({ ...row, line: process === 'startup_cdc' ? row.cdcLine : row.line }));
 }
-async function resealingRecords(pool) {
+export async function resealingRecords(pool) {
   const rows = await pool.query(
     'SELECT id, recorded_at AS date, operator_name AS "operatorName", shift, work_today AS work, inspection_status AS "inspectionStatus", cleaning_status AS "cleaningStatus", comment FROM (SELECT * FROM formation.resealing_checks ORDER BY recorded_at DESC, id DESC LIMIT 1000) r ORDER BY recorded_at ASC, id ASC'
   );

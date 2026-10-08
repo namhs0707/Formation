@@ -33,6 +33,12 @@ CREATE TABLE IF NOT EXISTS formation.appearance_inspections (
     CHECK (process <> 'degas' OR defect_types = ARRAY['All OK']::text[] OR degas_line IS NOT NULL)
 );
 
+-- Before HPCD line (3, 4, 5 or 6), added after the first release; records saved earlier have no line.
+ALTER TABLE formation.appearance_inspections ADD COLUMN IF NOT EXISTS hpcd_line varchar(16);
+ALTER TABLE formation.appearance_inspections DROP CONSTRAINT IF EXISTS appearance_hpcd_line_check;
+ALTER TABLE formation.appearance_inspections ADD CONSTRAINT appearance_hpcd_line_check
+    CHECK (hpcd_line IS NULL OR (process = 'before_hpcd' AND hpcd_line IN ('3', '4', '5', '6')));
+
 -- Images are kept in PostgreSQL, so a database backup also includes new photos.
 CREATE TABLE IF NOT EXISTS formation.appearance_photos (
     inspection_id bigint PRIMARY KEY REFERENCES formation.appearance_inspections(id) ON DELETE CASCADE,

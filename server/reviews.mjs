@@ -1,6 +1,6 @@
 // Confirmations and corrections of submitted records by part leaders, engineers and supervisors.
 // Original rows are never changed: corrections are appended to formation.record_reviews and applied on read.
-import { TEAMS, DEFECTS, TEMPERATURE_AREAS, TEMPERATURE_LABELS, CONDUCTIVE_UNITS_BY_MODE, IR_LOCATIONS, irResult } from './records.mjs';
+import { TEAMS, DEFECTS, HPCD_LINES, TEMPERATURE_AREAS, TEMPERATURE_LABELS, CONDUCTIVE_UNITS_BY_MODE, IR_LOCATIONS, irResult } from './records.mjs';
 import { REVIEWER_ROLES } from './auth.mjs';
 
 const APPEARANCE = new Set(['before_hpcd', 'formation', 'degas']);
@@ -34,6 +34,8 @@ function fieldsFor(type, row) {
         { key: 'jig_line', label: 'Jig line', kind: 'text', max: 16, optional: true, prop: 'jigLine' },
         { key: 'hot_jig', label: 'Hot jig', kind: 'number', integer: true, min: 1, optional: true, prop: 'hotJig' }] : []),
       ...(row.process === 'degas' ? [{ key: 'degas_line', label: 'Degas line', kind: 'text', max: 16, optional: true, prop: 'degasLine' }] : []),
+      // Blank is allowed because records saved before the line was added have none.
+      ...(row.process === 'before_hpcd' ? [{ key: 'hpcd_line', label: 'HPCD line', kind: 'choice', options: ['', ...HPCD_LINES], prop: 'hpcdLine' }] : []),
       comment];
   }
   if (type === 'hta_readings') {
